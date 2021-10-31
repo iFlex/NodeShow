@@ -58,15 +58,16 @@ for (const prezzoId of Presentations.list()) {
 
 function newPrezzo() {
   let prezzo = Presentations.createNew()
-  presentations[rezzo.id] = {"id":prezzo.id, sockets:{}, presentation: prezzo}
+  presentations[prezzo.id] = {"id":prezzo.id, sockets:{}, presentation: prezzo}
 
-  return rezzo.id;
+  return prezzo.id;
 }
 
 dispatcher.onGet("/new", function(req, res) {
   let id = newPrezzo();
   res.writeHead(200, {'Content-Type': 'text/html'});
-  res.end(`${id}`);
+  res.write(id);
+  res.end();
 });
   
 //Interface endpoint allowing injections into presentations by other apps

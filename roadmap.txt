@@ -1,5 +1,9 @@
-Client
+Project
+* Package
+* Dockerize
+* Deploy
 
+Client
 TestInjector - App
     - cursor, selection, insert, delete
 
