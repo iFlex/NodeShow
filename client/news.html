@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <title>News Stand</title>
+  </head>
+  <body>
+    <div id="news-viewport" class="news-feed-viewport">
+      
+      <div id="Science" class="news-feed-category">
+        <h2>Science</h2>
+        <div id="ciuperci" class="news-feed-card">
+          <p>Ciupercile vindecatoare sunt niste chestii misto de tot</p>
+          <img src="https://www.auchan.ro/public/images/h64/hba/h00/ciuperci-champignon-albe-250-g-8905166454814.jpg"/>
+        </div>
+        <div id="ciuperci" class="news-feed-card">
+          <p>Ciupercile vindecatoare sunt niste chestii misto de tot</p>
+          <img src="https://www.auchan.ro/public/images/h64/hba/h00/ciuperci-champignon-albe-250-g-8905166454814.jpg"/>
+        </div>
+        <div id="ciuperci" class="news-feed-card">
+          <p>Ciupercile vindecatoare sunt niste chestii misto de tot</p>
+          <img src="https://www.auchan.ro/public/images/h64/hba/h00/ciuperci-champignon-albe-250-g-8905166454814.jpg"/>
+        </div>
+      </div>
+      
+      <div id="Technology" class="news-feed-category">
+        <h2>Technology</h2>
+      </div>
+      
+      <div id="Romania" class="news-feed-category">
+        <h2>Romania</h2>
+      </div>
+      
+      <div id="Social" class="news-feed-category">
+        <h2>Social</h2>
+      </div>
+
+    </div>
+  </body>
+
+  <script src="ngps.js"></script>
+  <script src="ContainerMover.js"></script> 
+  <script type="text/javascript">
+    let bridge = new LiveBridge(ngps);
+    bridge.registerSocketIo();
+
+    let ceditor = new ContainerMover(ngps);
+    let texter = new ContainerTextInjector(ngps);
+    let creator = new ContainerCreator(ngps);
+    
+    ceditor.enable()
+    texter.enable()
+    creator.enable()
+  </script>
+</html>

@@ -1,0 +1,44 @@
+Client
+
+TestInjector - App
+    - cursor, selection, insert, delete
+
+- Event System Wrapper (integrated with socket)
+ContainerMove - Done
+    - not working on mobile
+ContainerSize
+ContainerStyle (css tags)
+ContentConfig (choose things like position: relative, etc, wrapping)
+[core] AppManager (Load/Unload Start/Stop)
+
+Server
+
+1. Socket management - done
+2. Persisting presentation to file (DONE)
+ 2.1 - slowness in persistence layer causes packets to be lost between clients. If you beam a website it won't make a perfect copy anymore (indincating some loss of packets)
+ 2.2 - Load presentations from file
+ 2.3 - Beam presentations to new joiners (should be done via HTML rather than socket.io events)
+---------------------------------------------------------------------
+- Roles & Permissions system per prezzo & object 
+- Joining & Reloading presentation downloads the generated html file
+
+
+
+
+Server
+HTTP Server -------- Users
+                        persistence --- Persister (interface)
+                                        - FilePersister (impl)
+                                        - DbPersister (impl)
+                        Authorisation
+
+(IO Server) -------- Presentation Manager (Controller)
+                        [] Presentation (Controller)
+                            id
+                            users
+                            persistence   ---- Persister (interface)
+                                                - FilePersister (impl)
+                                                - SqlitePersister (impl)
+                                                - etc
+
+                            permissions   ---- Authorization Engine

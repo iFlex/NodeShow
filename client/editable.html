@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <title>This is the title of the webpage!</title>
+  </head>
+  <body>
+  </body>
+  <script src="ngps.js"></script>
+  <script src="ContainerMover.js"></script> 
+  <script src="ContainerTextInjector.js"></script> 
+  <script src="ContainerCreator.js"></script> 
+  <script type="text/javascript">
+    //setTimeout(e => {
+      let bridge = new LiveBridge(ngps);
+      bridge.registerSocketIo();
+
+      let ceditor = new ContainerMover(ngps);
+      let texter = new ContainerTextInjector(ngps);
+      let creator = new ContainerCreator(ngps);
+      ceditor.enable()
+      texter.enable()
+      creator.enable()
+    //}, 1000);
+  </script>
+</html>

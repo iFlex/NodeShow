@@ -1,0 +1,56 @@
+/* ContainerMover */
+.editable:hover {
+    border-width: 3px !important;
+    border-color: black !important;
+    border-style: dotted !important;
+}
+
+/* Text Injector */
+.text-document-line {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding:  0;
+}
+
+.news-feed-viewport {
+    width:  1780px;
+    height:  920px;
+
+    /*overflow-x: scroll;*/
+    /*overflow-y: hidden;*/
+
+    border-style: solid;
+    border-width: 5px;
+    border-color: red;
+
+    /*display: inline-table;*/
+    display: inline-flex;
+}
+
+.news-feed-category {
+    height: 100%;
+    width: 35%;
+
+    /*display: table-cell;*/
+
+    border-style: solid;
+    border-width: 5px;
+    border-color: black;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.news-feed-card: {
+    width: 100%;
+    height:  auto;
+    
+    border-style: solid;
+    border-width: 5px;
+    border-radius: 25px;
+    border-color: green;
+    padding: 10px;
+
+    overflow-x: hidden; 
+}
