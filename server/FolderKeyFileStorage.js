@@ -45,6 +45,7 @@ class FolderKeyFileStorage {
 			  console.error(e)
 			  FolderKeyFileStorage.initStorage(path);
 			} else {
+				//console.log(`Persist operation ${id}`)
 				// fs.rename(this.tmpFilePath, this.filePath, e => {
 
 				// });

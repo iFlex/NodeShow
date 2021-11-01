@@ -6,18 +6,18 @@
   </head>
   <body>
   </body>
-  <script src="ngps.js"></script>
-  <script src="ContainerMover.js"></script> 
-  <script src="ContainerTextInjector.js"></script> 
+  <script src="Container.js"></script>
+  <script src="ContainerMover.js"></script>
+  <script src="components/container.edit.text/main.js"></script>  
   <script src="ContainerCreator.js"></script> 
   <script type="text/javascript">
     //setTimeout(e => {
-      let bridge = new LiveBridge(ngps);
+      let bridge = new LiveBridge(container);
       bridge.registerSocketIo();
 
-      let ceditor = new ContainerMover(ngps);
-      let texter = new ContainerTextInjector(ngps);
-      let creator = new ContainerCreator(ngps);
+      let ceditor = new ContainerMover(container);
+      let texter = new ContainerTextInjector(container);
+      let creator = new ContainerCreator(container);
       ceditor.enable()
       texter.enable()
       creator.enable()

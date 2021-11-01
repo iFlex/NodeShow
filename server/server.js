@@ -3,7 +3,7 @@ const SERVER="http://localhost:"+PORT+"/";
 const NGPS_LOCATION = "../client"
 const NGPS_ENTRYPOINT = NGPS_LOCATION + "/index.html";
 const USER_STORAGE = '../users'
-const PERSIST_LOCATION = '../prezzos/'
+const PERSIST_LOCATION = '../prezzos'
 
 //HTTP
 const http = require('http');
@@ -35,6 +35,7 @@ const UserStorage = new FileStorage(USER_STORAGE);
 const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Users = new UserBase(UserStorage);
 const Presentations = new PresentationBase(PresentationStorage);
+const Events = require('./NodeShowEvents')
 
 var utils = new (function(){
   this.makeAuthToken = function(length){
@@ -72,13 +73,14 @@ dispatcher.onGet("/new", function(req, res) {
   
 //Interface endpoint allowing injections into presentations by other apps
 //this is to achieve news-stand functionality
-dispatcher.onPut('/inject', function(req, res) {
-  console.log("Robot injects into presentation")
+dispatcher.onPost('/inject', function(req, res) {
   let injection = JSON.parse(req.body)
-  let perzzo = presentations[injection.pid]
+  let prezzo = presentations[injection.presentationId]
   if (prezzo) {
-    prezzo.presentation.update(injection.displayUnit);
-    broadcast("_robot", ['update',injection.data], prezzo.sockets);
+    console.log(`Robot injects into presentation ${injection.presentationId}`)
+  
+    prezzo.presentation.update(injection);
+    broadcast(null, ['update', JSON.stringify(injection)], prezzo.sockets);
     
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end();
@@ -237,7 +239,7 @@ function sendPresentationToNewUser(socket, prezzo) {
   for (const node of nodes) {
     socket.emit('update', JSON.stringify({
       presentationId: prezzo.id,
-      event:"ngps.createSerialized",
+      event: Events.CONTAINER_CREATE,
       detail: {
           parentId: node.parentId,
           descriptor:node.descriptor

@@ -1,3 +1,6 @@
+const Events = require('./NodeShowEvents')
+console.log(Events)
+
 class Presentation {
 
 	constructor (id, storage) {
@@ -19,8 +22,13 @@ class Presentation {
 	buildRelations() {
 		for (const [key, value] of Object.entries(this.rawData)) {
 			//keep relations
+			if (!(value.parentId in this.relations)) {
+	        	this.relations[value.parentId] = {}	
+	        }
 	        this.relations[value.parentId][key] = true;
-	        if (!value.parentId) { 
+	        
+	        //define roots
+	        if (this.isParentNode(value.parentId)) { 
 	        	this.roots[key] = true;
 	        }
 		}
@@ -29,17 +37,22 @@ class Presentation {
 	update(data) {
         //ToDo: plug in logic to check if op is allowed
         try{
-        	if (data.event == 'ngps.createSerialized') {
+        	if (data.event == Events.CONTAINER_CREATE || data.event == Events.INJECTION) {
 	        	let child = data.detail.descriptor;
+		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
-		        this.rawData[child.id]['parentId'] = data.parentId
+		        this.rawData[child.id]['parentId'] = parentId
 
 		        //keep relations
-		        this.relations[data.parentId][child.id] = true;
-		        if (!data.parentId) { 
+		        if (!(parentId in this.relations)) {
+		        	this.relations[parentId] = {}	
+		        }
+		        this.relations[parentId][child.id] = true;
+		        
+		        //track roots
+		        if (this.isParentNode(parentId)) { 
 		        	this.roots[child.id] = true;
 		        }
-
 	    	} else {
 	    		this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor;
 	    	}
@@ -68,13 +81,17 @@ class Presentation {
 	getNodesInOrder() {
 		let result = []
 		for (let root of Object.keys(this.roots)) {
-			result.push({parentId:undefined, descriptor:this.rawData[root]});
+			result.push({parentId:this.rawData[root].parentId, descriptor:this.rawData[root]});
 			for (const item of this.getInOrder(root)) {
 				result.push(item)	
 			}
 		}
 
 		return result;
+	}
+
+	isParentNode(id) {
+		return !id || !(id in this.rawData)
 	}
 }
 
