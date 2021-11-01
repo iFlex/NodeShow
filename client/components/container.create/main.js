@@ -1,5 +1,5 @@
 class ContainerCreator {
-	appId = 'container.create.delete'
+	appId = 'container.create'
 	container = null;
 	target = null;
 
@@ -57,3 +57,6 @@ class ContainerCreator {
 		}
 	}
 }
+
+let ccreator = new ContainerCreator(container);
+ccreator.enable()

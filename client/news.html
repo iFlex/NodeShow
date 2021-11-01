@@ -10,17 +10,9 @@
   </body>
 
   <script src="Container.js"></script>
-  <script src="ContainerMover.js"></script> 
+  <script src="components/container.edit.pos/main.js"></script>
   <script type="text/javascript">
     let bridge = new LiveBridge(container);
     bridge.registerSocketIo();
-
-    let ceditor = new ContainerMover(container);
-    let texter = new ContainerTextInjector(container);
-    let creator = new ContainerCreator(container);
-    
-    ceditor.enable()
-    texter.enable()
-    creator.enable()
   </script>
 </html>

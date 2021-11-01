@@ -22,14 +22,10 @@
   <!-- <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous"></script> -->
   </body>
   <script src="Container.js"></script>
-  <script src="ContainerMover.js"></script> 
+  <script src="components/container.edit.pos/main.js"></script> 
   <script src="components/container.edit.text/main.js"></script> 
   <script type="text/javascript">
-    //setTimeout(e => {
-      let ceditor = new ContainerMover(container);
-      ceditor.enable()
-      let bridge = new LiveBridge(container);
-      bridge.registerSocketIo();
-    //}, 1000);
+    let bridge = new LiveBridge(container);
+    bridge.registerSocketIo();
   </script>
 </html>

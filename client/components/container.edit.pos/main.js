@@ -78,3 +78,5 @@ class ContainerMover {
 	}
 }
 
+let cmover = new ContainerMover(container);
+cmover.enable()

@@ -1,5 +1,5 @@
-class ContainerSizeNRotate {
-	appId = 'container.edit.size.n.rotation'
+class ContainerStyler {
+	appId = 'container.edit.style'
 	container = null;
 	
 	constructor (container) {
@@ -7,3 +7,6 @@ class ContainerSizeNRotate {
 		container.registerComponent(this.appId, this);
 	}
 }
+
+let cstyler = new ContainerStyler(container);
+cstyler.enable()
