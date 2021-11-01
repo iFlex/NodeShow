@@ -22,12 +22,10 @@ const io = require('socket.io')(server,{
 });
 const HttpDispatcher = require('httpdispatcher');
 const fs = require('fs');
-const path = require('path');
 const dispatcher = new HttpDispatcher();
 const HttpUtils = require('./HttpUtils')
 const FileStorage = require('./FileStorage')
 const UserBase = require('./UserBase')
-const Presentation = require('./presentation')
 const PresentationBase = require('./PresentationBase');
 const FolderKeyFileStorage = require('./FolderKeyFileStorage')
 
@@ -35,7 +33,7 @@ const UserStorage = new FileStorage(USER_STORAGE);
 const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Users = new UserBase(UserStorage);
 const Presentations = new PresentationBase(PresentationStorage);
-const Events = require('./NodeShowEvents')
+const Events = require('./NodeShowEvents');
 
 var utils = new (function(){
   this.makeAuthToken = function(length){
@@ -70,22 +68,6 @@ dispatcher.onGet("/new", function(req, res) {
   res.write(id);
   res.end();
 });
-  
-//Interface endpoint allowing injections into presentations by other apps
-//this is to achieve news-stand functionality
-dispatcher.onPost('/inject', function(req, res) {
-  let injection = JSON.parse(req.body)
-  let prezzo = presentations[injection.presentationId]
-  if (prezzo) {
-    console.log(`Robot injects into presentation ${injection.presentationId}`)
-  
-    prezzo.presentation.update(injection);
-    broadcast(null, ['update', JSON.stringify(injection)], prezzo.sockets);
-    
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end();
-  }
-})
 
 dispatcher.onGet("/", function(req, res) {
   const queryObject = url.parse(req.url, true).query;
@@ -200,7 +182,13 @@ function findUserBySocket(socket, prezzo){
   return null;
 }
 
+function isRobot(socket) {
+  //ToDo: implement
+  return true;
+}
+
 function handleBridgeUpdate(data) {
+  console.log("Received update");
   let parsed = JSON.parse(data);
   let prezId = parsed.presentationId;
   let userId = parsed.userId;
@@ -211,7 +199,7 @@ function handleBridgeUpdate(data) {
     let originSocket = prezzo.sockets[userId];
     console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
 
-    if(originSocket) {
+    if(originSocket || isRobot(originSocket)) {
       //update in memory model of prezzo      
       prezzo.presentation.update(parsed);
       broadcast(userId, ['update',data], prezzo.sockets);
