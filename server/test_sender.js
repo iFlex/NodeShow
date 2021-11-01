@@ -66,6 +66,7 @@ function sendInject (pid, parentId, unserialized) {
 function sendCategory (pid, name) {
   let cat = clone(category)
   cat.id = name
+  cat.innerHTML = `<h1>${name}</h1>`
 
   sendInject(pid, "news-viewport", cat)
 }
@@ -83,13 +84,13 @@ function newPrezzo() {
 }
 
 
-let pid = 'cPrqq'
+let pid = 'YLnOU'
 
 sendCategory(pid, "Science")
 sendCategory(pid, "Technology")
 sendCategory(pid, "Politics")
 
-let dummyhtml = "<h1>Asta e un titlu frumos</h1><p>Sa ma sugi de pula ba Salame...</p>"
+let dummyhtml = "<h3>Asta e un titlu frumos</h3><p>Sa ma sugi de pula ba Salame...</p>"
 sendArticle(pid, "Science", "Morcovi fierti", "caca.com", dummyhtml)
 sendArticle(pid, "Science", "Telina Fiarta", "caca.com", dummyhtml)
 sendArticle(pid, "Science", "Cur fiert", "caca.com", dummyhtml)
