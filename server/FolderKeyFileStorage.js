@@ -24,14 +24,13 @@ class FolderKeyFileStorage {
 	}
 
 	get (id) {
-		let path = FolderKeyFileStorage.getLatestWrittenFile(
-			FolderKeyFileStorage.getValuePath(this.rootDir, id)
-		);
+		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id)
+		let filename = path +"/" +FolderKeyFileStorage.getLatestWrittenFile(path);
 
 		try {	
-			return JSON.parse(fs.readFileSync(path, 'utf8'))
+			return JSON.parse(fs.readFileSync(filename, 'utf8'))
 		} catch (e) {
-			console.error(`Failed to locate storage file ${path}`)
+			console.error(`Failed to locate storage file ${filename}`)
 			console.error(e)
 		}
 		return null

@@ -3,7 +3,7 @@ console.log(Events)
 
 class Presentation {
 
-	constructor (id, storage) {
+	constructor (id, storage, failOnNoStorage) {
 		this.id = id;
 		this.storage = storage;
 
@@ -12,6 +12,9 @@ class Presentation {
 		this.relations = {undefined:{}};
 
 		if (!this.rawData) {
+			if (failOnNoStorage) {
+				throw `Failed to load ${id}`
+			}
 			this.rawData = {}
 		}
 

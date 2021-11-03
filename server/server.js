@@ -35,6 +35,9 @@ const Users = new UserBase(UserStorage);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
 
+dispatcher.setStatic("/");
+dispatcher.setStaticDirname(NGPS_LOCATION);
+
 var utils = new (function(){
   this.makeAuthToken = function(length){
     token = "";
@@ -69,20 +72,20 @@ dispatcher.onGet("/new", function(req, res) {
   res.end();
 });
 
-dispatcher.onGet("/", function(req, res) {
-  const queryObject = url.parse(req.url, true).query;
-  console.log(queryObject);
+// dispatcher.onGet("/", function(req, res) {
+//   const queryObject = url.parse(req.url, true).query;
+//   console.log(queryObject);
 
-  try{
-    let file = fs.readFileSync(NGPS_ENTRYPOINT);
-    res.writeHead(200, {'Content-Type': "text/html"});
-    res.write(file);
-    res.end();
-  }catch(e){
-    console.log("Error locating:"+url);
-    file = 0;
-  } 
-});
+//   try{
+//     let file = fs.readFileSync(NGPS_ENTRYPOINT);
+//     res.writeHead(200, {'Content-Type': "text/html"});
+//     res.write(file);
+//     res.end();
+//   }catch(e){
+//     console.log("Error locating:"+url);
+//     file = 0;
+//   } 
+// });
 
 
 dispatcher.onGet("/edit", function(req, res) {
@@ -101,34 +104,21 @@ dispatcher.onGet("/edit", function(req, res) {
 });
 
 function handleRequest(request, response){
+    console.log(`${request.method} - ${request.url}`)
     try {
       
-      var wasStatic = false;
-      if(request.method.toLowerCase() == "get") {
-          //static content server
-          wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
-      }
+      // var wasStatic = false;
+      // if(request.method.toLowerCase() == "get") {
+      //     //static content server
+      //     wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
+      // }
 
-      if (!wasStatic) {
-        dispatcher.dispatch(request, response);
-      }
-
+      // if (!wasStatic) {
+      dispatcher.dispatch(request, response);
+      //}
     } catch(err) {
         console.log(err.stack);
     }
-}
-
-
-function notifyRemoteRegistration(audience){
-  var data = {action:"notification",info:"NEW_REMOTE"};
-  try {
-    console.log("Notifying appearenece of new remote");
-    audience[0].emit("live",JSON.stringify(data));
-  } catch (e) {
-    console.log("Failed to notify audience of new remote registration");
-    console.log(e);
-    return;
-  }
 }
 
 io.on('connection', function (socket) {

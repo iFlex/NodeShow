@@ -7,12 +7,16 @@ class PresentationBase {
 		let keys = this.storage.list();
 
 		for (let key of keys) {
-			let prezzo = this.createNew(key);
-			this.presentations[key] = prezzo
+			try {
+				let prezzo = this.createNew(key, true);
+				this.presentations[key] = prezzo
+			} catch (e) {
+				console.error(`Failed to load prezzo ${key} - ${e}`)
+			}
 		}
 	}
 
-	createNew(tag) {
+	createNew(tag, failOnNoStorage) {
 		if (!tag) {
 			tag = PresentationBase.makeId(5);
 			if (this.storage.get(tag)) {
@@ -20,7 +24,7 @@ class PresentationBase {
 			}	
 		}
 
-		let prezzo = new Presentation(tag, this.storage);
+		let prezzo = new Presentation(tag, this.storage, failOnNoStorage);
 		return prezzo;
 	}
 
