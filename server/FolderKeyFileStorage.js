@@ -4,12 +4,18 @@ class FolderKeyFileStorage {
 	
 	constructor (rootDir) {
 		this.rootDir = rootDir;
-		this.updatesQueue = {}
+		this.updatesQueue = []
 
 		FolderKeyFileStorage.initStorage(rootDir);
 		let context = this;
+
+		let lock = false;
 		this.interval = setInterval(function (e) {
-			context.persist();
+			if (!context.lock) {
+				context.lock = true;
+				context.persist();
+				context.lock = false;
+			}
 		}, 1000);	
 	}
 	
@@ -32,34 +38,36 @@ class FolderKeyFileStorage {
 	}
 
 	put (id, data) {
-		this.updatesQueue[id] = data
+		this.updatesQueue.push({id:id, data:data})
 	}
 
 	writeFile (id, data) {
 		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
 		let filename = `${path}/${Date.now()}.json`
-
-		fs.writeFile(filename, JSON.stringify(data), e => {
-			if (e) {	
-			  console.log("Failure during file operation on persist");
-			  console.error(e)
-			  FolderKeyFileStorage.initStorage(path);
-			} else {
-				let oldVersions = FolderKeyFileStorage.getAllVersions(path)
-				for(let old of oldVersions) {
-					let oldPth = path+"/"+old
-					if (oldPth != filename) {
-						fs.unlinkSync(oldPth)
-					}
+		
+		try{
+			fs.writeFileSync(filename, JSON.stringify(data));
+			let oldVersions = FolderKeyFileStorage.getAllVersions(path)
+			for(let old of oldVersions) {
+				let oldPth = path+"/"+old
+				if (oldPth != filename) {
+					fs.unlinkSync(oldPth)
 				}
 			}
-		});
+		} catch (e) {
+			console.log(`Failure during persist for ${id} - ${e}`)
+			FolderKeyFileStorage.initStorage(path)
+		}
 	}
 
 	persist () {
-		for (const [key, prezzoData] of Object.entries(this.updatesQueue)) {
-			this.writeFile(key, prezzoData);
+		let start = Date.now()
+		while (this.updatesQueue.length > 0) {
+			let update = this.updatesQueue.pop();
+			this.writeFile(update.id, update.data);
 		}
+		let end = Date.now()
+		console.log(`Persiste step took: ${end - start}ms`)
 	}
 
 	static getAllVersions(dir) {
