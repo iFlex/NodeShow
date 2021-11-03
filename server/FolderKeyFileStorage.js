@@ -18,7 +18,7 @@ class FolderKeyFileStorage {
 	}
 
 	get (id) {
-		let path = FolderKeyFileStorage.getMainStorageFilePath(
+		let path = FolderKeyFileStorage.getLatestWrittenFile(
 			FolderKeyFileStorage.getValuePath(this.rootDir, id)
 		);
 
@@ -37,7 +37,7 @@ class FolderKeyFileStorage {
 
 	writeFile (id, data) {
 		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
-		let filename = FolderKeyFileStorage.getMainStorageFilePath(path)
+		let filename = `${path}/${Date.now()}.json`
 
 		fs.writeFile(filename, JSON.stringify(data), e => {
 			if (e) {	
@@ -45,10 +45,13 @@ class FolderKeyFileStorage {
 			  console.error(e)
 			  FolderKeyFileStorage.initStorage(path);
 			} else {
-				//console.log(`Persist operation ${id}`)
-				// fs.rename(this.tmpFilePath, this.filePath, e => {
-
-				// });
+				let oldVersions = FolderKeyFileStorage.getAllVersions(path)
+				for(let old of oldVersions) {
+					let oldPth = path+"/"+old
+					if (oldPth != filename) {
+						fs.unlinkSync(oldPth)
+					}
+				}
 			}
 		});
 	}
@@ -59,8 +62,21 @@ class FolderKeyFileStorage {
 		}
 	}
 
-	static getMainStorageFilePath(dir) {
-		return dir + "/" + "raw.json";
+	static getAllVersions(dir) {
+		return fs.readdirSync(dir);
+	}
+
+	static getLatestWrittenFile(dir) {
+		try {
+			let list = fs.readdirSync(dir).sort();
+			if (list.length == 0) {
+				return undefined
+			}
+
+			return list[list.length - 1]
+		} catch(e) {
+			return undefined
+		}
 	}
 
 	static getValuePath(dir, id) {
