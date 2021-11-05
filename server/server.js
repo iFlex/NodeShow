@@ -13,10 +13,26 @@ console.log(`NodeShow client: ${NGPS_LOCATION}`)
 console.log(`Presentation Storage: ${PERSIST_LOCATION}`)
 
 //HTTP
-const http = require('http');
+const https = require('https');
 const url = require('url');
-const server = http.createServer(handleRequest);
-const io = require('socket.io')(server,{  
+const fs = require('fs');
+
+if (!process.env.TLS_CERT_KEY || !process.env.TLS_CERT) {
+  console.log("Please provide environment variables for the HTTPS server TLS config")
+  console.log("TLS_CERT: path to certificate")
+  console.log("TLS_CERT_KEY: path to the key file")
+  process.exit(0)
+}
+
+const options = {
+  key: fs.readFileSync(process.env.TLS_CERT_KEY),
+  cert: fs.readFileSync(process.env.TLS_CERT),
+  ciphers: "DEFAULT:!SSLv2:!RC4:!EXPORT:!LOW:!MEDIUM:!SHA1"
+};
+
+const server = https.createServer(options, handleRequest);
+
+const io = require('socket.io')(server, {  
   cors: {
     //origin: "https://example.com",
     methods: ["GET", "POST"],
@@ -28,7 +44,6 @@ const io = require('socket.io')(server,{
   }
 });
 const HttpDispatcher = require('httpdispatcher');
-const fs = require('fs');
 const dispatcher = new HttpDispatcher();
 const HttpUtils = require('./HttpUtils')
 const FileStorage = require('./FileStorage')
@@ -233,5 +248,5 @@ function sendPresentationToNewUser(socket, prezzo) {
 
 //listen
 server.listen(PORT, function(){
-    console.log("Server listening on: http://localhost:%s", PORT);
+    console.log("Server listening on: https://localhost:%s", PORT);
 });

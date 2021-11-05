@@ -383,7 +383,7 @@
 
     	registerSocketIo() {
     		console.log(`Registering Live Bridge via SocketIo ${this.host}`);
-    		this.socket = io(`ws://${this.host}`)
+    		this.socket = io(`https://${this.host}`)
     		this.socket.emit('register', JSON.stringify({"presentationId":this.ngps.presentationId}));
 
     		this.socket.on('register', d => {
