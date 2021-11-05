@@ -1,9 +1,16 @@
-const PORT=8080;
-const SERVER="http://localhost:"+PORT+"/";
-const NGPS_LOCATION = "../client"
+const process = require('process')
+
+const PORT= process.env.PORT || 8080;
+const SERVER=`http://localhost:${PORT}/`;
+const NGPS_LOCATION = process.env.NODE_SHOW_CLIENT_HOME || "../client"
 const NGPS_ENTRYPOINT = NGPS_LOCATION + "/index.html";
-const USER_STORAGE = '../users'
-const PERSIST_LOCATION = '../prezzos'
+const USER_STORAGE = process.env.USER_STORAGE_HOME || '../users'
+const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../prezzos'
+
+console.log(`Configured NodeShow server with`)
+console.log(`Server config: ${SERVER}`)
+console.log(`NodeShow client: ${NGPS_LOCATION}`)
+console.log(`Presentation Storage: ${PERSIST_LOCATION}`)
 
 //HTTP
 const http = require('http');
@@ -35,8 +42,8 @@ const Users = new UserBase(UserStorage);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
 
-dispatcher.setStatic("/");
-dispatcher.setStaticDirname(NGPS_LOCATION);
+//dispatcher.setStatic("/");
+//dispatcher.setStaticDirname(NGPS_LOCATION);
 
 var utils = new (function(){
   this.makeAuthToken = function(length){
@@ -106,18 +113,16 @@ dispatcher.onGet("/edit", function(req, res) {
 function handleRequest(request, response){
     console.log(`${request.method} - ${request.url}`)
     try {
-      
-      // var wasStatic = false;
-      // if(request.method.toLowerCase() == "get") {
-      //     //static content server
-      //     wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
-      // }
-
-      // if (!wasStatic) {
-      dispatcher.dispatch(request, response);
-      //}
+      var wasStatic = false;
+      if(request.method.toLowerCase() == "get") {
+        //static content server
+        wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
+      }
+      if (!wasStatic) {
+        dispatcher.dispatch(request, response);
+      }
     } catch(err) {
-        console.log(err.stack);
+      console.log(err.stack);
     }
 }
 
