@@ -10,9 +10,23 @@
   </body>
 
   <script src="Container.js"></script>
-  <!--<script src="components/container.edit.pos/main.js"></script>-->
+  <script src="components/container.edit.pos/main.js"></script>
   <script type="text/javascript">
     let bridge = new LiveBridge(container);
     bridge.registerSocketIo();
+
+    //experimental
+    function resizeBody() {
+      let w = window.innerWidth;
+      let h = window.innerHeight;
+      console.log(`Resizing to ${w}x${h}`)
+
+
+      let element = document.body; //document.querySelector("#news-viewport")
+      element.style.width = (w*0.99) + "px";
+      element.style.height = (h*0.99) + "px";
+    }
+    window.addEventListener('resize', resizeBody);
+    resizeBody();
   </script>
 </html>
