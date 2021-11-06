@@ -56,6 +56,7 @@ const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Users = new UserBase(UserStorage);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
+const SecurityFilter = require('./SecurityFilter')
 
 //dispatcher.setStatic("/");
 //dispatcher.setStaticDirname(NGPS_LOCATION);
@@ -200,19 +201,21 @@ function isRobot(socket) {
 function handleBridgeUpdate(data) {
   console.log("Received update");
   let parsed = JSON.parse(data);
+  
   let prezId = parsed.presentationId;
   let userId = parsed.userId;
-
   let prezzo = presentations[prezId];
 
-  if (prezzo){
+  if (prezzo) {
+    //filter with side-effects
+    SecurityFilter.filterUpdate(parsed);
+    
     let originSocket = prezzo.sockets[userId];
     console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
 
     if(originSocket || isRobot(originSocket)) {
-      //update in memory model of prezzo      
       prezzo.presentation.update(parsed);
-      broadcast(userId, ['update',data], prezzo.sockets);
+      broadcast(userId, ['update', JSON.stringify(parsed)], prezzo.sockets);
     }
   }
 }
