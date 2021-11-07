@@ -49,7 +49,7 @@ class FolderKeyFileStorage {
 			let oldVersions = FolderKeyFileStorage.getAllVersions(path)
 			for(let old of oldVersions) {
 				let oldPth = path+"/"+old
-				if (oldPth != filename) {
+				if (filename && oldPth != filename) {
 					fs.unlinkSync(oldPth)
 				}
 			}

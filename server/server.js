@@ -46,14 +46,17 @@ const io = require('socket.io')(server, {
 const HttpDispatcher = require('httpdispatcher');
 const dispatcher = new HttpDispatcher();
 const HttpUtils = require('./HttpUtils')
-const FileStorage = require('./FileStorage')
 const UserBase = require('./UserBase')
 const PresentationBase = require('./PresentationBase');
+//Storage
+const FileStorage = require('./FileStorage')
 const FolderKeyFileStorage = require('./FolderKeyFileStorage')
+//const RAMStorage = require('./RAMKeyStorage')
 
 const UserStorage = new FileStorage(USER_STORAGE);
-const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Users = new UserBase(UserStorage);
+
+const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
 const SecurityFilter = require('./SecurityFilter')
@@ -90,6 +93,8 @@ function newPrezzo() {
 
 dispatcher.onGet("/new", function(req, res) {
   let id = newPrezzo();
+  console.log(`Created new prezzo ${id}`)
+  
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(id);
   res.end();

@@ -15,4 +15,6 @@ function filterUpdate(update) {
     descriptor.innerHTML = filterScriptsFromHTML(descriptor.innerHTML)
 }
 
-module.exports = filterUpdate
+module.exports = {
+    filterUpdate:filterUpdate
+}
