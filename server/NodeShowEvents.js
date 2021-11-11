@@ -3,7 +3,6 @@ let NodeShowEvents = {
 	CONTAINER_MOVE:"",
 	UPDATE:"container.update",
 	DELETE:'container.delete',
-	INJECTION:"inject"
 }
 
 module.exports = NodeShowEvents

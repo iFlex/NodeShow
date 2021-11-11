@@ -78,7 +78,7 @@ class Presentation {
 	update(data) {
         //ToDo: plug in logic to check if op is allowed
         try{
-			if (data.event == Events.CONTAINER_CREATE || data.event == Events.INJECTION) {
+			if (data.event == Events.CONTAINER_CREATE) {
 	        	let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
@@ -88,6 +88,10 @@ class Presentation {
 
 				if (parentId) {
 					this.rawData[child.id]['parentId'] = parentId
+					if (!this.rawData[parentId]) {
+						this.roots[parentId] = true
+						this.rawData[parentId] = {id:parentId, children:{}}
+					}
 					this.rawData[parentId].children[child.id] = true
 				}
 		        
