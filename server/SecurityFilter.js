@@ -12,7 +12,9 @@ function filterScriptsFromHTML(html) {
 function filterUpdate(update) {
     let descriptor = update.detail.descriptor
     //Filter innerHTML
-    descriptor.innerHTML = filterScriptsFromHTML(descriptor.innerHTML)
+    if (descriptor) {
+        descriptor.innerHTML = filterScriptsFromHTML(descriptor.innerHTML)
+    }
 }
 
 module.exports = {

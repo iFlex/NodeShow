@@ -2,6 +2,7 @@ class ContainerCreator {
 	appId = 'container.create'
 	container = null;
 	target = null;
+	#control = false;
 
 	constructor (container) {
 		this.container = container;
@@ -9,14 +10,17 @@ class ContainerCreator {
 	}
 
 	enable() {
-		document.addEventListener('keydown',(e) => this.handleKeyPress(e))
+		document.addEventListener('keydown',(e) => this.keyDown(e))
+		document.addEventListener('keyup',(e) => this.keyUp(e))
 		
 	    document.addEventListener('container.edit.pos.selected', e => this.target = this.container.lookup(e.detail.id));
 		document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
 	}
 
 	disable() {
-		document.removeEventListener('keydown',(e) => this.handleKeyPress(e))
+		document.addRemoveListener('keydown',(e) => this.keyDown(e))
+		document.addRemoveListener('keyup',(e) => this.keyUp(e))
+
 		document.removeEventListener('container.edit.pos.selected', e => this.target = this.container.lookup(e.detail.id));
 		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
 	}
@@ -33,26 +37,45 @@ class ContainerCreator {
 
 	create () {
 		console.log("Creating child");
-
 		if (!this.target) {
 			this.target = this.container.parent
 		}
 		//clone last child
-		let lastChild = this.container.parent.lastChild;
-		if (lastChild) {
+		let lastChild = this.target.lastChild;
+		if (lastChild && lastChild.nodeName != '#text') {
+			console.log("Last child")
+			console.log(lastChild)
 			let newNode = lastChild.cloneNode();
 			this.container.addDomChild(this.target.id, newNode)
-			return;
 		} else {
 			console.log("No children");
+			let div = {
+				"nodeName":"div",
+				"computedStyle":{
+					'width':'35%',
+					'height':'35%',
+					'margin': '5px',
+					'padding': '5px',
+					'background-color':'grey'}
+			}
+			this.container.createFromSerializable(this.target.id, div)
 		}
 	}
 
-	handleKeyPress(e) {
+	keyDown(e) {
+		if(e.key == 'Control') {
+			this.#control = true;
+		}
 		if (e.key == 'Delete') {
 			this.delete();
 		}
-		if (e.key == '+') {
+	}
+
+	keyUp(e) {
+		if(e.key == 'Control') {
+			this.#control = false;
+		}
+		if (e.key == 'Insert' && this.#control) {
 			this.create();
 		}
 	}

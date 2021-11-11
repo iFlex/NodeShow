@@ -204,7 +204,6 @@ function isRobot(socket) {
 }
 
 function handleBridgeUpdate(data) {
-  console.log("Received update");
   let parsed = JSON.parse(data);
   
   let prezId = parsed.presentationId;
@@ -212,13 +211,12 @@ function handleBridgeUpdate(data) {
   let prezzo = presentations[prezId];
 
   if (prezzo) {
-    //filter with side-effects
-    SecurityFilter.filterUpdate(parsed);
-    
     let originSocket = prezzo.sockets[userId];
-    console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
-
     if(originSocket || isRobot(originSocket)) {
+      console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
+      //filter with side-effects
+      SecurityFilter.filterUpdate(parsed);    
+    
       prezzo.presentation.update(parsed);
       broadcast(userId, ['update', JSON.stringify(parsed)], prezzo.sockets);
     }

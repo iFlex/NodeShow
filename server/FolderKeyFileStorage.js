@@ -40,6 +40,10 @@ class FolderKeyFileStorage {
 		this.updatesQueue.push({id:id, data:data})
 	}
 
+	remove(id) {
+		
+	}
+
 	writeFile (id, data) {
 		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
 		let filename = `${path}/${Date.now()}.json`
@@ -66,7 +70,7 @@ class FolderKeyFileStorage {
 			this.writeFile(update.id, update.data);
 		}
 		let end = Date.now()
-		console.log(`Persiste step took: ${end - start}ms`)
+		//console.log(`Persiste step took: ${end - start}ms`)
 	}
 
 	static getAllVersions(dir) {

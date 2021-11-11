@@ -21,6 +21,7 @@ Don't know for sure yet if this is feasable... (there are existing tools for suc
 
 Client
 -------------------------
+ContainerCollapser - a way to collapse containers in a smart way in order to enable a big picture & detailed picture view of the document
 Nice to have, maybe in the future whenever i have time:
 TestInjector - [status: Partial implementation]
 - Event System Wrapper (integrated with socket)
@@ -32,14 +33,9 @@ ContentConfig (choose things like position: relative, etc, wrapping)
 [core] AppManager (Load/Unload Start/Stop)
 
 Server
-
-Fix the aspect of chunked requests. Currently using httpdispatcher doesn't seem to support chunked requests.
-Socket.io chunking?
-
+0. Filter out all forms of scripts from beamed html
 1. Socket management
-
 2. Persisting presentation to file (DONE)
- 2.1 - slowness in persistence layer causes packets to be lost between clients. If you beam a website it won't make a perfect copy anymore (indincating some loss of packets)
  2.2 - Load presentations from file
  2.3 - Beam presentations to new joiners (should be done via HTML rather than socket.io events)
 ---------------------------------------------------------------------

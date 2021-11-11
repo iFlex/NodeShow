@@ -1,3 +1,4 @@
+//BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
 class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
@@ -5,7 +6,10 @@ class ContainerMover {
 	movable = "div, img, svg"
 	mouseEvents = ['mouseup','mousedown','mousemove']
 	touchEvents = ['touchstart','touchend', 'touchcancel', 'touchmove']
-
+	
+	#presenveRatio = false
+	#mode = 'move' //or size
+	
 	target = null;
 	selection = null;
 
@@ -14,31 +18,98 @@ class ContainerMover {
 
 	constructor (ngps) {
 		this.container = ngps;
+		this.#mode = 'move'
+
 		ngps.registerComponent(this.appId, this);
 	}
 
 	enable() {
-		for (const event of this.mouseEvents) {
-			$(this.movable).on(event, e => this.handleMouseEvent(e))
-		}
-		for (const event of this.touchEvents) {
-			$(this.movable).on(event, e => this.handleTouchEvent(e));
-		}
-		
-		$(this.movable).addClass("editable");
+		this.attachListeners(this.movable)
 		$('*').on('dragstart', function(event) { event.preventDefault(); });
+
+		document.addEventListener('container.created', e => {
+			console.log(`editor has now toy ${e.target.id}`)
+			this.attachListeners("#"+e.target.id)
+		});
+		//checking shift and ctrl
+		document.addEventListener("keydown", (e) => this.handleKeydown(e))
+		document.addEventListener("keyup",(e) => this.handleKeyUp(e))
+		document.addEventListener("mouseout", (e) => this.target = null)
 	}
 
-	disable() {
+	attachListeners(target) {
 		for (const event of this.mouseEvents) {
-			$(this.movable).off(event, e => this.handleMouseEvent(e))
+			$(target).on(event, e => this.handleMouseEvent(e))
+		}
+		for (const event of this.touchEvents) {
+			$(target).on(event, e => this.handleTouchEvent(e));
+		}
+		$(target).addClass("editable");
+	}
+
+	detachListeners(target) {
+		for (const event of this.mouseEvents) {
+			$(target).off(event, e => this.handleMouseEvent(e))
 		}
 		
 		for (const event of this.touchEvents) {
-			$(this.movable).off(event, e => this.handleTouchEvent(e));
+			$(target).off(event, e => this.handleTouchEvent(e));
+		}
+		$(target).removeClass("editable");
+	}
+
+	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
+	disable() {
+		this.detachListeners(this.movable)
+		document.addRemoveListener('container.created', e => this.attachListeners(e));
+		//checking shift and ctrl
+		document.addRemoveListener("keydown", (e) => this.handleKeydown(e))
+		document.addRemoveListener("keyup",(e) => this.handleKeyUp(e))
+		document.addRemoveListener("mouseout", (e) => this.target = null)
+	}
+
+	considerScale(id, dx, dy) {
+
+	}
+
+	//ToDo: consider dragging form all corners
+	keepRatio (id, w, h, dx, dy) {
+		let sign = 1
+		let dist = Math.sqrt((dx*dx) + (dy*dy))
+		let ratio = w/h; 
+		
+		if (Math.abs(dx) > Math.abs(dy)) {
+			if (dx < 0) {
+				sign = -1
+			}
+		} else {
+			if (dy < 0) {
+				sign = -1
+			}
+		}
+		//ToDo: figure out sign	
+		if (dx < 0 && dy < 0) {
+			sign = -1
 		}
 		
-		$(this.movable).removeClass("editable");
+		return {dx:(sign * ratio * dist), dy:(sign * dist)}
+	}
+
+	//ToDo: consider scale
+	modifyContainer(dx, dy) {
+		if (this.#mode == 'size') {
+			let w = this.container.getWidth(this.target.id)
+			let h = this.container.getHeight(this.target.id)
+			if (this.#presenveRatio) {
+				let change = this.keepRatio(this.target.id, w, h, dx, dy)
+				dx = change.dx;
+				dy = change.dy;
+			}
+			this.container.setWidth(this.target.id, w + dx);
+			this.container.setHeight(this.target.id, h + dy);
+		} else {
+			this.container.move(this.target.id, dx, dy)
+		} 
 	}
 
 	handleMouseEvent(event) {
@@ -51,13 +122,13 @@ class ContainerMover {
 			this.container.appEmit(this.appId,'selected',{id:this.target.id});
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
-			this.target = null;
+			this.target = null;//ToDo: smaller ratio preserving change amount
 		}
 		else if (this.target) {
 			let dx = event.originalEvent.screenX - this.lastX;
 			let dy = event.originalEvent.screenY - this.lastY;
 			
-			this.container.move(this.target.id, dx, dy)
+			this.modifyContainer(dx, dy)
 			
 			if(dx != 0 || dy != 0) {
 				this.selection = null;
@@ -75,6 +146,26 @@ class ContainerMover {
 
 	getClickedContainer() {
 		return this.selection;
+	}
+
+	handleKeydown(e) {
+		let key = e.key
+		if (key == 'Control') {
+			this.#mode = 'size';
+		}
+		if (key == 'Shift') {
+			this.#presenveRatio = true;
+		}
+	}
+
+	handleKeyUp(e) {
+		let key = e.key
+		if (key == 'Control') {
+			this.#mode = 'move';
+		}
+		if (key == 'Shift') {
+			this.#presenveRatio = false;
+		}
 	}
 }
 

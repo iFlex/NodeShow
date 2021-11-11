@@ -155,8 +155,11 @@ class Container {
 		this.emit("Container.init", {presentationId:this.presentationId});
 	}
 
-	setParent(childId, parentId) {
+	setParent(childId, parentId, callerId) {
         //ToDo permissions
+        //this.isOperationAllowed('container.delete', id, callerId);
+        this.isOperationAllowed('container.create', parent.id, callerId);
+        
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
         if (parent && child) {
@@ -167,18 +170,39 @@ class Container {
 	
 	setWidth(id, width, callerId) {
         this.isOperationAllowed('container.set.width', id, callerId);
-        //ToDo
+        
+        let prevWidth = this.getWidth(id);
+        jQuery(Container.lookup(id)).css({width: width});
+        this.emit("container.set.width", {
+            id: id, 
+            width: width, 
+            prevWidth: prevWidth,
+            callerId: callerId
+        });
 	}
 
 	setHeight(id, height, callerId) {
         this.isOperationAllowed('container.set.height', id, callerId);
-	   //ToDo
+        
+        let prevHeight = this.getHeight(id);
+        jQuery(Container.lookup(id)).css({height: height});
+        this.emit("container.set.height", {
+            id: id, 
+            height: height, 
+            prevHeight: prevHeight,
+            callerId: callerId
+        });
     }
 
 	setPosition(id, position, callerId) {
         this.isOperationAllowed('container.move', id, callerId);
-		jQuery(Container.lookup(id)).css({top: position.top, left: position.left, position:'absolute'});
-        this.emit("container.setPosition", {id: id, position: position});
+		
+        jQuery(Container.lookup(id)).css({top: position.top, left: position.left, position:'absolute'});
+        this.emit("container.setPosition", {
+            id: id, 
+            position: position,
+            callerId: callerId
+        });
 	}
 
 
@@ -202,7 +226,7 @@ class Container {
 
     }
 
-    rotate(id, deg) {
+    rotate(id, deg, callerId) {
 
     }
 
@@ -220,9 +244,11 @@ class Container {
         let child = Container.lookup(id)
         if (child && child != this.parent) {
             child.parentNode.removeChild(child);
+            this.emit('container.delete', {
+                id:id,
+                callerId: callerId
+            });
         }
-
-        this.emit('container.deleted', {id:id});
     }
 
     styleChild(child, style) {
@@ -277,7 +303,7 @@ class Container {
     }
 
     //Prone to UID collisions. It won't complain if you want to create an element that already exists
-	createFromSerializable(parentId, rawDescriptor, insertBefore) {
+	createFromSerializable(parentId, rawDescriptor, insertBefore, callerId) {
         //this.isOperationAllowed('container.create', parentId, callerId);
 
 		let parent = this.parent;
@@ -304,20 +330,31 @@ class Container {
         if (rawDescriptor.permissions) {
             this.permissions[child.id] = Container.clone(rawDescriptor.permissions)
         }
-		this.emit("container.created", {presentationId: this.presentationId, parentId:this.parentId, descriptor: rawDescriptor});
+        //ToDo: fix this event firing (it's not accurate)
+        this.emit("container.create", {
+            presentationId: this.presentationId, 
+            parentId: parent.id, 
+            id: child.id, 
+            callerId: callerId,
+            descriptor: rawDescriptor
+        });
         return child;
     }
 
-    addDomChild(parentId, domNode) {
+    addDomChild(parentId, domNode, callerId) {
         //this.isOperationAllowed('container.create', parentId, callerId);
 
         let parent = Container.lookup(parentId);
         if (parent && domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
+            this.emit("container.create", {
+                presentationId: this.presentationId, 
+                parentId:parent.id,
+                callerId: callerId,
+                id: domNode.id
+            });
         }
-
-        this.emit("container.created", {presentationId: this.presentationId, parentId:this.parentId, childId: domNode.id});
     }
 
     toSerializableStyle(id) {
@@ -396,28 +433,60 @@ class LiveBridge {
     host = window.location.host;
     port = window.location.port;
 
+    #events = {
+        'container.create': {send:this.sendUpdate, recv:null},
+        'container.setPosition': {send:this.sendUpdate, recv:null},
+        'container.set.width': {send:this.sendUpdate, recv:null},
+        'container.set.height': {send:this.sendUpdate, recv:null},
+        'container.delete': {send:this.sendUpdate, recv:null},
+    }
+
 	//should plug into all relevant events and report them to the server
 	constructor(container) {
 		this.container = container;
 		this.container.parent.addEventListener("container.init", e => {
 			this.registerSocketIo()
 		});
-        this.container.parent.addEventListener('container.setPosition', e => {
-            let targetId = e.detail.id;
-            let raw = this.container.toSerializableStyle(targetId);
-            
-            this.socket.emit("update",JSON.stringify({
-                presentationId: this.container.presentationId,
-                userId: this.userId,
-                event:"container.update",
-                detail: {
-                    id: targetId,
-                    descriptor:raw
-                }
-            }));
-        });
+        
+        for(const [key, value] of Object.entries(this.#events)) {
+            console.log(`Binding Bridge to Container event ${key}`)
+            this.container.parent.addEventListener(key, e => {
+                value.send.apply(this, [e])
+            });
+        }
 	}
 
+    sendUpdate(e) {
+        //check if this update originates from our user and not from the network
+        if(e.detail.callerId && e.detail.callerId != this.userId){
+            console.log("Not sending network update back to the network")
+            return;
+        }
+        
+        let targetId = e.detail.id;
+        let eventType = e.detail.type
+        let raw = null
+        if (eventType != 'container.delete') {
+            raw = this.container.toSerializable(targetId);
+        }
+
+        let update = {
+            presentationId: this.container.presentationId,
+            userId: this.userId,
+            event: eventType,
+            detail: {
+                parentId: e.detail.parentId,
+                id: targetId,
+                descriptor:raw
+            }
+        }
+
+        console.log("Sending server update")
+        console.log(update)
+        
+        this.socket.emit("update", JSON.stringify(update));
+    }
+    
 	registerSocketIo() {
 		console.log(`Registering Live Bridge via SocketIo ${this.host}`);
 		this.socket = io(`https://${this.host}`)
@@ -446,12 +515,16 @@ class LiveBridge {
 		console.log(data);
 
 		let detail = data.detail
-        if(data.event == 'container.update') {
-            this.container.updateStyleFromSerializable(detail.id, detail.descriptor);
+        if(data.event == 'container.setPosition' || data.event == 'container.set.width' || data.even == 'container.set.height') {
+            this.container.updateStyleFromSerializable(detail.id, detail.descriptor.computedStyle, data.userId);
+        }
+        
+        if(data.event == 'container.delete') {
+            this.container.delete(detail.id, "user:"+data.userId, data.userId)
         }
 
-        if(data.event == 'container.createSerialized') {
-            this.container.createFromSerializable(detail.parentId, detail.descriptor);
+        if(data.event == 'container.create') {
+            this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.userId);
         }
 	}
 
@@ -476,7 +549,7 @@ class LiveBridge {
                 let jsndata = JSON.stringify({
                     presentationId: this.container.presentationId,
                     userId: this.userId,
-                    event:"container.createSerialized",
+                    event:"container.create",
                     detail: {
                         parentId: parentId,
                         descriptor:raw

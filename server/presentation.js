@@ -40,7 +40,7 @@ class Presentation {
 	update(data) {
         //ToDo: plug in logic to check if op is allowed
         try{
-        	if (data.event == Events.CONTAINER_CREATE || data.event == Events.INJECTION) {
+			if (data.event == Events.CONTAINER_CREATE || data.event == Events.INJECTION) {
 	        	let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
@@ -56,11 +56,20 @@ class Presentation {
 		        if (this.isParentNode(parentId)) { 
 		        	this.roots[child.id] = true;
 		        }
-	    	} else {
+				this.storage.put(this.id, this.rawData);
+	    	} else if(data.event == Events.DELETE) {
+				let id = data.detail.id
+				if (id in this.rawData) {
+					delete this.rawData[id]
+				}
+				if (id in this.roots) {
+					delete this.roots[id]
+				}
+			} else {
 	    		this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor;
-	    	}
+			}
 
-	    	this.storage.put(this.id, this.rawData);
+			this.storage.put(this.id, this.rawData);
         } catch (e) {
         	console.log("Failed to update");
         	console.log(e);

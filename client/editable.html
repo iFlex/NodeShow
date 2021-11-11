@@ -11,16 +11,7 @@
   <script src="components/container.edit.text/main.js"></script>  
   <script src="components/container.create/main.js"></script>
   <script type="text/javascript">
-    //setTimeout(e => {
-      let bridge = new LiveBridge(container);
-      bridge.registerSocketIo();
-
-      let ceditor = new ContainerMover(container);
-      let texter = new ContainerTextInjector(container);
-      let creator = new ContainerCreator(container);
-      ceditor.enable()
-      texter.enable()
-      creator.enable()
-    //}, 1000);
+    let bridge = new LiveBridge(container);
+    bridge.registerSocketIo();
   </script>
 </html>
