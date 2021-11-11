@@ -246,7 +246,7 @@ function sendPresentationToNewUser(socket, prezzo) {
       event: Events.CONTAINER_CREATE,
       detail: {
           parentId: node.parentId,
-          descriptor:node.descriptor
+          descriptor: node
       }
     }));
   }

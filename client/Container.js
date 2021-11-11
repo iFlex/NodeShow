@@ -23,7 +23,7 @@ class Container {
 
     permissions = {}
 	components = {}
-    skipSetOnDOM = {"nodeName":true}
+    skipSetOnDOM = {"nodeName":true, "children":true}
 
     static clone(obj) {
         return JSON.parse(JSON.stringify(obj))
@@ -132,7 +132,7 @@ class Container {
 		var labeledCount = 0;
 		do {
 			let item = queue[index]
-			if (!item.id && item.nodeName != "SCRIPT") {
+			if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
 				labeledCount += 1;
 			}
@@ -314,7 +314,9 @@ class Container {
 		let child = Container.lookup(rawDescriptor.id)
         if (!child) {
             if (rawDescriptor.nodeName.toLowerCase() == 'body'){
-                child = this.parent
+                //child = this.parent
+                console.log("No need to re-create the body object");
+                return;
             } else {
                 child = document.createElement(rawDescriptor['nodeName'])    
                 if (insertBefore) {
@@ -330,6 +332,7 @@ class Container {
         if (rawDescriptor.permissions) {
             this.permissions[child.id] = Container.clone(rawDescriptor.permissions)
         }
+        
         //ToDo: fix this event firing (it's not accurate)
         this.emit("container.create", {
             presentationId: this.presentationId, 
@@ -401,28 +404,6 @@ class Container {
     appEmit(appId, type, details) {
         this.emit(appId+'.'+type, details); 
     }
-    
-    //testing
-    relations() {
-        let rels = {}
-        let queue = [this.parent]
-        var index = 0
-        do {
-            let item = queue[index]
-
-            if (item.children) {
-                for (const child of item.children) {
-                    if (!(item.id in rels)) {
-                        rels[item.id] = {}
-                    }
-                    rels[item.id][child.id] = child.nodeName
-                    queue.push(child)
-                }
-            }
-            index ++;
-        } while(index < queue.length)
-        return rels
-    }
 }
 
 class LiveBridge {
@@ -462,7 +443,7 @@ class LiveBridge {
             console.log("Not sending network update back to the network")
             return;
         }
-        
+
         let targetId = e.detail.id;
         let eventType = e.detail.type
         let raw = null

@@ -19,23 +19,61 @@ class Presentation {
 		}
 
 		storage.put(id, this.rawData);
-		this.buildRelations();
+		this.findRoots();
 	}
 
-	buildRelations() {
-		for (const [key, value] of Object.entries(this.rawData)) {
-			//keep relations
-			if (!(value.parentId in this.relations)) {
-	        	this.relations[value.parentId] = {}	
-	        }
-	        this.relations[value.parentId][key] = true;
-	        
-	        //define roots
-	        if (this.isParentNode(value.parentId)) { 
-	        	this.roots[key] = true;
-	        }
+	findRoots() {
+		let nodeCount = Object.entries(this.rawData).length
+		if (nodeCount == 0) {
+			return;
 		}
-	}
+
+		console.log(`Finding foots of ${this.id} nodes ${nodeCount}`)
+		for (const [key, value] of Object.entries(this.rawData)) {
+			if(this.isRoot(value)) {
+				this.roots[value.id] = true;
+			}
+			delete this.rawData[key].children
+		}
+		if (Object.keys(this.roots).length == 0) {
+			throw `${this.id} - has an invalid state. No root containers found, which means the presentation can't be constructed as it references unknown nodes`
+		}
+		let rootCount = Object.keys(this.roots).length
+		let prevOrphanCount = 0;
+		let linked = 0;
+		let curOrphanCount = Object.keys(this.rawData).length;
+		
+		do {
+			prevOrphanCount = curOrphanCount;
+			curOrphanCount = 0;
+			for (const [key, value] of Object.entries(this.rawData)) {
+				if (!this.isRoot(value)) {
+					let parentId = value.parentId;
+					let parent = this.rawData[parentId];
+					
+					if (!parent) {
+						curOrphanCount += 1
+					} else {
+						if (!parent.children) {
+							parent.children = {}
+						}
+						if (!(value.id in parent.children)) {	
+							linked++;
+							parent.children[value.id] = true
+						}
+					}
+				}
+			}
+		} while(curOrphanCount != prevOrphanCount)
+
+		console.log(`Linked Children: ${linked} Remaining orphans: ${curOrphanCount}`)
+		if(curOrphanCount > 0) {
+			throw `Presentation ${this.id} has ${curOrphanCount} orphaned nodes. It should have 0`
+		}
+		if (rootCount + linked != nodeCount) {
+			throw `Presentation ${this.id} has ${rootCount} roots and ${linked} linked children. Which should add up to ${nodeCount} total nodes.`
+		}
+	}	
 
 	update(data) {
         //ToDo: plug in logic to check if op is allowed
@@ -44,19 +82,19 @@ class Presentation {
 	        	let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
-		        this.rawData[child.id]['parentId'] = parentId
+				if (!child.children) {
+					child['children'] = {}
+				}
 
-		        //keep relations
-		        if (!(parentId in this.relations)) {
-		        	this.relations[parentId] = {}	
-		        }
-		        this.relations[parentId][child.id] = true;
+				if (parentId) {
+					this.rawData[child.id]['parentId'] = parentId
+					this.rawData[parentId].children[child.id] = true
+				}
 		        
-		        //track roots
-		        if (this.isParentNode(parentId)) { 
+				//track roots
+		        if (this.isRoot(child)) { 
 		        	this.roots[child.id] = true;
 		        }
-				this.storage.put(this.id, this.rawData);
 	    	} else if(data.event == Events.DELETE) {
 				let id = data.detail.id
 				if (id in this.rawData) {
@@ -66,7 +104,7 @@ class Presentation {
 					delete this.roots[id]
 				}
 			} else {
-	    		this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor;
+				this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor.computedStyle;
 			}
 
 			this.storage.put(this.id, this.rawData);
@@ -76,34 +114,34 @@ class Presentation {
         }
 	}
 
-	getInOrder(nodeId) {
-		let result = []
-		if (this.relations[nodeId]){
-			for (let childId of Object.keys(this.relations[nodeId])) {
-				result.push({parentId:nodeId, descriptor:this.rawData[childId]});
-				for (const item of this.getInOrder(childId)) {
-					result.push(item)	
-				}
-			}
-		}
-
-		return result;
-	}
-
 	getNodesInOrder() {
 		let result = []
-		for (let root of Object.keys(this.roots)) {
-			result.push({parentId:this.rawData[root].parentId, descriptor:this.rawData[root]});
-			for (const item of this.getInOrder(root)) {
-				result.push(item)	
-			}
+		let visited = {}
+		
+		//add roots
+		for (let [key, value] of Object.entries(this.roots)) {
+			result.push(this.rawData[key])
 		}
 
+		let i = 0;
+		while(i < result.length) {
+			let current = result[i]
+			console.log(`${current.id}`)
+			if (current.children){
+				for (const child of Object.keys(current.children)) {
+					if(!(child in visited)) {
+						result.push(this.rawData[child])
+						visited[child] = true
+					}
+				}
+			}
+			i++;
+		}
 		return result;
 	}
 
-	isParentNode(id) {
-		return !id || !(id in this.rawData)
+	isRoot(node) {
+		return !node.parentId
 	}
 }
 

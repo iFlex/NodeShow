@@ -27,9 +27,9 @@ class ContainerMover {
 		this.attachListeners(this.movable)
 		$('*').on('dragstart', function(event) { event.preventDefault(); });
 
-		document.addEventListener('container.created', e => {
-			console.log(`editor has now toy ${e.target.id}`)
-			this.attachListeners("#"+e.target.id)
+		document.addEventListener('container.create', e => {
+			console.log(`editor has now toy ${e.detail.id}`)
+			this.attachListeners("#" + e.detail.id)
 		});
 		//checking shift and ctrl
 		document.addEventListener("keydown", (e) => this.handleKeydown(e))
@@ -61,7 +61,7 @@ class ContainerMover {
 	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
 		this.detachListeners(this.movable)
-		document.addRemoveListener('container.created', e => this.attachListeners(e));
+		document.addRemoveListener('container.create', e => this.attachListeners(e));
 		//checking shift and ctrl
 		document.addRemoveListener("keydown", (e) => this.handleKeydown(e))
 		document.addRemoveListener("keyup",(e) => this.handleKeyUp(e))
