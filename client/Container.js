@@ -674,3 +674,6 @@ class LiveBridge {
 
 let container = new Container(document.body);
 container.init();
+
+let bridge = new LiveBridge(container);
+bridge.registerSocketIo();
