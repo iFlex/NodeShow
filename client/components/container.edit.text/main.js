@@ -514,6 +514,19 @@ class ContainerTextInjector {
 		return null;
 	}
 
+	textToStyle(text) {
+		let units = text.split(";")
+		let stl = {}
+		for (const unit of units) {
+			let parts = unit.split(":")
+			if(parts.length == 2){
+				stl[parts[0].trim()] = parts[1].trim();
+			}
+		}
+
+		return stl;
+	}
+
 	handleKeyUp(e) {
 		let key = e.key
 		if (key == 'Control') {
@@ -586,6 +599,21 @@ class ContainerTextInjector {
 						});
 					}
 					console.log(r)
+				}
+			}
+			if (key == ';') {
+				let units = this.getAllTextUnits()
+				let text = ""
+				for (const unit of units) {
+					text += unit.innerText;
+				}
+
+				let style = this.textToStyle(text)
+				console.log(style)
+				this.container.styleChild(this.target, style)
+				
+				for(const unit of units) {
+					this.container.delete(unit.id);
 				}
 			}
 		}
