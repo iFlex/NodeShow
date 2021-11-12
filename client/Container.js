@@ -221,7 +221,7 @@ class Container {
         this.isOperationAllowed('container.set.rotation', id, callerId);
         //ToDo
     }
-
+    
     getRotation(id, angle) {
 
     }
@@ -230,6 +230,18 @@ class Container {
 
     }
 
+    collapse(id, callerId) {
+
+    }
+
+    hide(id, callerId) {
+
+    }
+
+    show(id, callerId) {
+
+    }
+    
 	getWidth(id) {
 		return jQuery(Container.lookup(id)).width();
 	}

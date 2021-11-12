@@ -130,7 +130,6 @@ class Presentation {
 		let i = 0;
 		while(i < result.length) {
 			let current = result[i]
-			console.log(`${current.id}`)
 			if (current.children){
 				for (const child of Object.keys(current.children)) {
 					if(!(child in visited)) {

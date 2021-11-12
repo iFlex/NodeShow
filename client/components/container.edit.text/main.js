@@ -480,6 +480,40 @@ class ContainerTextInjector {
 		}
 	}
 
+	isLink(data) {
+		var expression = /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
+		var regex = new RegExp(expression);
+		
+		return data.match(regex);
+	}
+
+	isData(text) {
+		//data:image/jpeg;base64
+		let colon = text.indexOf(':')
+		let semi = text.indexOf(';')
+		let firstCom = text.indexOf(',')
+
+		let pre = text.substring(0, colon)
+		let type = text.substring(colon+1, semi)
+		
+		let encsep = type.indexOf('/')
+		let format = type.substring(encsep+1, type.length)
+		type = type.substring(0, encsep)
+
+		let encoding = text.substring(semi+1, firstCom)
+		let data = text.substring(firstCom+1, text.length)
+
+		if (pre == 'data') {
+			return {
+				content: type, 
+				format: format,
+				encoding: encoding,
+				data: data
+			}
+		}
+		return null;
+	}
+
 	handleKeyUp(e) {
 		let key = e.key
 		if (key == 'Control') {
@@ -518,6 +552,41 @@ class ContainerTextInjector {
 			}
 			if (key == 'a') {
 				this.selectAll()
+			}
+			//special commands
+			if (key == '/') {
+				console.log("processing special command")
+				//href - interpret text as link
+				let units = this.getAllTextUnits()
+				let text = ""
+				for (const unit of units) {
+					text += unit.innerText;
+				}
+				if (this.isLink(text)) {
+					for(const unit of units) {
+						this.container.delete(unit.id);
+					}
+					this.container.createFromSerializable(this.target.id, {
+						nodeName:"img",
+						src:text
+					});
+				}
+
+				let r = this.isData(text)
+				if (r) {
+					if (r.content == 'image') {
+						for(const unit of units) {
+							this.container.delete(unit.id);
+						}
+
+						console.log("adding image...")
+						this.container.createFromSerializable(this.target.id, {
+							nodeName:"img",
+							src:text
+						});
+					}
+					console.log(r)
+				}
 			}
 		}
 	}
