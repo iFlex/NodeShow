@@ -163,7 +163,14 @@ class Container {
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
         if (parent && child) {
+            let prevParentId = child.parent.id;
             jQuery(child).detach().appendTo(parent);
+            this.emit('container.ser.parent', {
+                id: childId,
+                prevParent: prevParentId,
+                parentId: parentId,
+                callerId: callerId
+            })
         }
 	}
 
@@ -217,31 +224,19 @@ class Container {
         this.setPosition(id, pos, callerId)
 	}
 
-    setRotation(id, angle, callerId) {
+    setAngle(id, angle, rotX, rotY, callerId) {
         this.isOperationAllowed('container.set.rotation', id, callerId);
         //ToDo
     }
     
-    getRotation(id, angle) {
-
+    getAngle(id) {
+        //ToDo
     }
 
-    rotate(id, deg, callerId) {
-
+    rotate(id, deg, rotX, rotY, callerId) {
+        //ToDo
     }
 
-    collapse(id, callerId) {
-
-    }
-
-    hide(id, callerId) {
-
-    }
-
-    show(id, callerId) {
-
-    }
-    
 	getWidth(id) {
 		return jQuery(Container.lookup(id)).width();
 	}
