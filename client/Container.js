@@ -263,6 +263,110 @@ class Container {
         }
     }
 
+    hide(id, callerId) {
+        this.isOperationAllowed('container.hide', id, callerId);
+        $(Containr.lookup(id)).hide();
+        this.emit('container.hide', {
+            id:id,
+            callerId:callerId
+        });
+    }
+
+    show(id, callerId) {
+        this.isOperationAllowed('container.show', id, callerId);
+        $(Containr.lookup(id)).show();
+        this.emit('container.show', {
+            id:id,
+            callerId:callerId
+        });
+    }
+
+    collapse(id, settings, callerId) {
+        this.isOperationAllowed('container.collapse', id, callerId);
+        let node = Container.lookup(id)
+        if (node) {
+            if (node.getAttribute('data-prev-style')) {
+                //already collapsed
+                return;
+            }
+
+            let prevState = JSON.stringify(this.toSerializableStyle(id))
+            if (settings.width) {
+                this.setWidth(id, settings.width, callerId)
+            }
+            if (settings.height) {
+                this.setWidth(id, settings.height, callerId)
+            }
+            node.setAttribute('data-prev-style', prevState)
+            this.emit('container.collapse', {
+                id:id,
+                callerId:callerId
+            });
+        }
+    }
+
+    expand(id, callerId) {
+        this.isOperationAllowed('container.expand', id, callerId);
+        let node = Container.lookup(id);
+        if(node) {
+            let prevStat = JSON.parse(node.getAttribute('data-prev-style'))
+            this.styleChild(node, prevStat)
+            node.removeAttribute('data-prev-style')
+            this.emit('container.expand', {
+                id:id,
+                callerId:callerId
+            });
+        }
+    }
+
+    //get bounding box in absolute coordinates
+    //wonder if the browser is willing to give this up... rather than having to compute it in JS
+    getContentBoundingBox(id) {
+        let result = {
+            top: undefined,
+            left: undefined,
+            bottom: undefined,
+            right: undefined,
+            width: undefined,
+            height: undefined
+        }
+
+        let node = Container.lookup(id)
+        if (node) {
+            if (node.children) {
+                for(const child of node.children) {
+                    let rect = child.getBoundingClientRect();
+                    if (result.left == undefined || result.left > rect.left) {
+                        result.left = rect.left
+                    }
+                    if (result.top == undefined || result.top > rect.top) {
+                        result.top = rect.top
+                    }
+                    if (result.bottom == undefined || result.bottom < rect.bottom) {
+                        result.bottom = rect.bottom
+                    }
+                    if (result.right == undefined || result.right < rect.right) {
+                        result.right = rect.right
+                    }
+                }
+
+                result.width = Math.abs(result.right - result.left)
+                result.height = Math.abs(result.bottom - result.top)
+            }
+        }
+
+        return result
+    }
+
+    getBoundingBox(id) {
+        let node = Container.lookup(id)
+        if (node) {
+            return node.getBoundingClientRect();
+        }
+        
+        return undefined
+    }
+
     styleChild(child, style) {
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
