@@ -5,6 +5,7 @@
 //load them into DOM
 
 //Node data attributes are strings
+//ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
 class Container {
 	//ToDo: make all fields private
     parent = null;
@@ -355,11 +356,16 @@ class Container {
         let settings = JSON.parse(node.getAttribute('data-collapse-settings'))
         let prevState = this.toSerializableStyle(id)
         
-        if (settings.height) {
-            this.setHeight(id, settings.height, callerId)
-        }
-        if (settings.width) {
-            this.setWidth(id, settings.width, callerId)
+        try {
+            if (settings.height) {
+                this.setHeight(id, settings.height, callerId)
+            }
+            if (settings.width) {
+                this.setWidth(id, settings.width, callerId)
+            }
+        } catch (e) {
+            //may partially fail due to permissions
+            console.error(e)
         }
         
         node.setAttribute('data-prev-style', JSON.stringify(prevState))
