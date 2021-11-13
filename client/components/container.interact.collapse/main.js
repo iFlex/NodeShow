@@ -23,7 +23,8 @@ class ContainerCollapser {
     collapse() {
         if (this.target) {
             console.log(`Collapsing ${this.target}`)
-            this.#container.collapse(this.target, {width:"32px",height:"32px"}, "app:"+this.#appId)
+            this.#container.setCollapseMode(this.target, {width:"32px",height:"32px"})
+            this.#container.collapse(this.target, "app:"+this.#appId)
         }
     }
 

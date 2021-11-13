@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
   <head>
+    <script src="libs/socket-io.js"></script>
+    <script src="libs/jquery.js"></script>
     <link rel="stylesheet" href="style.css">
     <title>This is the title of the webpage!</title>
   </head>
@@ -10,9 +12,5 @@
   <script src="components/container.edit.pos/main.js"></script>
   <script src="components/container.edit.text/main.js"></script>  
   <script src="components/container.create/main.js"></script>
-  <script src="components/container.collapse/main.js"></script>
-  <script type="text/javascript">
-    let bridge = new LiveBridge(container);
-    bridge.registerSocketIo();
-  </script>
+  <script src="components/container.interact.collapse/main.js"></script>
 </html>
