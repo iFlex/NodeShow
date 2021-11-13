@@ -354,15 +354,16 @@ class Container {
 
         let settings = JSON.parse(node.getAttribute('data-collapse-settings'))
         let prevState = this.toSerializableStyle(id)
-        console.log(typeof settings)
+        
+        if (settings.height) {
+            this.setHeight(id, settings.height, callerId)
+        }
         if (settings.width) {
             this.setWidth(id, settings.width, callerId)
         }
-        if (settings.height) {
-            this.setWidth(id, settings.height, callerId)
-        }
         
         node.setAttribute('data-prev-style', JSON.stringify(prevState))
+        node.style.overflow = 'hidden';
         this.emit('container.collapse', {
             id:id,
             callerId:callerId
@@ -448,10 +449,9 @@ class Container {
         if (!child.id && !rawDescriptor.id) {
             child.id = Container.generateUUID();
         }
-
         //bulindly applying all properties received
         for (const [tag, value] of Object.entries(rawDescriptor)) {
-            if (this.skipSetOnDOM[tag]){
+            if (this.skipSetOnDOM[tag] || !value){
                 continue;
             }
             
@@ -585,8 +585,7 @@ class Container {
 		  detail: details
 		});
 
-        //console.log(event);
-	    this.parent.dispatchEvent(event);
+        this.parent.dispatchEvent(event);
 	}
 
     //ToDo: is this the best way to emit from app?
@@ -688,7 +687,7 @@ class LiveBridge {
             //populate with userId in case it's not there. all network updates should have a value for the userid
             data.userId = this.host
         }
-        
+
 		let detail = data.detail
         if(data.event == 'container.setPosition' || data.event == 'container.set.width' || data.even == 'container.set.height') {
             this.container.updateStyleFromSerializable(detail.id, detail.descriptor.computedStyle, data.userId);

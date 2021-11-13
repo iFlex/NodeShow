@@ -216,7 +216,7 @@ function handleBridgeUpdate(data) {
       console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
       //filter with side-effects
       SecurityFilter.filterUpdate(parsed);    
-    
+  
       prezzo.presentation.update(parsed);
       broadcast(userId, ['update', JSON.stringify(parsed)], prezzo.sockets);
     }
