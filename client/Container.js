@@ -683,7 +683,12 @@ class LiveBridge {
 	handleUpdate(data) {
 		console.log("Received server update");
 		console.log(data);
-
+        
+        if (!data.userId) {
+            //populate with userId in case it's not there. all network updates should have a value for the userid
+            data.userId = this.host
+        }
+        
 		let detail = data.detail
         if(data.event == 'container.setPosition' || data.event == 'container.set.width' || data.even == 'container.set.height') {
             this.container.updateStyleFromSerializable(detail.id, detail.descriptor.computedStyle, data.userId);
