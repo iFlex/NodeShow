@@ -78,7 +78,7 @@ class Presentation {
 	update(data) {
         //ToDo: plug in logic to check if op is allowed
         try{
-			if (data.event == Events.CONTAINER_CREATE) {
+			if (data.event == Events.CONTAINER_CREATE || data.event == Events.CONTAINER_UPDATE) {
 	        	let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;

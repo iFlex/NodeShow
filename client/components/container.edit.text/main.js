@@ -173,14 +173,11 @@ class ContainerTextInjector {
 	}
 
 	addPrintable(text) {
-		let selection = this.getSelected().units
-		if (selection && selection.length > 0) {
-			this.deleteTextUnits(selection);
-			return;
-		}
+		this.deleteSelection();
 
 		let editPoint = this.getCurrentTextChild(true);
 		editPoint.child.innerHTML += text;
+		this.container.notifyUpdate(editPoint.child.id)
 	}
 
 
@@ -190,7 +187,7 @@ class ContainerTextInjector {
 			this.deleteTextUnits(selection);
 			return true;
 		}
-
+		this.clearSelection()
 		return false;
 	}
 
@@ -230,6 +227,7 @@ class ContainerTextInjector {
 		} else {
 			textUnit.innerHTML = textUnit.innerHTML.substring(0, textUnit.innerHTML.length - 1);
 		}
+		this.container.notifyUpdate(textUnit.id)
 	}
 
 	newLine() {
@@ -408,44 +406,44 @@ class ContainerTextInjector {
 		
 		console.log(docSelect)
 		//figure out if selection belongs to target
-		if (docSelect 
-			&& docSelect.focusNode
-			&& docSelect.anchorNode
-			&& this.isTextUnit(docSelect.focusNode.parentNode) 
-			&& this.isTextUnit(docSelect.anchorNode.parentNode)) {
+		// if (docSelect 
+		// 	&& docSelect.focusNode
+		// 	&& docSelect.anchorNode
+		// 	&& this.isTextUnit(docSelect.focusNode.parentNode) 
+		// 	&& this.isTextUnit(docSelect.anchorNode.parentNode)) {
 			
-			console.log("Accepted")
+		// 	console.log("Accepted")
 
-			var start = docSelect.anchorNode.parentNode
-			var startOffset = docSelect.anchorOffset
-			var end = docSelect.focusNode.parentNode
-			var endOffset = docSelect.focusOffset
+		// 	var start = docSelect.anchorNode.parentNode
+		// 	var startOffset = docSelect.anchorOffset
+		// 	var end = docSelect.focusNode.parentNode
+		// 	var endOffset = docSelect.focusOffset
 
-			let position = start.compareDocumentPosition(end)
-			if (position === Node.DOCUMENT_POSITION_PRECEDING){
-			  var aux = start;
-			  start = end;
-			  end = start;
-			}
-			if (!position && startOffset > endOffset) {
-			  var aux = startOffset;
-			  startOffset = endOffset;
-			  endOffset = startOffset;
-			}
+		// 	let position = start.compareDocumentPosition(end)
+		// 	if (position === Node.DOCUMENT_POSITION_PRECEDING){
+		// 	  var aux = start;
+		// 	  start = end;
+		// 	  end = start;
+		// 	}
+		// 	if (!position && startOffset > endOffset) {
+		// 	  var aux = startOffset;
+		// 	  startOffset = endOffset;
+		// 	  endOffset = startOffset;
+		// 	}
 
-			console.log(start)
-			console.log(end)
+		// 	console.log(start)
+		// 	console.log(end)
 
-			let startNode = this.splitTextUnit(start, startOffset)[1]
-			if (start == end) {
-			 	endOffset -= startOffset
-				end = startNode
-			}
-			let endNode = this.splitTextUnit(end, endOffset)[0]
+		// 	let startNode = this.splitTextUnit(start, startOffset)[1]
+		// 	if (start == end) {
+		// 	 	endOffset -= startOffset
+		// 		end = startNode
+		// 	}
+		// 	let endNode = this.splitTextUnit(end, endOffset)[0]
 
-			this.makeSelection(startNode, endNode)	
-			return this.findBetweenTextUnits(startNode, endNode)			
-		}
+		// 	this.makeSelection(startNode, endNode)	
+		// 	return this.findBetweenTextUnits(startNode, endNode)			
+		// }
 		return {};
 	}
 

@@ -274,16 +274,16 @@ class Container {
         this.setPosition(id, pos, callerId)
 	}
 
-    setAngle(id, angle, rotX, rotY, callerId) {
-        this.isOperationAllowed('container.set.rotation', id, callerId);
-        //ToDo
+    setAngle(id, angle, originX, originY, callerId) {
+        this.isOperationAllowed('container.set.angle', id, callerId);
+        let node = Container.lookup(id)
+        this.styleChild(node, {
+            "transform-origin": `${originX} ${originY}`,
+            "transform":`rotate(${angle})`
+        })
     }
     
     getAngle(id) {
-        //ToDo
-    }
-
-    rotate(id, deg, rotX, rotY, callerId) {
         //ToDo
     }
 
@@ -435,7 +435,7 @@ class Container {
         Container.lookup(id).getBoundingClientRect();
     }
 
-    styleChild(child, style) {
+    styleChild(child, style, callerId) {
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -445,9 +445,10 @@ class Container {
                 child.style.setProperty(tag, value) //important
             }
         }
+        this.emit('container.update', {id:child.id, callerId:callerId})
     }
 
-    updateChild(child, rawDescriptor){
+    updateChild(child, rawDescriptor, callerId){
         var total = 0;
         var set = 0;
         
@@ -475,7 +476,9 @@ class Container {
         }
 
         if (rawDescriptor['computedStyle']) {
-            this.styleChild(child, rawDescriptor['computedStyle'])    
+            this.styleChild(child, rawDescriptor['computedStyle'], callerId)    
+        } else {
+            this.emit('container.update', {id:child.id, callerId:callerId})
         }  
     }
 
@@ -550,7 +553,7 @@ class Container {
 
     toSerializableStyle(id) {
         let elem = Container.lookup(id);
-        let computedStyle = window.getComputedStyle(elem)
+        let computedStyle = elem.style//window.getComputedStyle(elem)
 
         let result = {}
         for (const item of computedStyle) {
@@ -583,6 +586,11 @@ class Container {
 		return serialize;
 	}
 
+    notifyUpdate(id) {
+        let node = Container.lookup(id)
+        this.emit('container.update', {id:node.id})
+    }
+
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
 	emit(type, details) {
         details['type'] = type;
@@ -610,6 +618,7 @@ class LiveBridge {
 
     #events = {
         'container.create': {send:this.sendUpdate, recv:null},
+        'container.update': {send:this.sendUpdate, recv:null},
         'container.setPosition': {send:this.sendUpdate, recv:null},
         'container.set.width': {send:this.sendUpdate, recv:null},
         'container.set.height': {send:this.sendUpdate, recv:null},
@@ -640,17 +649,23 @@ class LiveBridge {
 
         let targetId = e.detail.id;
         let eventType = e.detail.type
+        let parentId = e.detail.parentId
         let raw = null
         if (eventType != 'container.delete') {
             raw = this.container.toSerializable(targetId);
-        }
+
+            let pid = Container.lookup(targetId).parentNode.id
+            if (pid && pid != parentId) {
+                parentId = pid
+            }
+        } 
 
         let update = {
             presentationId: this.container.presentationId,
             userId: this.userId,
             event: eventType,
             detail: {
-                parentId: e.detail.parentId,
+                parentId: parentId,
                 id: targetId,
                 descriptor:raw
             }
@@ -698,7 +713,10 @@ class LiveBridge {
         if(data.event == 'container.setPosition' || data.event == 'container.set.width' || data.even == 'container.set.height') {
             this.container.updateStyleFromSerializable(detail.id, detail.descriptor.computedStyle, data.userId);
         }
-        
+        if(data.event == 'container.update') {
+            let child = this.container.lookup(detail.id)
+            this.container.updateChild(child, detail.descriptor, data.userId)
+        }
         if(data.event == 'container.delete') {
             this.container.delete(detail.id, "user:"+data.userId, data.userId)
         }

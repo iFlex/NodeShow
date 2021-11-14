@@ -63,6 +63,7 @@ const SecurityFilter = require('./SecurityFilter')
 
 //dispatcher.setStatic("/");
 //dispatcher.setStaticDirname(NGPS_LOCATION);
+const debug_level = 2;
 
 var utils = new (function(){
   this.makeAuthToken = function(length){
@@ -97,6 +98,25 @@ dispatcher.onGet("/new", function(req, res) {
   
   res.writeHead(200, {'Content-Type': 'text/html'});
   res.write(id);
+  res.end();
+});
+
+dispatcher.onGet("/state", function(req, res) {
+  let result = {}
+  for (const [key, val] of Object.entries(presentations)) {
+    let users = []
+    for(const [usr, soc] of Object.entries(val.sockets)) {
+      users.push(usr)
+    }
+
+    result[key] = {
+      users:users
+    }
+  }
+  
+  state = JSON.stringify(result, null, 2)
+  res.writeHead(200, {'Content-Type': 'text/html'});
+  res.write(state);
   res.end();
 });
 
@@ -224,6 +244,10 @@ function handleBridgeUpdate(data) {
 }
 
 function broadcast(senderId, message, sockets) {
+  if(debug_level > 1){
+    console.log("Broadcasting to all users in prezzo")
+    console.log(message)
+  }
   if(message.length != 2) {
     console.log("Invalid broadcast call");
     return;
@@ -241,6 +265,9 @@ function sendPresentationToNewUser(socket, prezzo) {
   let nodes = prezzo.getNodesInOrder();
   console.log(`Node count ${nodes.length}`)
   for (const node of nodes) {
+    if (debug_level > 1) {
+      console.log(node)
+    }
     socket.emit('update', JSON.stringify({
       presentationId: prezzo.id,
       event: Events.CONTAINER_CREATE,
