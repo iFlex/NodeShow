@@ -33,6 +33,12 @@ class Container {
     components = {}
     skipSetOnDOM = {"nodeName":true, "children":true}
 
+    constructor(parentDom) {
+		this.parent = parentDom;
+		this.presentationId = Container.getQueryVariable("pid")
+	}
+
+    //<utils>
     static clone(obj) {
         return JSON.parse(JSON.stringify(obj))
     }
@@ -83,11 +89,52 @@ class Container {
         return el
     }
 
-    constructor(parentDom) {
-		this.parent = parentDom;
-		this.presentationId = Container.getQueryVariable("pid")
+    lookup (id) {
+        return Container.lookup(id);
+    }
+
+    index() {
+		let queue = [this.parent]
+		var index = 0
+		var labeledCount = 0;
+		do {
+			let item = queue[index]
+			if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
+				item.id = Container.generateUUID()	
+				labeledCount += 1;
+			}
+
+			if (item.children) {
+				for (const child of item.children) {
+					queue.push(child)
+				}
+			}
+			index ++;
+		} while(index < queue.length)
+
+		console.log(`Indexed ${index} document entities. Labeled ${labeledCount}`)
 	}
 
+	init(element) {
+		//ToDo: check element type and enforce dom object
+		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
+		this.index();
+		this.emit("Container.init", {presentationId:this.presentationId});
+	}
+
+    //ToDo: make this regex
+    detectUnit(val) {
+        let units = ['px','%']
+        for (const unit of units) {
+            if (val.endsWith(unit)) {
+                return unit
+            }
+        }
+        return undefined
+    }
+    //</utils>
+
+    //<Permissions Subsystem>
     isOperationAllowed(operation, resource, callerId) {
         let rules = ((this.permissions[resource.id] || {})[operation] || {})
         
@@ -139,11 +186,9 @@ class Container {
         }
         return Container.clone(permission)
     }
+    //</permissions Subsystem>
 
-    lookup (id) {
-        return Container.lookup(id);
-    }
-
+    //<extensions subsystem>
     //ToDo: get interface and style from server
     registerComponent(pointer) {
         let name = pointer.appId
@@ -174,36 +219,9 @@ class Container {
             }
         }
     }
-
-	index() {
-		let queue = [this.parent]
-		var index = 0
-		var labeledCount = 0;
-		do {
-			let item = queue[index]
-			if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
-				item.id = Container.generateUUID()	
-				labeledCount += 1;
-			}
-
-			if (item.children) {
-				for (const child of item.children) {
-					queue.push(child)
-				}
-			}
-			index ++;
-		} while(index < queue.length)
-
-		console.log(`Indexed ${index} document entities. Labeled ${labeledCount}`)
-	}
-
-	init(element) {
-		//ToDo: check element type and enforce dom object
-		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
-		this.index();
-		this.emit("Container.init", {presentationId:this.presentationId});
-	}
-
+    //</extensions subsystem>
+    
+    //<nesting>
 	setParent(childId, parentId, callerId) {
         //ToDo permissions
         //this.isOperationAllowed('container.delete', id, callerId);
@@ -220,8 +238,10 @@ class Container {
             callerId: callerId
         })
     }
+    //</nesting>
 
-	
+    //<size>
+    //contextualise width and height based on type of element and wrapping
 	setWidth(id, width, callerId) {
         let elem = Container.lookup(id)
         this.isOperationAllowed('container.set.width', elem, callerId);
@@ -249,12 +269,50 @@ class Container {
             callerId: callerId
         });
     }
+    
+    getWidth(id) {
+		return jQuery(Container.lookup(id)).width();
+	}
 
-	setPosition(id, position, callerId) {
+	getHeight(id) {
+		return jQuery(Container.lookup(id)).height();
+	}
+    //</size>
+	
+    //<position>
+    /* 
+    Position reference is always absolute, the setPosition makes the translation to relative, percent or other types of positioning
+    There should be an option to force absolute positioning force:true passed in the position argument
+    
+    ToDo: fix bug where absolute % doesn't work
+    ToDo: support more position types
+    */
+    setPosition(id, position, callerId) {
         let elem = Container.lookup(id);
         this.isOperationAllowed('container.move', elem, callerId);
 		
-        jQuery(elem).css({top: position.top, left: position.left, position:'absolute'});
+        let posType = elem.style.position 
+        if (posType != 'absolute') {
+            //needs translation
+            if (posType == 'relative') {
+                let parentPos = this.getPosition(elem.parentNode || this.parent)
+                position.top = parentPos.top - position.top
+                position.left = parentPos.left - position.left
+            }
+        }
+        
+        let xUnit = this.detectUnit(elem.style.left) || this.detectUnit(elem.style.right) || 'px'
+        let yUnit = this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'
+        
+        if (xUnit == '%') {
+            position.left = `${position.left / this.getWidth(elem.parentNode || this.parent)*100}${xUnit}`
+        
+        }
+        if (yUnit == '%') {
+            position.top = `${position.top / this.getHeight(elem.parentNode || this.parent)*100}${yUnit}`
+        }
+        console.log(position)
+        jQuery(elem).css({top: position.top, left: position.left});
         this.emit("container.setPosition", {
             id: id, 
             position: position,
@@ -262,18 +320,36 @@ class Container {
         });
 	}
 
-
+    //ToDo take angle into consideration somehow
+    /* Returned position is always absolute and without account for transforms */
 	getPosition(id) {
-		return jQuery(Container.lookup(id)).position();
-	}
+		//return jQuery(Container.lookup(id)).position();
+	    let node = Container.lookup(id)
+        return {
+            top:node.offsetTop, 
+            left:node.offsetLeft,
+            position:node.style.position, 
+            boundingBox:jQuery(node).position(), 
+            contextual:{
+                top:node.style.top,
+                left:node.style.left,
+            }
+        }
+    }
 
+    /* dx and dy are always in pixels */
 	move(id, dx, dy, callerId) {
 		let pos = this.getPosition(id)
+        console.log("Moving step")
+        console.log(pos)
         pos.top += dy;
         pos.left += dx;
+        console.log(pos)
         this.setPosition(id, pos, callerId)
 	}
-
+    //</position>
+    
+    //<rotation>
     setAngle(id, angle, originX, originY, callerId) {
         this.isOperationAllowed('container.set.angle', id, callerId);
         let node = Container.lookup(id)
@@ -282,34 +358,10 @@ class Container {
             "transform":`rotate(${angle})`
         })
     }
-    
     getAngle(id) {
         //ToDo
     }
-
-	getWidth(id) {
-		return jQuery(Container.lookup(id)).width();
-	}
-
-	getHeight(id) {
-		return jQuery(Container.lookup(id)).height();
-	}
-
-    delete(id, callerId) {
-        let child = Container.lookup(id)
-        this.isOperationAllowed('container.delete', child, callerId);
-
-        if (child != this.parent) {
-            child.parentNode.removeChild(child);
-            this.emit('container.delete', {
-                id:id,
-                callerId: callerId
-            });
-
-        } else {
-            console.log(`A delete attempt was made on the root of the doc. Pls don't...`);
-        }
-    }
+    //</rotation>
 
     hide(id, callerId) {
         let elem = Containr.lookup(id);
@@ -333,7 +385,7 @@ class Container {
         });
     }
 
-    //Collapse subsystem
+    //<collapse subsystem>
     //ToDo: find a better way to store state rather than as string in data- objects
     //collpase settings should be sent to the server somehow
     isCollapsed(id) {
@@ -394,6 +446,7 @@ class Container {
             });
         }
     }
+    //</collapse subsystem>
 
     //get bounding box in absolute coordinates
     //wonder if the browser is willing to give this up... rather than having to compute it in JS
@@ -551,6 +604,23 @@ class Container {
         }
     }
 
+    delete(id, callerId) {
+        let child = Container.lookup(id)
+        this.isOperationAllowed('container.delete', child, callerId);
+
+        if (child != this.parent) {
+            child.parentNode.removeChild(child);
+            this.emit('container.delete', {
+                id:id,
+                callerId: callerId
+            });
+
+        } else {
+            console.log(`A delete attempt was made on the root of the doc. Pls don't...`);
+        }
+    }
+
+    //<serialization>
     toSerializableStyle(id) {
         let elem = Container.lookup(id);
         let computedStyle = elem.style//window.getComputedStyle(elem)
@@ -585,7 +655,9 @@ class Container {
 
 		return serialize;
 	}
+    //</serialization>
 
+    //<events>
     notifyUpdate(id) {
         let node = Container.lookup(id)
         this.emit('container.update', {id:node.id})
@@ -606,6 +678,7 @@ class Container {
     appEmit(appId, type, details) {
         this.emit(appId+'.'+type, details); 
     }
+    //</events>
 }
 
 class LiveBridge {

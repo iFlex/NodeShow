@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/socket-io.js"></script>
+    <script src="../libs/jquery.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>NodeShow Text Editor Test</title>
+  </head>
+  <body style="margin: 0px; padding:0px">
+      <div style="border-radius: 15px;
+      border-width: 2px;
+      border-color: aqua;
+      background: #bbbbbb;
+      padding: 20px;
+      width: 500px;
+      height: 1000px;">
+        You shouldn't be able to move this, unless you change the position type.
+        
+        <div style="border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #1b7c30;
+        padding: 20px;
+        width: 64px;
+        height: 64px;"></div>
+
+        <div style="border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #16363a;
+        padding: 20px;
+        width: 20%;
+        height: 20%;"></div>
+
+        <div style="border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #aaa81e;
+        padding: 20px;
+        width: 200px;
+        height: 100px;"></div>
+
+        <div style="
+        position:relative;
+        top: 5%;
+        left: 15%;
+        border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #ad3ecf;
+        padding: 20px;
+        width: 50%;
+        height: 100px">
+        You should be able to move this (position is relative and percentage based)
+        </div>
+        <div style="
+        position:relative;
+        top: 200px;
+        left: 0px;
+        border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #621c77;
+        padding: 20px;
+        width: 50%;
+        height: 100px">
+        You should be able to move this (position is relative and px based)
+        </div>
+      </div>
+
+      <div style="border-radius: 15px 50px 30px;
+      position:absolute;
+      top:0px;
+      left:600px;
+      border-width: 2px;
+      border-color: aqua;
+      background: #f0f0f0;
+      padding: 20px;
+      width: 500px;
+      height: 300px;">
+        You should be able to move this position absolute with px
+        <div style="border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #1b7c30;
+        padding: 20px;
+        width: 64px;
+        height: 64px;"></div>
+
+        <div style="border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #16363a;
+        padding: 20px;
+        width: 20%;
+        height: 20%;"></div>
+
+        <div style="border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #aaa81e;
+        padding: 20px;
+        width: 200px;
+        height: 100px;"></div>
+
+        <div style="
+        position:relative;
+        top: 5%;
+        left: 15%;
+        border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #ad3ecf;
+        padding: 20px;
+        width: 50%;
+        height: 100px">
+        You should be able to move this (position is relative and percentage based)
+        </div>
+        <div style="
+        position:relative;
+        top: 15%;
+        left: 25%;
+        border-radius: 15px;
+        border-width: 2px;
+        border-color: aqua;
+        background: #ad3ecf;
+        padding: 20px;
+        width: 50%;
+        height: 100px">
+        You should be able to move this (position is relative and percentage based)
+        </div>
+      </div>
+
+      <div style="border-radius: 15px 50px 30px;
+      position:absolute;
+      top:15%;
+      left:15%;
+      border-width: 2px;
+      border-color: aqua;
+      background: #ac1616;
+      padding: 20px;
+      width: 500px;
+      height: 300px;">
+        You should be able to move this position absolute with %
+      </div>
+
+      <div style="border-radius: 15px 50px 30px;
+      position:relative;
+      top: 10%;
+      left: 55%;
+      border-width: 2px;
+      border-color: aqua;
+      background: #0a925e;
+      padding: 20px;
+      width: 500px;
+      height: 300px;">
+        You should be able to move this position relative with %
+      </div>
+  </body>
+  <script src="../Container.js"></script>
+  <script src="../components/container.edit.pos/main.js"></script>
+  <script src="../components/container.edit.text/main.js"></script>  
+  <script src="../components/container.create/main.js"></script>
+  <script src="../components/container.interact.collapse/main.js"></script>
+  <!-- <script src="../components/container.link/main.js"></script> -->
+</html>

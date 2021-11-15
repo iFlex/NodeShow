@@ -34,7 +34,7 @@ class ContainerMover {
 		//checking shift and ctrl
 		document.addEventListener("keydown", (e) => this.handleKeydown(e))
 		document.addEventListener("keyup",(e) => this.handleKeyUp(e))
-		document.addEventListener("mouseout", (e) => this.target = null)
+		document.addEventListener("mouseout", (e) => this.handleLoseFocus(e))
 	}
 
 	attachListeners(target) {
@@ -61,11 +61,11 @@ class ContainerMover {
 	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
 		this.detachListeners(this.movable)
-		document.addRemoveListener('container.create', e => this.attachListeners(e));
+		document.removeEventListener('container.create', e => this.attachListeners(e));
 		//checking shift and ctrl
-		document.addRemoveListener("keydown", (e) => this.handleKeydown(e))
-		document.addRemoveListener("keyup",(e) => this.handleKeyUp(e))
-		document.addRemoveListener("mouseout", (e) => this.target = null)
+		document.removeEventListener("keydown", (e) => this.handleKeydown(e))
+		document.removeEventListener("keyup",(e) => this.handleKeyUp(e))
+		document.removeEventListener("mouseout", (e) => this.handleLoseFocus(e))
 	}
 
 	considerScale(id, dx, dy) {
@@ -108,6 +108,7 @@ class ContainerMover {
 			this.container.setWidth(this.target.id, w + dx);
 			this.container.setHeight(this.target.id, h + dy);
 		} else {
+			console.log(`Moving by dx:${dx} dy:${dy}`)
 			this.container.move(this.target.id, dx, dy)
 		} 
 	}
@@ -166,6 +167,14 @@ class ContainerMover {
 		if (key == 'Shift') {
 			this.#presenveRatio = false;
 		}
+	}
+
+	handleLoseFocus(e) {		
+		e = e ? e : window.event;
+        var from = e.relatedTarget || e.toElement;
+        if (!from || from.nodeName == "HTML") {
+            this.target = null;
+        }
 	}
 }
 

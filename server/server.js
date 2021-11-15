@@ -6,6 +6,7 @@ const NGPS_LOCATION = process.env.NODE_SHOW_CLIENT_HOME || "../client"
 const NGPS_ENTRYPOINT = NGPS_LOCATION + "/index.html";
 const USER_STORAGE = process.env.USER_STORAGE_HOME || '../users'
 const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../prezzos'
+const DEBUG_MODE = process.env.DEBUG_MODE || false;
 
 console.log(`Configured NodeShow server with`)
 console.log(`Server config: ${SERVER}`)
@@ -32,6 +33,7 @@ const options = {
 
 const server = https.createServer(options, handleRequest);
 
+//ToDo: use debug mode and other settings to properly build the cors here
 const io = require('socket.io')(server, {  
   cors: {
     //origin: "https://example.com",
@@ -43,6 +45,7 @@ const io = require('socket.io')(server, {
     //credentials: true 
   }
 });
+
 const HttpDispatcher = require('httpdispatcher');
 const dispatcher = new HttpDispatcher();
 const HttpUtils = require('./HttpUtils')
@@ -244,7 +247,7 @@ function handleBridgeUpdate(data) {
 }
 
 function broadcast(senderId, message, sockets) {
-  if(debug_level > 1){
+  if(debug_level > 1){DEBUG_MODE
     console.log("Broadcasting to all users in prezzo")
     console.log(message)
   }
