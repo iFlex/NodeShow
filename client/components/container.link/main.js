@@ -33,10 +33,12 @@ class ContainerLink {
         link['right'] = right
         
         //keep a record of the link
-        let links = this.#links[left] || []
-        links.push(link)
-        this.#links[left.target.id] = links
-        this.#links[right.target.id] = links
+        let leftLinks = this.#links[left.target.id] || []
+        let rigthLinks = this.#links[right.target.id] || []
+        leftLinks.push(link)
+        rigthLinks.push(link)
+        this.#links[left.target.id] = leftLinks
+        this.#links[right.target.id] = rigthLinks
 
         //draw the link and return it
         this.draw(link)
@@ -100,13 +102,30 @@ class ContainerLink {
         document.addEventListener('container.setPosition',(e) => this.onContainerChange(e))
     }
 
+    //ToDo: propagate to children
     onContainerChange(e) {
         let targetId = e.detail.id
-        let links = this.#links[targetId]
-        if (links) {
-            for(const link of links) {
-                this.draw(link)
+        let links = []
+        let children = [targetId]
+        let i = 0;
+        while ( i < children.length ) {
+            let currentId = children[i]
+            let currentLinks = this.#links[currentId]
+            if (currentLinks) {
+                links = links.concat(currentLinks)
             }
+
+            let node = this.#container.lookup(currentId)
+            for (const child of node.children) {
+                if (this.#links[child.id]) {
+                    children.push(child.id)
+                }
+            }
+            i++;
+        }
+        
+        for(const link of links) {
+            this.draw(link)
         }
     }
 
