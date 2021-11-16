@@ -75,6 +75,34 @@ class Container {
         return typeof obj === 'function'
     }
 
+    //Stolen from stack overflow because I was hoping to get this directly from the browser somehow.
+    //ToDo: find a way to simplify this
+    static findAbsPos(obj) {
+        var curleft = 0;
+        var curtop = 0;
+        if(obj.offsetLeft) curleft += parseInt(obj.offsetLeft);
+        if(obj.offsetTop) curtop += parseInt(obj.offsetTop);
+        if(obj.scrollTop && obj.scrollTop > 0) curtop -= parseInt(obj.scrollTop);
+        if(obj.offsetParent) {
+            var pos = Container.findAbsPos(obj.offsetParent);
+            curleft += pos[0];
+            curtop += pos[1];
+        } else if(obj.ownerDocument) {
+            var thewindow = obj.ownerDocument.defaultView;
+            if(!thewindow && obj.ownerDocument.parentWindow)
+                thewindow = obj.ownerDocument.parentWindow;
+            if(thewindow) {
+                if(thewindow.frameElement) {
+                    var pos = Container.findAbsPos(thewindow.frameElement);
+                    curleft += pos[0];
+                    curtop += pos[1];
+                }
+            }
+        }
+    
+        return [curleft,curtop];
+    }
+    
     //Note: this should be very fast as it is heavily used in nearly all operations
 	static lookup(id) {
 		if (id instanceof Element) {
@@ -325,9 +353,10 @@ class Container {
 	getPosition(id) {
 		//return jQuery(Container.lookup(id)).position();
 	    let node = Container.lookup(id)
+        let p = Container.findAbsPos(node)
         return {
-            top:node.offsetTop, 
-            left:node.offsetLeft,
+            top:p[1],
+            left:p[0],
             position:node.style.position, 
             boundingBox:jQuery(node).position(), 
             contextual:{

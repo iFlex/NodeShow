@@ -19,7 +19,8 @@ class ContainerLink {
             computedStyle:{
                 "height":5,
                 "width":10,
-                "background-color": "black"
+                "background-color": "black",
+                "position":"absolute"
             }
         }, null, "app:"+this.#appId)
     }
@@ -64,6 +65,8 @@ class ContainerLink {
 
     draw(link) {
         let linkId = link.node.id
+        console.log("Linking...")
+        console.log(link)
         let leftPos = this.computeAbsoluteLinkPosition(
             this.#container.getPosition(link.left.target),
             link.left
@@ -72,6 +75,9 @@ class ContainerLink {
             this.#container.getPosition(link.right.target),
             link.right
         )
+        console.log(leftPos)
+        console.log(rightPos)
+
         let angle = this.calculateLinkAngle(leftPos, rightPos)
         
         this.#container.setPosition(linkId, leftPos,"app:"+this.#appId)
