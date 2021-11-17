@@ -6,7 +6,7 @@
 
 //Node data attributes are strings
 //ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
-class Container {
+export class Container {
 	//ToDo: make all fields private
     parent = null;
 	presentationId = null;
@@ -34,6 +34,7 @@ class Container {
     skipSetOnDOM = {"nodeName":true, "children":true}
 
     constructor(parentDom) {
+        console.log("CREATED CONTAINER OBJECT")
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
 	}
@@ -75,34 +76,6 @@ class Container {
         return typeof obj === 'function'
     }
 
-    //Stolen from stack overflow because I was hoping to get this directly from the browser somehow.
-    //ToDo: find a way to simplify this
-    static findAbsPos(obj) {
-        var curleft = 0;
-        var curtop = 0;
-        if(obj.offsetLeft) curleft += parseInt(obj.offsetLeft);
-        if(obj.offsetTop) curtop += parseInt(obj.offsetTop);
-        if(obj.scrollTop && obj.scrollTop > 0) curtop -= parseInt(obj.scrollTop);
-        if(obj.offsetParent) {
-            var pos = Container.findAbsPos(obj.offsetParent);
-            curleft += pos[0];
-            curtop += pos[1];
-        } else if(obj.ownerDocument) {
-            var thewindow = obj.ownerDocument.defaultView;
-            if(!thewindow && obj.ownerDocument.parentWindow)
-                thewindow = obj.ownerDocument.parentWindow;
-            if(thewindow) {
-                if(thewindow.frameElement) {
-                    var pos = Container.findAbsPos(thewindow.frameElement);
-                    curleft += pos[0];
-                    curtop += pos[1];
-                }
-            }
-        }
-    
-        return [curleft,curtop];
-    }
-    
     //Note: this should be very fast as it is heavily used in nearly all operations
 	static lookup(id) {
 		if (id instanceof Element) {
@@ -307,78 +280,6 @@ class Container {
 	}
     //</size>
 	
-    //<position>
-    /* 
-    Position reference is always absolute, the setPosition makes the translation to relative, percent or other types of positioning
-    There should be an option to force absolute positioning force:true passed in the position argument
-    
-    ToDo: fix bug where absolute % doesn't work
-    ToDo: support more position types
-    */
-    setPosition(id, position, callerId) {
-        let elem = Container.lookup(id);
-        this.isOperationAllowed('container.move', elem, callerId);
-		
-        let posType = elem.style.position 
-        if (posType != 'absolute') {
-            //needs translation
-            if (posType == 'relative') {
-                let parentPos = this.getPosition(elem.parentNode || this.parent)
-                position.top = parentPos.top - position.top
-                position.left = parentPos.left - position.left
-            }
-        }
-        
-        let xUnit = this.detectUnit(elem.style.left) || this.detectUnit(elem.style.right) || 'px'
-        let yUnit = this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'
-        
-        if (xUnit == '%') {
-            position.left = `${position.left / this.getWidth(elem.parentNode || this.parent)*100}${xUnit}`
-        
-        }
-        if (yUnit == '%') {
-            position.top = `${position.top / this.getHeight(elem.parentNode || this.parent)*100}${yUnit}`
-        }
-        console.log(position)
-        jQuery(elem).css({top: position.top, left: position.left});
-        this.emit("container.setPosition", {
-            id: id, 
-            position: position,
-            callerId: callerId
-        });
-	}
-
-    //ToDo take angle into consideration somehow
-    /* Returned position is always absolute and without account for transforms */
-	getPosition(id) {
-		//return jQuery(Container.lookup(id)).position();
-	    let node = Container.lookup(id)
-        let p = Container.findAbsPos(node)
-        return {
-            top:p[1],
-            left:p[0],
-            position:node.style.position, 
-            boundingBox:jQuery(node).position(), 
-            contextual:{
-                top:node.style.top,
-                left:node.style.left,
-            }
-        }
-    }
-
-    /* dx and dy are always in pixels */
-	move(id, dx, dy, callerId) {
-		let pos = this.getPosition(id)
-        console.log("Moving step")
-        console.log(pos)
-        pos.top += dy;
-        pos.left += dx;
-        console.log(pos)
-        this.setPosition(id, pos, callerId)
-	}
-    //</position>
-    
-    //<rotation>
     setAngle(id, angle, originX, originY, callerId) {
         this.isOperationAllowed('container.set.angle', id, callerId);
         let node = Container.lookup(id)
@@ -710,7 +611,7 @@ class Container {
     //</events>
 }
 
-class LiveBridge {
+export class LiveBridge {
 	container = null;
 	socket = null;
 	userId = null;
@@ -879,9 +780,3 @@ class LiveBridge {
         console.log(`beamed ${count} elements out of ${index} with failures ${faliures}`);
 	}
 }
-
-let container = new Container(document.body);
-container.init();
-
-let bridge = new LiveBridge(container);
-bridge.registerSocketIo();

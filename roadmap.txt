@@ -1,12 +1,3 @@
-Project
-* Package
-* Dockerize
-* Deploy
-
-Blocker:
-!the node HttpDispatcher can't handle chunked requests apparently...
-!Don't know if Socket.io will handle chunked events...
-
 Current purpose:
 Serve as a view controller for my newsstand application. 
 It will receive updates in the form of HTML news bits which will get displayed on screen
@@ -21,6 +12,10 @@ Don't know for sure yet if this is feasable... (there are existing tools for suc
 
 Client
 -------------------------
+* FIX positioning system
+* FIX text editor ghost selection
+
+
 ContainerCollapser - a way to collapse containers in a smart way in order to enable a big picture & detailed picture view of the document
 Nice to have, maybe in the future whenever i have time:
 TestInjector - [status: Partial implementation]
@@ -31,6 +26,9 @@ ContainerSize
 ContainerStyle (css tags)
 ContentConfig (choose things like position: relative, etc, wrapping)
 [core] AppManager (Load/Unload Start/Stop)
+- download app interfaces from Server
+- container actions: name an event that would trigger a function
+e.g. data-action:{event:"onClick",action:"container.move",params:[10,10]}
 
 Server
 0. Filter out all forms of scripts from beamed html

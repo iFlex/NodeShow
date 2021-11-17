@@ -1,3 +1,5 @@
+import {container} from '../../nodeshow.js'
+
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
 class ContainerMover {
 	container = null;
@@ -109,6 +111,7 @@ class ContainerMover {
 			this.container.setHeight(this.target.id, h + dy);
 		} else {
 			console.log(`Moving by dx:${dx} dy:${dy}`)
+			console.log(this.container.getPosition(this.target.id))
 			this.container.move(this.target.id, dx, dy)
 		} 
 	}

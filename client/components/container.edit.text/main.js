@@ -1,3 +1,5 @@
+import {container} from '../../nodeshow.js'
+
 class ContainerTextInjector {
 	appId = "container.edit.text"
 

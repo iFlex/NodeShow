@@ -1,3 +1,5 @@
+import {container} from '../../nodeshow.js'
+
 class ContainerCollapser {
     #appId = 'container.interact.collapse'
 	#container = null;

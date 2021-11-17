@@ -4,7 +4,49 @@
     border-color: black !important;
     border-style: dotted !important;
 }
+/* Containers */
+.ns-horizontal-list {
 
+}
+
+.ns-horizontal-list-unit {
+  position: static;
+  height: inherit
+}
+
+.ns-vertical-list {
+
+}
+
+.ns-vertical-list-unit {
+  position: static;
+  width: inherit;  
+}
+
+.ns-grid {
+
+}
+
+.ns-grid-unit {
+  position: static;
+  float: left;
+}
+/* Content Management */
+.ns-viewport {
+  overflow-x: scroll;
+  overflow-x: scroll;
+}
+
+.ns-horizontal-viewport {
+  overflow-y: hidden;
+  overflow-x: scroll;
+}
+
+.ns-vertical-viewport {
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+ 
 /* Text Editor */
 .text-document-line {
     width: 100%;
