@@ -164,9 +164,9 @@
         let containers = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14"];
 
         for (const id of containers) {
-            //let pos = container.getPosition(id)
-            //container.setPosition(id, pos)
-            container.move(id, 0, 0)
+            let pos = container.getPosition(id)
+            container.setPosition(id, pos)
+            //container.move(id, 0, 0)
         }
     }
     

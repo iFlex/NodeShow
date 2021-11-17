@@ -1,3 +1,5 @@
+import {container} from '../../nodeshow.js'
+
 class ContainerRepeller {
     #appId = 'container.format.repell'
 	#container = null;

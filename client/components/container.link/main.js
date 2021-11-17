@@ -1,3 +1,5 @@
+import {container} from '../../nodeshow.js'
+
 //support only straignt lines for now
 class ContainerLink {
     #appId = 'container.link'

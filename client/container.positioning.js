@@ -48,14 +48,17 @@ Container.prototype.getTopCornerMargin = function(element) {
 /* 
 Position reference is always absolute, the setPosition makes the translation to relative, percent or other types of positioning
 There should be an option to force absolute positioning force:true passed in the position argument
-ToDo: take margin into effect
-ToDo: fix bug where absolute % doesn't work
+ToDo: fix bug where absolute % doesn't work - caused by the height % being calculated as a lot lower than it should be
+    - seems like the page width and height that % calculations use are based on maybe viewport percentages rather than the actual document.body
+    - the bug behaves differently depending on the final size of document.body (parent)
 ToDo: support more position types
 */
 Container.prototype.setPosition = function(id, position, callerId) {
     let elem = Container.lookup(id);
     this.isOperationAllowed('container.move', elem, callerId);
-    
+    console.log("Before setpos translate")
+    console.log(position)
+
     let posType = elem.style.position 
     if (posType != 'absolute') {
         //needs translation
@@ -74,13 +77,16 @@ Container.prototype.setPosition = function(id, position, callerId) {
     let yUnit = this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'
     
     if (xUnit == '%') {
-        position.left = `${position.left / this.getWidth(elem.parentNode || this.parent)*100}${xUnit}`
-    
+        position.left = parseFloat(position.left) / this.getWidth(elem.parentNode || this.parent)*100
     }
     if (yUnit == '%') {
-        position.top = `${position.top / this.getHeight(elem.parentNode || this.parent)*100}${yUnit}`
+        console.log((elem.parentNode || this.parent))
+        console.log(`H: ${this.getHeight(elem.parentNode || this.parent)}`)
+        position.top = parseFloat(position.top) / this.getHeight(elem.parentNode || this.parent)*100
     }
-    
+
+    console.log("Position after translation")
+    console.log(position)
     jQuery(elem).css({top: `${position.top}${yUnit}`, left: `${position.left}${xUnit}`});
     this.emit("container.setPosition", {
         id: id, 
