@@ -1,4 +1,5 @@
-import {Container, LiveBridge} from "./Container.js";
+import {Container} from "./Container.js";
+import {LiveBridge} from "./LiveBridge.js";
 import "./container.positioning.js";
 import "./container.staticcontent.js";
 import "./container.actions.js";
