@@ -506,9 +506,12 @@ export class Container {
     }
 
     //<serialization>
-    toSerializableStyle(id) {
+    toSerializableStyle(id, snapshot) {
         let elem = Container.lookup(id);
-        let computedStyle = elem.style//window.getComputedStyle(elem)
+        let computedStyle = elem.style;
+        if (snapshot) {
+            computedStyle = window.getComputedStyle(elem)
+        }
 
         let result = {}
         for (const item of computedStyle) {

@@ -20,7 +20,7 @@ Container.prototype.collapse = function(id, callerId) {
     }
 
     let settings = JSON.parse(node.getAttribute('data-collapse-settings'))
-    let prevState = this.toSerializableStyle(id)
+    let prevState = this.toSerializableStyle(id, true)
     
     try {
         if (settings.height) {
