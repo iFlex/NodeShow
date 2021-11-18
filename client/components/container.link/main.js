@@ -2,7 +2,7 @@ import {container} from '../../nodeshow.js'
 
 //support only straignt lines for now
 class ContainerLink {
-    #appId = 'container.link'
+    appId = 'container.link'
 	#container = null;
     
     left = null;
@@ -12,7 +12,7 @@ class ContainerLink {
     
     constructor(container) {
         this.#container = container
-        this.#container.registerComponent(this.#appId, this);
+        this.#container.registerComponent(this);
     }
 
     makeLinkObject() {
@@ -24,7 +24,7 @@ class ContainerLink {
                 "background-color": "black",
                 "position":"absolute"
             }
-        }, null, "app:"+this.#appId)
+        }, null, "app:"+this.appId)
     }
 
     link(left, right, settings) {
@@ -84,10 +84,10 @@ class ContainerLink {
 
         let angle = this.calculateLinkAngle(leftPos, rightPos)
         
-        this.#container.setPosition(linkId, leftPos,"app:"+this.#appId)
-        this.#container.setAngle(linkId, angle+"rad", "0%", "0%", "app:"+this.#appId)
-        this.#container.setWidth(linkId, this.calculateDistance(leftPos, rightPos), "app:"+this.#appId)
-        this.#container.setHeight(linkId, 5, "app:"+this.#appId)
+        this.#container.setPosition(linkId, leftPos,"app:"+this.appId)
+        this.#container.setAngle(linkId, angle+"rad", "0%", "0%", "app:"+this.appId)
+        this.#container.setWidth(linkId, this.calculateDistance(leftPos, rightPos), "app:"+this.appId)
+        this.#container.setHeight(linkId, 5, "app:"+this.appId)
     }
 
     remove(link) {

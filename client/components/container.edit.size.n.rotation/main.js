@@ -4,7 +4,7 @@ class ContainerSizeNRotate {
 	
 	constructor (container) {
 		this.container = container;
-		container.registerComponent(this.appId, this);
+		container.registerComponent(this);
 	}
 }
 

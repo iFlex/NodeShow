@@ -1,13 +1,13 @@
 import {container} from '../../nodeshow.js'
 
 class ContainerRepeller {
-    #appId = 'container.format.repell'
+    appId = 'container.format.repell'
 	#container = null;
     target = null;
 
     constructor(container) {
         this.#container = container
-        this.#container.registerComponent(this.#appId, this);
+        this.#container.registerComponent(this);
     }
 
     /*

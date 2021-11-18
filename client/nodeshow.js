@@ -1,5 +1,7 @@
 import {Container, LiveBridge} from "./Container.js";
 import "./container.positioning.js";
+import "./container.staticcontent.js";
+import "./container.actions.js";
 //import "./container.extensions.js";
 
 let container = new Container(document.body);

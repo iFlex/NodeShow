@@ -22,7 +22,7 @@ class ContainerMover {
 		this.container = ngps;
 		this.#mode = 'move'
 
-		ngps.registerComponent(this.appId, this);
+		ngps.registerComponent(this);
 	}
 
 	enable() {

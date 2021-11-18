@@ -1,14 +1,14 @@
 import {container} from '../../nodeshow.js'
 
 class ContainerCollapser {
-    #appId = 'container.interact.collapse'
+    appId = 'container.interact.collapse'
 	#container = null;
     target = null;
     #hoverTarget = null;
 
     constructor(container) {
         this.#container = container
-        this.#container.registerComponent(this.#appId, this);
+        this.#container.registerComponent(this);
     }
 
     enable() {
@@ -44,7 +44,7 @@ class ContainerCollapser {
         if (target) {
             console.log(`Collapsing ${target}`)
             this.#container.setCollapseMode(target, {width:"32px",height:"32px"})
-            this.#container.collapse(target, "app:"+this.#appId)
+            this.#container.collapse(target, "app:"+this.appId)
         }
     }
 
@@ -52,7 +52,7 @@ class ContainerCollapser {
         let target = this.findClosestDiv(this.target || this.#hoverTarget)
         if (target) {
             console.log(`Expanding ${target}`)
-            this.#container.expand(target, "app:"+this.#appId)
+            this.#container.expand(target, "app:"+this.appId)
         }
     }
 

@@ -94,8 +94,8 @@ export class Container {
         return Container.lookup(id);
     }
 
-    index() {
-		let queue = [this.parent]
+    index(root) {
+		let queue = [root || this.parent]
 		var index = 0
 		var labeledCount = 0;
 		do {
@@ -104,6 +104,14 @@ export class Container {
 				item.id = Container.generateUUID()	
 				labeledCount += 1;
 			}
+            
+            //init actions
+            try {
+                this.initActions(item)
+            } catch (e) {
+                console.log("Could not init container actions. Did you not include the module?")
+                console.error(e)
+            }
 
 			if (item.children) {
 				for (const child of item.children) {
@@ -193,32 +201,35 @@ export class Container {
     //ToDo: get interface and style from server
     registerComponent(pointer) {
         let name = pointer.appId
-        if (pointer in this.components) {
+        if (name in this.components) {
             throw `${name} component is already registered`
         }
 
-        this.components[pointer] = name;
+        this.components[name] = pointer;
         console.log(`Registered ${name}`);
     }
 
     #unregisterComponent(component) {
         component.disable()
-        delete this.components[component]
+        delete this.components[component.appId]
         console.log(`Unregistered component ${component.appId}`)
     }
 
     unregisterComponent(component) {
-        if (component in this.components) {
+        if (component.appId in this.components) {
             this.#unregisterComponent(component)
             return
         }
-        //unreister by name
-        for (const comp of Object.keys(this.components)) {
-            if (this.components[comp] == component) {
-                this.#unregisterComponent(comp)
-                break;
+    }
+
+    getComponent(appName) {
+        for (const [name, pointer] of Object.entries(this.components)) {
+            if (appName == name) {
+                return pointer
             }
         }
+
+        return null;
     }
     //</extensions subsystem>
     
@@ -294,7 +305,7 @@ export class Container {
     //</rotation>
 
     hide(id, callerId) {
-        let elem = Containr.lookup(id);
+        let elem = Container.lookup(id);
         this.isOperationAllowed('container.hide', elem, callerId);
         
         $(elem).hide();
@@ -305,7 +316,7 @@ export class Container {
     }
 
     show(id, callerId) {
-        let elem = Containr.lookup(id);
+        let elem = Container.lookup(id);
         this.isOperationAllowed('container.show', elem, callerId);
         
         $(elem).show();
@@ -507,6 +518,13 @@ export class Container {
             this.permissions[child.id] = Container.clone(rawDescriptor.permissions)
         }
         
+        try {
+            this.initActions(child)
+        } catch (e) {
+            console.log("Could not init container actions. Did you not include the module?")
+            console.error(e)
+        }
+
         //ToDo: fix this event firing (it's not accurate)
         this.emit("container.create", {
             presentationId: this.presentationId, 

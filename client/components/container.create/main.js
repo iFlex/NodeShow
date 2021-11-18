@@ -8,6 +8,7 @@ class ContainerCreator {
 	palette = ["#ff0fff", "#000000", "#ff0000", "#ff8000", "#ffff00", "#008000", "#0000ff", "#4b0082", "#9400d3"]
 	#paletteIndex = 0
 	#control = false;
+	#interface = null;
 
 	#nodeStyleTypeToChildStyle = {
 		"ns-horizontal-list":"ns-horizontal-list-unit ",
@@ -20,7 +21,7 @@ class ContainerCreator {
 
 	constructor (container) {
 		this.container = container;
-		container.registerComponent(this.appId, this);
+		container.registerComponent(this);
 	}
 
 	enable() {
@@ -28,8 +29,21 @@ class ContainerCreator {
 		document.addEventListener('keyup',(e) => this.keyUp(e))
 		document.addEventListener('dblclick',(e) => this.onClick(e))
 		
-	    document.addEventListener('container.edit.pos.selected', e => this.target = this.container.lookup(e.detail.id));
-		document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
+	    document.addEventListener('container.edit.pos.selected', e => this.target = this.focusOn(e.detail.id));
+		document.addEventListener('container.edit.pos.unselected', (e) => this.target = this.unfocus());
+
+		this.#interface = this.container.createFromSerializable(null, {
+			"nodeName":"div",
+			"computedStyle":{
+				"top":"0px",
+				"left":"0px",
+				"position":"absolute"
+			}
+		},
+		null,
+		this.appId)
+		this.container.hide(this.#interface)
+		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 	}
 
 	disable() {
@@ -37,8 +51,11 @@ class ContainerCreator {
 		document.removeEventListener('keyup',(e) => this.keyUp(e))
 		document.removeEventListener('dblclick',(e) => this.onClick(e))
 
-		document.removeEventListener('container.edit.pos.selected', e => this.target = this.container.lookup(e.detail.id));
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
+		document.removeEventListener('container.edit.pos.selected', e => this.target = this.focusOn(e.detail.id));
+		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = this.unfocus());
+		
+		this.container.delete(this.#interface, this.appId)
+		this.#interface = null;
 	}
 
 	delete () {
@@ -126,6 +143,22 @@ class ContainerCreator {
 			}
 		}
 		return result;
+	}
+	
+	changeType(e) {
+		console.log("WOOOO CHANGE DA TYPE BISH")
+		console.log(this)
+	}
+
+	focusOn(id) {
+		let node = this.container.lookup(id)
+		this.target = node
+		this.container.show(this.#interface)
+	}
+
+	unfocus() {
+		this.target = null
+		this.container.hide(this.#interface)
 	}
 
 	pickColor() {
