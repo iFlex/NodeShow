@@ -1,5 +1,6 @@
 import {Container} from "./Container.js"
 
+//ToDo: tidy
 Container.prototype.loadHtml = function(node, resource, callerId) {
     let url = `components/${callerId}/${resource}`;
     console.log(`Fetching: ${url}`) 
