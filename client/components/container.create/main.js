@@ -1,11 +1,12 @@
 import {container} from '../../nodeshow.js'
 
+var tapedTwice = false;
+
 class ContainerCreator {
 	appId = 'container.create'
 	container = null;
 	target = null;
-	currentContainerStyle = 'ns-vertical-list'
-	palette = ["#ff0fff", "#000000", "#ff0000", "#ff8000", "#ffff00", "#008000", "#0000ff", "#4b0082", "#9400d3"]
+	palette = ["#605B56", "#837A75", "#ACC18A", "#DAFEB7", "#F2FBE0"]
 	#paletteIndex = 0
 	#control = false;
 	#interface = null;
@@ -22,15 +23,6 @@ class ContainerCreator {
 	constructor (container) {
 		this.container = container;
 		container.registerComponent(this);
-	}
-
-	enable() {
-		document.addEventListener('keydown',(e) => this.keyDown(e))
-		document.addEventListener('keyup',(e) => this.keyUp(e))
-		document.addEventListener('dblclick',(e) => this.onClick(e))
-		
-	    document.addEventListener('container.edit.pos.selected', e => this.target = this.focusOn(e.detail.id));
-		document.addEventListener('container.edit.pos.unselected', (e) => this.target = this.unfocus());
 
 		this.#interface = this.container.createFromSerializable(null, {
 			"nodeName":"div",
@@ -46,22 +38,31 @@ class ContainerCreator {
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 	}
 
+	enable() {
+		document.addEventListener('keydown',(e) => this.keyDown(e))
+		document.addEventListener('keyup',(e) => this.keyUp(e))
+		document.addEventListener('dblclick',(e) => this.onClick(e))
+		
+	    document.addEventListener('container.edit.pos.selected', e => this.focusOn(e.detail.id));
+		document.addEventListener('container.edit.pos.unselected', (e) => this.unfocus());
+		document.addEventListener("touchstart", (e) => this.tapHandler(e));
+
+		this.container.show(this.#interface)
+	}
+
 	disable() {
 		document.removeEventListener('keydown',(e) => this.keyDown(e))
 		document.removeEventListener('keyup',(e) => this.keyUp(e))
 		document.removeEventListener('dblclick',(e) => this.onClick(e))
+		document.removeEventListener("touchstart", (e) => this.tapHandler(e));
 
-		document.removeEventListener('container.edit.pos.selected', e => this.target = this.focusOn(e.detail.id));
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = this.unfocus());
+		document.removeEventListener('container.edit.pos.selected', e => this.focusOn(e.detail.id));
+		document.removeEventListener('container.edit.pos.unselected', (e) => this.unfocus());
 		
-		this.container.delete(this.#interface, this.appId)
-		this.#interface = null;
+		this.container.hide(this.#interface)
 	}
 
 	delete () {
-		console.log("Deleting current target");
-		console.log(this.target);
-
 		if(this.target) {
 			this.container.delete(this.target.id);
 		}
@@ -69,7 +70,6 @@ class ContainerCreator {
 	}
 
 	create (x, y) {
-		console.log("Creating child");
 		if (!this.target) {
 			this.target = this.container.parent
 		}
@@ -80,7 +80,7 @@ class ContainerCreator {
 			'height':'150px',
 			'margin': '5px',
 			'padding': '5px',
-			'background-color': this.pickColor()	
+			'background-color': this.pickColor(this.target.style['background-color'])	
 		}
 
 		let parentSuggestion = this.target.getAttribute("data-child-style")
@@ -92,10 +92,8 @@ class ContainerCreator {
 			}
 		}
 		
-		console.log("No children");
 		let div = {
 			"nodeName":"div",
-			"className": this.currentContainerStyle,
 			"computedStyle": childStyle
 		}
 		let node = this.container.createFromSerializable(this.target.id, div)
@@ -146,8 +144,13 @@ class ContainerCreator {
 	}
 	
 	changeType(e) {
-		console.log("WOOOO CHANGE DA TYPE BISH")
-		console.log(this)
+		let cls = e.target.className;
+		if (this.target) {
+			let rules = this.lookupStyleRules(cls)
+			$(this.target).addClass(cls)
+			this.container.styleChild(this.target, rules)
+			this.setChildStyleSuggestion(this.target)
+		}
 	}
 
 	focusOn(id) {
@@ -161,8 +164,16 @@ class ContainerCreator {
 		this.container.hide(this.#interface)
 	}
 
-	pickColor() {
-		return this.palette[this.#paletteIndex++]
+	pickColor(notThis) {
+	 	let clr = this.palette[this.#paletteIndex]
+		this.#paletteIndex++;
+		this.#paletteIndex %= this.palette.length
+		
+		if (notThis && notThis == clr) {
+			//take next color from palette
+			clr = this.palette[this.#paletteIndex]
+		}
+		return clr;
 	}
 
 	onClick(e) {
@@ -185,6 +196,16 @@ class ContainerCreator {
 		if (e.key == 'Insert' && this.#control) {
 			this.create();
 		}
+	}
+
+	tapHandler(event) {
+		if(!tapedTwice) {
+			tapedTwice = true;
+			setTimeout( function() { tapedTwice = false; }, 300 );
+			return false;
+		}
+		let touch = event.touches[0]
+		this.create(touch.pageX, touch.pageY)
 	}
 }
 

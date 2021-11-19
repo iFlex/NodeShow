@@ -104,7 +104,7 @@ Container.prototype.attachAction = function(node, actionDescriptor) {
     let toCall = this.lookupMethod(actionDescriptor.call)
     if (toCall) {
         node.addEventListener(actionDescriptor.trigger, e => {
-            let params = [e].concat(actionDescriptor.params || [])
+            let params = (actionDescriptor.params || []).concat([e])
             toCall.method.apply(toCall.context, params)
         })
     } else {

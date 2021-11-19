@@ -60,3 +60,6 @@ HTTP Server -------- Users
                                                 - etc
 
                             permissions   ---- Authorization Engine
+
+
+BUGLIST:  nested absolute positioned elements - editor fails to properly drag them

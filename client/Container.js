@@ -108,6 +108,7 @@ export class Container {
             //init actions
             try {
                 this.initActions(item)
+                this.loadPermissionsFromDom(item)
             } catch (e) {
                 console.log("Could not init container actions. Did you not include the module?")
                 console.error(e)
@@ -194,6 +195,14 @@ export class Container {
             permission = this.permissions[elem.id]
         }
         return Container.clone(permission)
+    }
+
+    loadPermissionsFromDom (node) {
+        let perms = JSON.parse(node.getAttribute("data-container-permissions"))
+        if (perms && typeof perms != 'string') {
+            console.log("Loading permissions from DOM")
+            this.permissions[node.id] = perms
+        }
     }
     //</permissions Subsystem>
 

@@ -118,8 +118,14 @@ class ContainerMover {
 
 	handleMouseEvent(event) {
 		let eventType = event.type;
-
+		try {
+			this.container.isOperationAllowed('container.edit', event.target, this.appId)
+		} catch(e) {
+			return;
+		}
+		
 		if (eventType == 'mousedown' || eventType == 'touchstart') {
+
 			this.target = event.target;
 			this.selection = event.target;
 
@@ -136,7 +142,7 @@ class ContainerMover {
 			
 			if(dx != 0 || dy != 0) {
 				this.selection = null;
-				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event});
+				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event.originalEvent});
 			}
 		}
 		
@@ -145,7 +151,23 @@ class ContainerMover {
 	}
 
 	handleTouchEvent(event) {
-		handleMouseEvent(event)
+		if (event.type in ['touchend', 'touchcancel']) {
+			this.handleMouseEvent(event)
+		} else {
+			let touch = event.touches[0]
+			let evt = {
+				type: event.type,
+				pageX: touch.pageX,
+				pageY: touch.pageY,
+				originalEvent: {
+					screenX: touch.screenX,
+					screenY: touch.screenY
+				},
+				target: event.target
+			}
+
+			this.handleMouseEvent(evt)
+		}
 	}
 
 	getClickedContainer() {

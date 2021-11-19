@@ -6,7 +6,9 @@
 }
 /* Containers */
 .ns-horizontal-list {
-
+  min-width: 64px;
+  width: auto;
+  display: flex;
 }
 
 .ns-horizontal-list-unit {
@@ -15,16 +17,20 @@
 }
 
 .ns-vertical-list {
-
+  margin: 0px;
+  padding: 15px;
+  min-height: 64px;
+  height: auto;
 }
 
 .ns-vertical-list-unit {
+  margin: 5px;
   position: static;
-  width: inherit;  
+  width: 98%; 
 }
 
 .ns-grid {
-
+  background-color: lightcoral;
 }
 
 .ns-grid-unit {
