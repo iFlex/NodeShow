@@ -5,7 +5,8 @@
 //Node data attributes are strings
 //ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
 let CONTAINER_COUNT = 0
-const ACTIONS = {
+
+export const ACTIONS = {
     create: 'container.create',
     update: 'container.update',
     delete: 'container.delete',
@@ -17,7 +18,6 @@ const ACTIONS = {
     show: 'container.show',
 }
 
-export const ACTIONS
 export class Container {
 	//ToDo: make all fields private
     parent = null;
@@ -229,12 +229,18 @@ export class Container {
 
         this.components[name] = pointer;
         console.log(`Registered ${name}`);
+        this.emit('container.component.added', {
+            name: name
+        }) 
     }
 
     #unregisterComponent(component) {
         component.disable()
         delete this.components[component.appId]
         console.log(`Unregistered component ${component.appId}`)
+        this.emit('container.component.removed', {
+            name: component.appId
+        }) 
     }
 
     unregisterComponent(component) {
@@ -498,7 +504,6 @@ export class Container {
             console.error(e)
         }
 
-        //ToDo: fix this event firing (it's not accurate)
         CONTAINER_COUNT ++;
         this.emit(ACTIONS.create, {
             presentationId: this.presentationId, 

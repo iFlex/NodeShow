@@ -56,8 +56,8 @@ ToDo: support more position types
 Container.prototype.setPosition = function(id, position, callerId) {
     let elem = Container.lookup(id);
     this.isOperationAllowed('container.move', elem, callerId);
-    console.log("Before setpos translate")
-    console.log(position)
+    //console.log("Before setpos translate")
+    //console.log(position)
 
     let posType = elem.style.position 
     if (posType != 'absolute') {
@@ -85,13 +85,11 @@ Container.prototype.setPosition = function(id, position, callerId) {
         position.left = parseFloat(position.left) / this.getWidth(elem.parentNode || this.parent)*100
     }
     if (yUnit == '%') {
-        console.log((elem.parentNode || this.parent))
-        console.log(`H: ${this.getHeight(elem.parentNode || this.parent)}`)
         position.top = parseFloat(position.top) / this.getHeight(elem.parentNode || this.parent)*100
     }
 
-    console.log("Position after translation")
-    console.log(position)
+    //console.log("Position after translation")
+    //console.log(position)
     jQuery(elem).css({top: `${position.top}${yUnit}`, left: `${position.left}${xUnit}`});
     this.emit("container.setPosition", {
         id: id, 

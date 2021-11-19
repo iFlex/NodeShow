@@ -63,8 +63,8 @@ export class LiveBridge {
             }
         }
 
-        console.log("Sending server update")
-        console.log(update)
+        //console.log("Sending server update")
+        //console.log(update)
         
         this.socket.emit("update", JSON.stringify(update));
     }

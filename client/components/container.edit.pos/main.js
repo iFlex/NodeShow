@@ -40,6 +40,8 @@ class ContainerMover {
 	}
 
 	attachListeners(target) {
+		this.container.isOperationAllowed('container.edit',target, this.appId)
+		
 		for (const event of this.mouseEvents) {
 			$(target).on(event, e => this.handleMouseEvent(e))
 		}

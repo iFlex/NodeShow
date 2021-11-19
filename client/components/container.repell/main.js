@@ -62,7 +62,7 @@ class ContainerRepeller {
     }
 
     handleKeydown(e) {
-        console.log(`Collapser key down: ${e.key}`)
+        //console.log(`Collapser key down: ${e.key}`)
         if( e.key == '|') {
             this.expand();
         }

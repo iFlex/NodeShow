@@ -1,15 +1,17 @@
 import {container} from '../../nodeshow.js'
 
+const textItemPerms = {"container.move":{"*":false}, "container.edit":{"*":false}}
+	
 class ContainerTextInjector {
 	appId = "container.edit.text"
 
 	container = null;	
 	target = null;
+	#interface = null;
+	#debug = false;
 
-	perms = {"container.move":{"*":false}}
-	lineDescriptor = {nodeName: "DIV", className: "text-document-line", permissions:{"container.move":{"*":false}}}
-	textUnitDescriptor = {nodeName: "SPAN", className: "text-document-unit", permissions:{"container.move":{"*":false}}}
-	newLineDescriptor = {nodeName: "BR", className: "text-document-newline", permissions:{"container.move":{"*":false}}}
+	lineDescriptor = {nodeName: "DIV", className: "text-document-line", permissions:textItemPerms}
+	textUnitDescriptor = {nodeName: "SPAN", className: "text-document-unit", permissions:textItemPerms}
 	preventDefaults = {'u':true,'b':true,'i':true,' ':true}
 	state = {
 		control:false,
@@ -30,11 +32,36 @@ class ContainerTextInjector {
 	//resize container when text wraps
 	//wrapping
 
-	constructor (container) {
+	constructor (container, debug) {
 		this.container = container;
 		container.registerComponent(this);
+		
+		this.#debug = debug
+		if(debug) {
+			this.lineDescriptor['computedStyle'] = {
+				"border-width": "3px",
+    			"border-color": "red",
+    			"border-style": "dotted"
+			}
+			this.textUnitDescriptor['computedStyle'] = this.lineDescriptor.computedStyle;
+			console.log("Text editor runnign in debug mode")
+		}
 
-		this.target = this.container.parent
+		//create interface holder
+		this.#interface = this.container.createFromSerializable(null, {
+			"nodeName":"div",
+			"computedStyle":{
+				"top":"0px",
+				"left":"0px",
+				"position":"absolute"
+			}
+		},
+		null,
+		this.appId)
+		this.container.hide(this.#interface)
+		//load interface style and html
+		this.container.loadStyle("style.css", this.appId)
+		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 	}
  
 	enable() {
@@ -42,7 +69,7 @@ class ContainerTextInjector {
 		document.addEventListener("keyup",(e) => this.handleKeyUp(e))
 
 	    document.addEventListener('container.edit.pos.selected', e => this.setTarget(e.detail.id));
-		document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
+		document.addEventListener('container.edit.pos.unselected', (e) => this.unsetTarget());
 
 		//clipboard
 		document.addEventListener('paste', (event) => this.paste(event));
@@ -54,11 +81,12 @@ class ContainerTextInjector {
 		document.removeEventListener("keyup",(e) => this.handleKeyUp(e))
 
 		document.removeEventListener('container.edit.pos.selected', e => this.setTarget(e.detail.id));
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
+		document.removeEventListener('container.edit.pos.unselected', (e) => this.unsetTarget());
 
 		//clipboard
 		document.removeEventListener('paste', (event) => this.paste(event));
 		document.removeEventListener('cut', (event) => this.cut(event));
+		this.container.hide(this.#interface)
 	}
 
 	static isPrintableCharacter(key) {
@@ -80,7 +108,19 @@ class ContainerTextInjector {
 		console.log(`Setting text edit target to ${id}`)
 		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
 		console.log(`Closest div parent:`)
-		console.log(this.target)		
+		console.log(this.target)
+		
+		let pos = this.container.getPosition(this.target)
+		pos.originX = 0.0
+		pos.originY = 1.0
+		this.container.setPosition(this.#interface, pos, this.appId)
+		this.#interface.style['min-width'] = this.container.getWidth(this.target)
+		this.container.show(this.#interface)
+	}
+
+	unsetTarget(){
+		this.target = null;
+		this.container.hide(this.#interface)
 	}
 
 	//doesn't support rich text yet
@@ -91,7 +131,6 @@ class ContainerTextInjector {
 	}
 
 	cut (event) {
-		console.log("Cutting")
 		this.deleteSelection();
 		event.preventDefault();
 	}
@@ -100,12 +139,12 @@ class ContainerTextInjector {
 		return elem.className.includes(this.lineDescriptor.className); 
 	}
 
-	isTextUnit(elem) {
-		return elem.className.includes(this.textUnitDescriptor.className);
+	isNewLine(elem) {
+		return this.isLine(elem) && elem.children.length == 0;
 	}
 
-	isNewLine(elem) {
-		return elem.nodeName == this.newLineDescriptor.nodeName;
+	isTextUnit(elem) {
+		return elem.className.includes(this.textUnitDescriptor.className);
 	}
 
 	makeNewLine() {
@@ -113,12 +152,12 @@ class ContainerTextInjector {
 	}
 
 	makeNewTextChild (line) {
+		console.log(this.textUnitDescriptor)
 		return this.container.createFromSerializable(line.id, this.textUnitDescriptor)
 	}
 
 	splitTextUnit(unit, offset) {
 		if (!this.isTextUnit(unit)) {
-			console.log(unit)
 			throw 'You can use splitTextUnit only on textUnits'
 		}
 
@@ -184,9 +223,9 @@ class ContainerTextInjector {
 
 
 	deleteSelection() {
-		let selection = this.getSelected().units;
-		if (selection && selection.length > 0) {
-			this.deleteTextUnits(selection);
+		let selection = this.getSelected();
+		if (selection && selection.units && selection.units.length > 0) {
+			this.deleteTextUnits(selection.units);
 			return true;
 		}
 		this.clearSelection()
@@ -210,6 +249,7 @@ class ContainerTextInjector {
 		}
 
 		let editPoint = this.getCurrentTextChild();
+		
 		let textUnit = editPoint.child;
 		let line = editPoint.line;
 
@@ -230,11 +270,6 @@ class ContainerTextInjector {
 			textUnit.innerHTML = textUnit.innerHTML.substring(0, textUnit.innerHTML.length - 1);
 		}
 		this.container.notifyUpdate(textUnit.id)
-	}
-
-	newLine() {
-		let line = this.getCurrentLine(true);
-		this.container.createFromSerializable(line.id, this.newLineDescriptor);
 	}
 
 	styleTextUnits(style, textUnits) {
@@ -269,9 +304,9 @@ class ContainerTextInjector {
 	}
 
 	changeFontSize(delta) {
-		let selection = this.getSelected().units
-		if (!selection || selection.length == 0) {
-			selection = this.getAllTextUnits()
+		let selection = this.getSelected()
+		if (!selection || selection.units.length == 0) {
+			selection = {units:this.getAllTextUnits()}
 		}
 
 		let modFunc = function(e) {
@@ -282,46 +317,44 @@ class ContainerTextInjector {
 				return e
 			}
 		}
-		this.styleTextUnits({"font-size": modFunc}, selection)
+		this.styleTextUnits({"font-size": modFunc}, selection.units)
 	}
 
 	setFontSize (fontSize) {
-		let selection = this.getSelected().units
-		if (!selection || selection.length == 0) {
-			selection = this.getAllTextUnits()
+		let selection = this.getSelected()
+		if (!selection || selection.units.length == 0) {
+			selection = {units:this.getAllTextUnits()}
 		}
-		this.styleTextUnits({"font-size": fontSize}, selection)
+		this.styleTextUnits({"font-size": fontSize}, selection.units)
 	}
 
 	setFont(fontFam) {
-		let selection = this.getSelected().units
-		if (!selection || selection.length == 0) {
-			selection = this.getAllTextUnits()
+		let selection = this.getSelected()
+		if (!selection || selection.units.length == 0) {
+			selection = {units:this.getAllTextUnits()}
 		}
-		this.styleTextUnits({"font-family": fontFam}, selection);
+		this.styleTextUnits({"font-family": fontFam}, selection.units);
 	}
 
 	align (alignment) {
-		let selection = this.getSelected().lines
-		if (!selection || selection.length == 0) {
-			selection = this.target.children
+		let selection = this.getSelected()
+		if (!selection || selection.lines.length == 0) {
+			selection = {lines:this.target.children}
 		}
-		this.styleLines({"text-align": alignment,  "text-justify": "inter-word"}, selection)
+		this.styleLines({"text-align": alignment,  "text-justify": "inter-word"}, selection.lines)
 	}
 
 	bold () {
-		console.log("BOLD CALL");
 		let toggleFunc = function(e) {
-			console.log(`Toggle ${e}`)
 			if (e == "bold") {
 				return "normal"
 			}
 			return "bold"
 		}
 
-		let selection = this.getSelected().units
-		if (selection && selection.length > 0) {
-			this.styleTextUnits({"font-weight": toggleFunc}, selection)
+		let selection = this.getSelected()
+		if (selection && selection.units.length > 0) {
+			this.styleTextUnits({"font-weight": toggleFunc}, selection.units)
 		} else {
 			this.state.bold = toggleFunc(this.state.bold);
 		}
@@ -335,9 +368,9 @@ class ContainerTextInjector {
 			return 'italic'
 		}
 
-		let selection = this.getSelected().units
-		if (selection && selection.length > 0) {
-			this.styleTextUnits({"font-style": toggleFunc}, selection)
+		let selection = this.getSelected()
+		if (selection && selection.units.length > 0) {
+			this.styleTextUnits({"font-style": toggleFunc}, selection.units)
 		} else {
 			this.state.italic = toggleFunc(this.state.italic);
 		}
@@ -351,9 +384,9 @@ class ContainerTextInjector {
 			return 'underline'
 		}
 
-		let selection = this.getSelected().units
-		if (selection && selection.length > 0) {
-			this.styleTextUnits({"text-decoration": toggleFunc}, selection)
+		let selection = this.getSelected()
+		if (selection && selection.units.length > 0) {
+			this.styleTextUnits({"text-decoration": toggleFunc}, selection.units)
 		} else {
 			this.state.underlined = toggleFunc(this.state.underlined);
 		}
@@ -406,47 +439,45 @@ class ContainerTextInjector {
 	getSelected () {
 		let docSelect = document.getSelection();
 		
-		console.log(docSelect)
 		//figure out if selection belongs to target
-		// if (docSelect 
-		// 	&& docSelect.focusNode
-		// 	&& docSelect.anchorNode
-		// 	&& this.isTextUnit(docSelect.focusNode.parentNode) 
-		// 	&& this.isTextUnit(docSelect.anchorNode.parentNode)) {
+		if (docSelect 
+			&& docSelect.focusNode
+			&& docSelect.anchorNode
+			&& this.isTextUnit(docSelect.focusNode.parentNode) 
+			&& this.isTextUnit(docSelect.anchorNode.parentNode)) {
 			
-		// 	console.log("Accepted")
+			var start = docSelect.anchorNode.parentNode
+			var startOffset = docSelect.anchorOffset
+			var end = docSelect.focusNode.parentNode
+			var endOffset = docSelect.focusOffset
+			
+			if (start == end && startOffset == endOffset) {
+				return null;
+			}
 
-		// 	var start = docSelect.anchorNode.parentNode
-		// 	var startOffset = docSelect.anchorOffset
-		// 	var end = docSelect.focusNode.parentNode
-		// 	var endOffset = docSelect.focusOffset
+			let position = start.compareDocumentPosition(end)
+			if (position === Node.DOCUMENT_POSITION_PRECEDING){
+			  var aux = start;
+			  start = end;
+			  end = start;
+			}
+			if (!position && startOffset > endOffset) {
+			  var aux = startOffset;
+			  startOffset = endOffset;
+			  endOffset = startOffset;
+			}
 
-		// 	let position = start.compareDocumentPosition(end)
-		// 	if (position === Node.DOCUMENT_POSITION_PRECEDING){
-		// 	  var aux = start;
-		// 	  start = end;
-		// 	  end = start;
-		// 	}
-		// 	if (!position && startOffset > endOffset) {
-		// 	  var aux = startOffset;
-		// 	  startOffset = endOffset;
-		// 	  endOffset = startOffset;
-		// 	}
+			let startNode = this.splitTextUnit(start, startOffset)[1]
+			if (start == end) {
+			 	endOffset -= startOffset
+				end = startNode
+			}
+			let endNode = this.splitTextUnit(end, endOffset)[0]
 
-		// 	console.log(start)
-		// 	console.log(end)
-
-		// 	let startNode = this.splitTextUnit(start, startOffset)[1]
-		// 	if (start == end) {
-		// 	 	endOffset -= startOffset
-		// 		end = startNode
-		// 	}
-		// 	let endNode = this.splitTextUnit(end, endOffset)[0]
-
-		// 	this.makeSelection(startNode, endNode)	
-		// 	return this.findBetweenTextUnits(startNode, endNode)			
-		// }
-		return {};
+			this.makeSelection(startNode, endNode)	
+			return this.findBetweenTextUnits(startNode, endNode)			
+		}
+		return null;
 	}
 
 	selectAll() {
@@ -462,7 +493,7 @@ class ContainerTextInjector {
 			this.removePrintable(1);
 		}
 		if (key == 'Enter') {
-			this.newLine();
+			this.makeNewLine();
 		}
 		if (key == 'Control') {
 			this.state.control = true;
@@ -620,5 +651,5 @@ class ContainerTextInjector {
 	}
 }
 
-let texter = new ContainerTextInjector(container);
+let texter = new ContainerTextInjector(container, true);
 texter.enable()

@@ -4,7 +4,7 @@ import {Container} from "./Container.js"
 Container.prototype.loadHtml = function(node, resource, callerId) {
     let url = `components/${callerId}/${resource}`;
     console.log(`Fetching: ${url}`) 
-    fetch(url)
+    return fetch(url)
     .then(resp => {
         if (resp.ok) {
             return resp.body
@@ -45,5 +45,11 @@ Container.prototype.loadHtml = function(node, resource, callerId) {
 }
 
 Container.prototype.loadStyle = function(resource, callerId) {
-    //TODO
+    var head  = document.getElementsByTagName('head')[0];
+    var link  = document.createElement('link');
+    link.rel  = 'stylesheet';
+    link.type = 'text/css';
+    link.href = `components/${callerId}/${resource}`;
+    link.media = 'all';
+    head.appendChild(link);
 }

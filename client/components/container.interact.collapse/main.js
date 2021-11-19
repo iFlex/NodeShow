@@ -42,7 +42,6 @@ class ContainerCollapser {
     collapse() {
         let target = this.findClosestDiv(this.target || this.#hoverTarget)
         if (target) {
-            console.log(`Collapsing ${target}`)
             this.#container.setCollapseMode(target, {width:"32px",height:"32px"})
             this.#container.collapse(target, "app:"+this.appId)
         }
@@ -57,7 +56,7 @@ class ContainerCollapser {
     }
 
     handleKeydown(e) {
-        console.log(`Collapser key down: ${e.key}`)
+        //console.log(`Collapser key down: ${e.key}`)
         if( e.key == 'ArrowDown') {
             this.collapse();
         }
