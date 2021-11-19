@@ -104,17 +104,10 @@ dispatcher.onGet("/new", function(req, res) {
   res.end();
 });
 
-dispatcher.onGet("/state", function(req, res) {
-  let result = {}
+dispatcher.onGet("/list", function(req, res) {
+  let result = []
   for (const [key, val] of Object.entries(presentations)) {
-    let users = []
-    for(const [usr, soc] of Object.entries(val.sockets)) {
-      users.push(usr)
-    }
-
-    result[key] = {
-      users:users
-    }
+    result.push(key)
   }
   
   state = JSON.stringify(result, null, 2)

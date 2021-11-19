@@ -5,6 +5,19 @@
 //Node data attributes are strings
 //ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
 let CONTAINER_COUNT = 0
+const ACTIONS = {
+    create: 'container.create',
+    update: 'container.update',
+    delete: 'container.delete',
+    setParent: 'container.set.parent',
+    setWidth: 'container.set.width',
+    setHeight: 'container.set.height',
+    setAngle: 'container.set.angle',
+    hide: 'container.hide',
+    show: 'container.show',
+}
+
+export const ACTIONS
 export class Container {
 	//ToDo: make all fields private
     parent = null;
@@ -248,11 +261,11 @@ export class Container {
         //this.isOperationAllowed('container.delete', id, callerId);
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
-        this.isOperationAllowed('container.create', parent, callerId);
+        this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
         let prevParentId = child.parent.id;
         jQuery(child).detach().appendTo(parent);
-        this.emit('container.ser.parent', {
+        this.emit(ACTION.setParent, {
             id: childId,
             prevParent: prevParentId,
             parentId: parentId,
@@ -265,11 +278,11 @@ export class Container {
     //contextualise width and height based on type of element and wrapping
 	setWidth(id, width, callerId) {
         let elem = Container.lookup(id)
-        this.isOperationAllowed('container.set.width', elem, callerId);
+        this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
         
         let prevWidth = this.getWidth(id);
         jQuery(elem).css({width: width});
-        this.emit("container.set.width", {
+        this.emit(ACTIONS.setWidth, {
             id: id, 
             width: width, 
             prevWidth: prevWidth,
@@ -279,11 +292,11 @@ export class Container {
 
 	setHeight(id, height, callerId) {
         let elem = Container.lookup(id);
-        this.isOperationAllowed('container.set.height', elem, callerId);
+        this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
         
         let prevHeight = this.getHeight(id);
         jQuery(elem).css({height: height});
-        this.emit("container.set.height", {
+        this.emit(ACTIONS.setHeight, {
             id: id, 
             height: height, 
             prevHeight: prevHeight,
@@ -301,13 +314,27 @@ export class Container {
     //</size>
 	
     setAngle(id, angle, originX, originY, callerId) {
-        this.isOperationAllowed('container.set.angle', id, callerId);
+        this.isOperationAllowed(ACTIONS.setAngle, id, callerId);
         let node = Container.lookup(id)
         this.styleChild(node, {
             "transform-origin": `${originX} ${originY}`,
             "transform":`rotate(${angle})`
         })
+        this.emit(ACTIONS.setAngle, {
+            id:id, 
+            //prevAngle:prevAngle,
+            // prevOrigin:{
+
+            // },
+            angle: angle,
+            origin:{
+                originX: originX,
+                originY: originY
+            },
+            callerId:id
+        })
     }
+
     getAngle(id) {
         //ToDo
     }
@@ -315,10 +342,10 @@ export class Container {
 
     hide(id, callerId) {
         let elem = Container.lookup(id);
-        this.isOperationAllowed('container.hide', elem, callerId);
+        this.isOperationAllowed(ACTIONS.hide, elem, callerId);
         
         $(elem).hide();
-        this.emit('container.hide', {
+        this.emit(ACTIONS.hide, {
             id:id,
             callerId:callerId
         });
@@ -326,10 +353,10 @@ export class Container {
 
     show(id, callerId) {
         let elem = Container.lookup(id);
-        this.isOperationAllowed('container.show', elem, callerId);
+        this.isOperationAllowed(ACTIONS.show, elem, callerId);
         
         $(elem).show();
-        this.emit('container.show', {
+        this.emit(ACTIONS.show, {
             id:id,
             callerId:callerId
         });
@@ -385,7 +412,7 @@ export class Container {
                 child.style.setProperty(tag, value) //important
             }
         }
-        this.emit('container.update', {id:child.id, callerId:callerId})
+        this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
     }
 
     updateChild(child, rawDescriptor, callerId){
@@ -418,7 +445,7 @@ export class Container {
         if (rawDescriptor['computedStyle']) {
             this.styleChild(child, rawDescriptor['computedStyle'], callerId)    
         } else {
-            this.emit('container.update', {id:child.id, callerId:callerId})
+            this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
         }  
     }
 
@@ -473,7 +500,7 @@ export class Container {
 
         //ToDo: fix this event firing (it's not accurate)
         CONTAINER_COUNT ++;
-        this.emit("container.create", {
+        this.emit(ACTIONS.create, {
             presentationId: this.presentationId, 
             parentId: parent.id, 
             id: child.id, 
@@ -485,13 +512,13 @@ export class Container {
 
     addDomChild(parentId, domNode, callerId) {
         let parent = Container.lookup(parentId);
-        this.isOperationAllowed('container.create', parent, callerId);
+        this.isOperationAllowed(ACTIONS.create, parent, callerId);
 
         if (domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
             CONTAINER_COUNT++;
-            this.emit("container.create", {
+            this.emit(ACTIONS.create, {
                 presentationId: this.presentationId, 
                 parentId: parent.id,
                 callerId: callerId,
@@ -502,12 +529,12 @@ export class Container {
 
     delete(id, callerId) {
         let child = Container.lookup(id)
-        this.isOperationAllowed('container.delete', child, callerId);
+        this.isOperationAllowed(ACTIONS.delete, child, callerId);
 
         if (child != this.parent) {
             child.parentNode.removeChild(child);
             CONTAINER_COUNT--;
-            this.emit('container.delete', {
+            this.emit(ACTIONS.delete, {
                 id:id,
                 callerId: callerId
             });
@@ -575,7 +602,7 @@ export class Container {
     //<events>
     notifyUpdate(id) {
         let node = Container.lookup(id)
-        this.emit('container.update', {id:node.id})
+        this.emit(ACTIONS.update, {id:node.id})
     }
 
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
