@@ -46,7 +46,15 @@
   overflow-y: scroll;
   overflow-x: hidden;
 }
- 
+
+/* Linker */
+.container-linker-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: lawngreen;
+} 
+
 /* Text Editor */
 .text-document-line {
     width: 100%;

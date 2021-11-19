@@ -69,9 +69,14 @@ Container.prototype.setPosition = function(id, position, callerId) {
         }
     }
     
+    //remove margin offset
     let margins = this.getTopCornerMargin(elem, position)
     position.top -= margins.top
     position.left -= margins.left
+
+    //use origin based placement
+    position.left -= (position.originX || 0) * this.getWidth(elem)
+    position.top -= (position.originY || 0) * this.getHeight(elem)
 
     let xUnit = this.detectUnit(elem.style.left) || this.detectUnit(elem.style.right) || 'px'
     let yUnit = this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'

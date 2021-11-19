@@ -1,11 +1,10 @@
-//Next gen Container
-
 //ToDo
 //fetch component interfaces and styles from server
 //load them into DOM
 
 //Node data attributes are strings
 //ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
+let CONTAINER_COUNT = 0
 export class Container {
 	//ToDo: make all fields private
     parent = null;
@@ -102,6 +101,7 @@ export class Container {
 			let item = queue[index]
 			if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
+                CONTAINER_COUNT++;
 				labeledCount += 1;
 			}
             
@@ -463,6 +463,7 @@ export class Container {
         }
 
         //ToDo: fix this event firing (it's not accurate)
+        CONTAINER_COUNT ++;
         this.emit("container.create", {
             presentationId: this.presentationId, 
             parentId: parent.id, 
@@ -480,6 +481,7 @@ export class Container {
         if (domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
+            CONTAINER_COUNT++;
             this.emit("container.create", {
                 presentationId: this.presentationId, 
                 parentId: parent.id,
@@ -495,6 +497,7 @@ export class Container {
 
         if (child != this.parent) {
             child.parentNode.removeChild(child);
+            CONTAINER_COUNT--;
             this.emit('container.delete', {
                 id:id,
                 callerId: callerId
@@ -544,6 +547,21 @@ export class Container {
 		return serialize;
 	}
     //</serialization>
+
+    bringToFront(id) {
+        let node = Container.lookup(id)
+        node.style.zIndex = `${CONTAINER_COUNT + 1}` 
+    }
+
+    sendToBottom(id) {
+        let node = Container.lookup(id)
+        node.style.zIndex = "0"
+    }
+
+    setZIndex(id, index) {
+        let node = Container.lookup(id)
+        node.style.zIndex = `${index}` 
+    }
 
     //<events>
     notifyUpdate(id) {

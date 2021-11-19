@@ -123,7 +123,7 @@ class ContainerMover {
 			this.target = event.target;
 			this.selection = event.target;
 
-			this.container.appEmit(this.appId,'selected',{id:this.target.id});
+			this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event.originalEvent});
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
 			this.target = null;//ToDo: smaller ratio preserving change amount
@@ -136,7 +136,7 @@ class ContainerMover {
 			
 			if(dx != 0 || dy != 0) {
 				this.selection = null;
-				this.container.appEmit(this.appId,'unselected',{id:this.target.id});
+				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event});
 			}
 		}
 		
