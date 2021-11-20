@@ -7,24 +7,81 @@
     <title>NodeShow Text Editor Test</title>
   </head>
   <body>
-      <div style="border-radius: 15px;
+      <div id="text-surface" style="border-radius: 15px;
       border-width: 2px;
       border-color: aqua;
       background: #bbbbbb;
       padding: 20px;
-      width: 500px;
-      height: 1000px;"></div>
-      <div style="border-radius: 15px 50px 30px;
-      border-width: 2px;
-      border-color: aqua;
-      background: #f0f0f0;
-      padding: 20px;
-      width: 500px;
-      height: 300px;"></div>
+      width: 1000px;
+      height: 1500px;"></div>
   </body>
-  <script src="../Container.js"></script>
-  <script src="../components/container.edit.pos/main.js"></script>
-  <script src="../components/container.edit.text/main.js"></script>  
-  <script src="../components/container.create/main.js"></script>
-  <script src="../components/container.interact.collapse/main.js"></script>
+  <script type="module" src="../../nodeshow.js"></script>
+  <script type="module" src="../../components/container.edit.pos/main.js"></script>
+  <script type="module" src="../../components/container.edit.text/main.js"></script> 
+  <script type="module">
+    import {texter} from "../../components/container.edit.text/main.js"
+    
+    function makeAuthToken(length){
+      let token = "";
+      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      for( var i=0;i<length;++i)
+          token += possible.charAt(Math.floor(Math.random() * possible.length));
+      return token;
+    }
+  
+    function getRandomInt(min, max) {
+      return min + Math.floor(Math.random() * max);
+    }
+
+    function beforeTest(){
+      let node = document.getElementById('text-surface')
+      if (node.children) {
+        for (const child of node.children) {
+          node.removeChild(child)
+        }
+      }
+    }
+    
+    function afterTest() {
+
+    }
+    
+    function test_deleting_past_limit() {
+      let target = document.getElementById('text-surface')
+      texter.target = target;
+
+      let addedChars = 0;
+      for (let i = 0 ; i < 10; ++i ){
+        let nrChars = getRandomInt(1,79)
+        addedChars += nrChars;
+        let str = makeAuthToken(nrChars)
+        texter.addPrintable(str)
+        texter.newLine()
+        nrChars += 1;//add a char for the number of new lines as well
+      }
+      
+      let deletes = addedChars + 10;
+      for (let j = 0; j < deletes; ++j ) {
+        texter.removePrintable(-1)  
+      }
+
+      let units = texter.getAllTextUnits()
+      console.assert(units.length == 0, `There should be no text units left. ${units.left} are left`)
+      console.assert(target.children.length == 0, `There should be only one line object left. ${target.children.length} left`)
+    }
+
+    let tests = []
+    tests.push(test_deleting_past_limit)
+
+    function runTests() {
+      for(const test of tests) {
+        alert("TEST")
+        beforeTest();
+        test.apply()
+        afterTest();
+      }
+    }
+
+    setTimeout(runTests, 1000)
+  </script>
 </html>
