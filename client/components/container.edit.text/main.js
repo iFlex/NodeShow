@@ -1,5 +1,26 @@
 import {container} from '../../nodeshow.js'
 
+//ToDo:
+//newlines (support them properly)
+//font and letter size tracking
+//transparent text boxes that are draggable from text
+//better line comprehension in text manipulation:
+//  - fixed line heights
+//  - cursor move up to shorter line doesn't work (it works, but need to fix new line represenation for it to be perfect)
+//fix cursor bugs...
+//fix prevent default functionality (only do it for our commands, do not prevent default stuff for copy and paste)
+//span compaction (combine if style is identical)
+//unicode support
+
+//wrapping - add in logic to support:
+/*
+	1. resizing container as text is typed (both with and height)
+	2. automatically wrapping a line that is too long
+		-> cursor support for this (depends on knowing char height and width)
+*/
+
+//line spacing
+
 const textItemPerms = {"container.move":{"*":false}, "container.edit":{"*":false}}
 	
 class ContainerTextInjector {
@@ -12,9 +33,20 @@ class ContainerTextInjector {
 
 	#newline = '&#13;'
 
+	#cursorDiv = null
+	cursorDescriptor = {nodeName:"DIV", className: "text-document-cursor", computedStyle:{"position":"absolute"}}
 	lineDescriptor = {nodeName: "DIV", className: "text-document-line", permissions:textItemPerms}
 	textUnitDescriptor = {nodeName: "SPAN", className: "text-document-unit", permissions:textItemPerms}
 	preventDefaults = {'u':true,'b':true,'i':true,' ':true}
+	
+	textContainerStyle  = {
+	  "width": "auto",
+	  "height":  "auto",
+	  //"min-width":  "300px", //these mins shuold be overridable depending on the text
+	  //"min-height": "150px",
+	  "padding": "20px"
+	}
+
 	state = {
 		control:false,
 		bold:false,
@@ -28,21 +60,6 @@ class ContainerTextInjector {
 		textUnit: null,
 		localCharNo: 0
 	}
-	
-	//ToDo:
-	//fix prevent default functionality (only do it for our commands, do not prevent default stuff for copy and paste)
-	//selections - reverse selection & other edge cases
-	//selections - ghost selections (nothing is selected on screen but it returns some selection)
-	//line breaking and combining  // key: fs.readFileSync(process.env.TLS_CERT_KEY),
-  	// cert: fs.readFileSync(process.env.TLS_CERT),
-  	// ciphers: "DEFAULT:!SSLv2:!RC4:!EXPORT:!LOW:!MEDIUM:!SHA1" on edit
-	//span compaction (combine if style is identical)
-
-	//cursor concept	
-
-	//resizing by other
-	//resize container when text wraps
-	//wrapping
 
 	constructor (container, debug) {
 		this.container = container;
@@ -74,6 +91,10 @@ class ContainerTextInjector {
 		//load interface style and html
 		this.container.loadStyle("style.css", this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+
+		//create cursor pointer
+		this.#cursorDiv = this.container.createFromSerializable(null, this.cursorDescriptor, null, this.appId)
+		this.container.hide(this.#cursorDiv)
 	}
  
 	enable() {
@@ -85,7 +106,9 @@ class ContainerTextInjector {
 
 		//clipboard
 		document.addEventListener('paste', (event) => this.paste(event));
-		document.addEventListener('cut', (event) => this.cut(event));	
+		document.addEventListener('cut', (event) => this.cut(event));
+		//selection
+		document.addEventListener('selectionchange', (e) => this.onSelectionChange(e));	
 	}
 
 	disable() {
@@ -98,6 +121,8 @@ class ContainerTextInjector {
 		//clipboard
 		document.removeEventListener('paste', (event) => this.paste(event));
 		document.removeEventListener('cut', (event) => this.cut(event));
+		//selection
+		document.removeEventListener('selectionchange', (e) => this.onSelectionChange(e));	
 		this.container.hide(this.#interface)
 	}
 
@@ -128,8 +153,6 @@ class ContainerTextInjector {
 		this.container.setPosition(this.#interface, pos, this.appId)
 		this.#interface.style['min-width'] = this.container.getWidth(this.target)
 		this.container.show(this.#interface)
-
-
 	}
 
 	unsetTarget(){
@@ -158,7 +181,17 @@ class ContainerTextInjector {
 	}
 
 	isTextUnit(elem) {
-		return elem.className.includes(this.textUnitDescriptor.className);
+		return elem.className && elem.className.includes(this.textUnitDescriptor.className);
+	}
+
+	isTextUnitInCurrentTarget(unit) {
+		while(unit) {
+			if(unit == this.target) {
+				return true;
+			}
+			unit = unit.parentNode
+		}
+		return false;
 	}
 
 	makeNewLine(insertAt) {
@@ -176,17 +209,173 @@ class ContainerTextInjector {
 		return unit
 	}
 
+	styleTarget() {
+		if ( this.target ) {
+			this.container.styleChild(this.target, this.textContainerStyle)
+		}
+	}
+	/*
+		Inclusive set of text units from start to end
+		ToDo: deal with situatoin when start is after end
+	*/
+	findBetweenTextUnits (start, end, stopAtEOL) {
+		if (!start && !end) {
+			throw `Can't find text units between nothing and nothing...`
+		}
+		if (!end) {
+			end = start.parentNode.lastChild
+		}
+		if (!start) {
+			start = end.parentNode.firstChild;
+		}
+		
+		let units = new Set([])
+		let lines = new Set([])
+		var currentLine = start.parentNode
+		var currentTextUnit = start
+			
+		while (currentLine) {
+			if (!currentTextUnit) {
+				currentTextUnit = currentLine.firstChild
+			}
+
+			lines.add(currentLine)
+			while (currentTextUnit) {
+				if (this.isTextUnit(currentTextUnit)){
+					units.add(currentTextUnit)
+					if (currentTextUnit == end) {
+						units.add(end)
+						return {lines:lines, units:units}
+					}
+				}
+				currentTextUnit = currentTextUnit.nextSibling
+			}
+			if (stopAtEOL) {
+				break;
+			}
+			currentLine = currentLine.nextSibling
+		}
+		return {lines:lines, units:units}
+	}
+
+	makeSelection(start, end) {
+		let range = new Range();
+  		range.setStart(start.firstChild, 0);
+  		range.setEnd(end.lastChild, end.lastChild.length);
+
+  		let sel = this.clearSelection()
+		sel.addRange(range)
+	}
+
+	clearSelection () {
+		let sel = document.getSelection();
+		sel.removeAllRanges();
+		return sel;
+	}
+
+	//carful not to mess up the cursor here
+	//BUG: screws up the cursor when the selection is deleted
+	onSelectionChange(e) {
+		// let docSelect = document.getSelection();
+		// if (docSelect 
+		// 	&& docSelect.focusNode
+		// 	&& docSelect.anchorNode) {
+		// 	if(this.isTextUnitInCurrentTarget(docSelect.focusNode.parentNode)) {
+		// 		this.cursorSetOnTextUnit(this.cursor, docSelect.focusNode.parentNode, docSelect.focusOffset)
+		// 	}
+		// }
+	}
+
+	//ToDo: deal with reversed selections
+	getSelected () {
+		let docSelect = document.getSelection();
+		
+		//figure out if selection belongs to target
+		if (docSelect 
+			&& docSelect.focusNode
+			&& docSelect.anchorNode) {
+			
+			let focusTunitInTarget = this.isTextUnitInCurrentTarget(docSelect.focusNode.parentNode)
+			let anchorTunitInTarget = this.isTextUnitInCurrentTarget(docSelect.anchorNode.parentNode)
+
+			if (focusTunitInTarget && anchorTunitInTarget) {
+				var start = docSelect.anchorNode.parentNode
+				var startOffset = docSelect.anchorOffset
+				var end = docSelect.focusNode.parentNode
+				var endOffset = docSelect.focusOffset
+				
+				if (start == end && startOffset == endOffset) {
+					this.clearSelection();
+					return null;
+				}
+
+				if (this.isTextUnitBefore(end, start)) {
+					let aux = start;
+					start = end;
+					end = aux;
+				}
+
+				if (start == end && (startOffset > endOffset)){
+					let aux = endOffset;
+					endOffset = startOffset;
+					startOffset = aux;
+				}
+
+				let startSplit = this.splitTextUnit(start, startOffset)
+				let startNode = startSplit[1]
+				if (start == end) {
+				 	endOffset -= startOffset
+					end = startNode
+				}
+				let endSplit = this.splitTextUnit(end, endOffset)
+				let endNode = endSplit[0]
+				
+				this.makeSelection(startNode, endNode)
+
+				if (startSplit[0]) {
+					this.cursorSetOnTextUnit(this.cursor, startSplit[0], startSplit[0].innerHTML.length)
+				} else if(endSplit[1]) {
+					this.cursorSetOnTextUnit(this.cursor, endSplit[1], 0)
+				}
+
+				return this.findBetweenTextUnits(startNode, endNode)			
+			}
+		}
+		return null;
+	}
+
+	selectAll() {
+		if (this.target) {
+			this.makeSelection(this.target.firstChild.firstChild, this.target.lastChild.lastChild)
+		}
+	}
+
 	//cursor logic
+	//BUG: placing cursor on click is not accurate sadly. Check calculatios
 	onTextUnitClick(e) {
-		console.log("moving cursor")
-		console.log(e)
 		let textUnit = e.target
 		let clickP = e.layerX
-		let charWidth = Math.floor(this.container.getWidth(textUnit) / textUnit.innerHTML.length);
+		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length;
+		let offset = Math.ceil(clickP/charWidth)
 
-		this.cursor.textUnit = e.target
-		this.cursor.localCharNo = Math.floor(clickP/charWidth)
-		this.cursorFromLocalCharNo(this.cursor)
+		this.cursorSetOnTextUnit(this.cursor, textUnit, offset)
+	}
+
+	cursorUpdateVisible(cursor, blinker) {
+		let textUnit = cursor.textUnit
+		if(!textUnit) {
+			return
+		}
+
+		let unitPos = this.container.getPosition(textUnit)
+		let unitHeight = this.container.getHeight(textUnit)
+		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length
+		unitPos.left += Math.ceil(charWidth * cursor.localCharNo)
+
+		this.container.setPosition(this.#cursorDiv, {top:unitPos.top,left:unitPos.left})
+		this.container.setHeight(this.#cursorDiv, unitHeight)
+		this.container.show(this.#cursorDiv)
+		this.container.bringToFront(this.#cursorDiv)
 	}
 
 	cursorPutOnLine(cursor, lineNo, makeIfAbsent) {
@@ -208,125 +397,120 @@ class ContainerTextInjector {
 
 	/* 
 	This will seek the text unit on the current line. If no text unit exists - then it will create one and cap the position
-	Should always be called after a cursorPutOnLine()
 	*/
-	cursorSeekTextUnit(cursor, charNo) {
-		console.log("Cursor SEEK")
+	cursorSeekTextUnit(cursor, charNo, makeIfAbsent) {
+		//console.log("Cursor SEEK")
 		cursor.textUnit = cursor.line.firstChild
-		if (!cursor.textUnit) {
+		if (!cursor.textUnit && makeIfAbsent) {
 			cursor.textUnit = this.makeNewTextChild(cursor.line)
+		}
+
+		let lineLen = 0;
+		for (const child of cursor.line.children) {
+			lineLen += child.innerHTML.length
 		}
 
 		cursor.charNo = 0;
 		cursor.localCharNo = 0;
-		this.cursorMove(cursor, charNo)	
+		this.cursorMove(cursor, Math.min(charNo, lineLen), true)	
 		
-		console.log(cursor)
-		console.log("Cursor SEEK---")
+		//console.log(cursor)
+		//console.log("Cursor SEEK---")
 	}
 
-	cursorMove(cursor, charsRemaining) {
-		let moved = 0;
-		let prevTextUnit = null;
-		console.log("cursor move")
+
+	cursorToPrevUnit(cursor) {
+		console.log(`Cursor jump to prev text unit from`)
+		console.log(cursor.textUnit)
+		let switchTo = cursor.textUnit.previousSibling;
+		if(!switchTo && this.cursorPutOnLine(cursor, cursor.lineNo - 1)) {
+			switchTo = this.cursor.line.lastChild
+		}
+		console.log("Switch to:")
+		console.log(switchTo)
+		if (switchTo) {
+			this.cursorSetOnTextUnit(cursor, switchTo, switchTo.innerHTML.length)
+		}
 		console.log(cursor)
+		console.log("switch to prev------")
+	}
+
+	cursorToNextUnit(cursor) {
+		console.log(`Cursor jumps to next textUnit`)
+		console.log(cursor.textUnit)
+		let switchTo = cursor.textUnit.nextSibling
+		if(!switchTo && this.cursorPutOnLine(cursor, cursor.lineNo + 1)) {
+			switchTo = this.cursor.line.firstChild
+		}
+		
+		if(switchTo) {
+			this.cursorSetOnTextUnit(cursor, switchTo, 0)
+		}
+		console.log(cursor)
+		console.log("switch to next------")
+	}
+
+	/*
+	Seems stable for now
+	 */
+	cursorMove(cursor, charsRemaining) {
+		console.log(`Cursor will move by ${charsRemaining}`)
+		let moved = 0;
 		while (charsRemaining != 0) {
-			let unitLen = cursor.textUnit.innerHTML.length;
-			if (charsRemaining > 0) {
-				//if you can fit the move within the current text unit, we're done
-				if (cursor.localCharNo + charsRemaining < unitLen) {
-					cursor.charNo += charsRemaining
-					cursor.localCharNo += charsRemaining
-					moved += charsRemaining;
-					charsRemaining = 0;
-				} else {
-					//jump to next text unit
-					let delta = unitLen - cursor.localCharNo;
-					cursor.charNo += delta;
-					cursor.localCharNo += delta;
+			if (charsRemaining < 0) {
+				if (cursor.localCharNo == 0) {
+					this.cursorToPrevUnit(cursor)
+				}
+				
+				if (cursor.localCharNo == 0) {
+					//cannot cotinue moving
+					break
+				}
 
-					prevTextUnit = cursor.textUnit;
-					cursor.textUnit = cursor.textUnit.nextSibling;
+				cursor.localCharNo --;
+				cursor.charNo --;
+				moved --;
 
-					//update counts
-					charsRemaining -= delta;
-					moved += delta;
-					
-					//overflow
-					if (!cursor.textUnit) {
-						//go to next line, do not make one if absent
-						let lineChanged = this.cursorPutOnLine(cursor, cursor.lineNo + 1, false)
-						if (lineChanged) {
-							this.cursorPutAt(cursor, cursor.lineNo, 0, false)
-							charsRemaining--;
-							moved++;
-						} else {
-							//no more unites to follow, we're done
-							charsRemaining = 0;
-							cursor.textUnit = prevTextUnit
-						}
-					} else {
-						cursor.localCharNo = 0;
-					}
+				charsRemaining ++;
+
+				if (cursor.localCharNo == 0) {
+					this.cursorToPrevUnit(cursor)
 				}
 			} else {
-				//if you can fit the move within the current text unit, we're done
-				if (cursor.localCharNo + charsRemaining >= 0) {
-					cursor.charNo += charsRemaining
-					cursor.localCharNo += charsRemaining
-					moved += charsRemaining;
-					charsRemaining = 0;
-				} else {
-					//jump to next text unit
-					let delta = cursor.localCharNo;
+				if (cursor.localCharNo == cursor.textUnit.innerHTML.length) {
+					this.cursorToNextUnit(cursor)
+				}
+				if (cursor.localCharNo == cursor.textUnit.innerHTML.length) {
+					//cannot continue moving
+					break;
+				}
+				cursor.localCharNo ++;
+				cursor.charNo ++;
+				moved ++;
 
-					cursor.charNo -= delta;
-					cursor.localCharNo -= delta;
-					prevTextUnit = cursor.textUnit;
-					cursor.textUnit = cursor.textUnit.prevSibling;
+				charsRemaining --;
 
-					//update counts
-					charsRemaining += delta;
-					moved -= delta;
-					
-					//overflow
-					if (!cursor.textUnit) {
-						//go to prev line, do not make one if absent
-						let lineChanged = this.cursorPutOnLine(cursor, cursor.lineNo - 1, false)
-						if (lineChanged) {
-							cursor.textUnit = cursor.line.lastChild;
-							cursor.localCharNo = cursor.textUnit.innerHTML.length;
-							charsRemaining++;
-							moved--;
-
-							this.cursorCharNoFromLocalCharNo(cursor)
-						} else {
-							//no more unites to follow, we're done
-							charsRemaining = 0;
-							cursor.textUnit = prevTextUnit;
-						}
-					} else {
-						cursor.localCharNo = cursor.textUnit.innerHTML.length;
-					}
+				if (cursor.localCharNo == cursor.textUnit.innerHTML.length) {
+					this.cursorToNextUnit(cursor)
 				}
 			}
 		}
-		console.log(cursor)
-		console.log('cursor move -----')
-		return moved;
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	cursorPutAt(cursor, line, char, makeIfAbsent) {
 		this.cursorPutOnLine(cursor, line, makeIfAbsent)
-		this.cursorSeekTextUnit(cursor, char)
+		this.cursorSeekTextUnit(cursor, char, makeIfAbsent)
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	cursorCharNoFromLocalCharNo(cursor) {
 		cursor.charNo = cursor.localCharNo;
-		let textUnit = cursor.textUnit.prevSibling;
+		let textUnit = cursor.textUnit.previousSibling;
 		while(textUnit) {
 			cursor.charNo += textUnit.innerHTML.length
-			textUnit = textUnit.prevSibling
+			textUnit = textUnit.previousSibling
 		}
 	}
 
@@ -344,15 +528,24 @@ class ContainerTextInjector {
 	}
 
 	cursorSetOnTextUnit(cursor, textUnit, offset) {
+		console.log(`Placing cursor on text unit at offset ${offset}`)
+		console.log(textUnit)
 		cursor.textUnit = textUnit
 		cursor.localCharNo = offset;
 		this.cursorFromLocalCharNo(cursor)
+		console.log(cursor)
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	splitTextUnit(unit, offset) {
 		if (!this.isTextUnit(unit)) {
 			throw 'You can use splitTextUnit only on textUnits'
 		}
+		
+		// if (unit.innerHTML.length == 0) {
+		// 	return [null, null]
+		// }
 
 		if (offset == 0) {
 			return [unit.previousSibling, unit]
@@ -418,11 +611,16 @@ class ContainerTextInjector {
 
 	deleteTextUnits(units) {
 		for (const unit of units) {
+			let parent = unit.parentNode
 			this.container.delete(unit, this.appId)
+			if (parent.children.length == 0) {
+				this.container.delete(parent, this.appId)
+			}
 		}
 	}
 
 	addPrintable(text) {
+		this.styleTarget()
 		//if there's a selection delete it first
 		this.deleteSelection();
 		console.log("Add printable: cursor:")
@@ -441,27 +639,36 @@ class ContainerTextInjector {
 		console.log("Add printable---------")
 	}
 
+	/*
+	ToDo: Seems to be working ok
+	*/
 	newLine() {
-		let moveToNewLine = {}
+		let moveToNewLine = new Set([])
 		if (this.cursor.textUnit) {
-			let startMove = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)[1]
-			if (startMove) {
-				moveToNewLine = this.findBetweenTextUnits(startMove).units
+			let split = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
+			console.log(split)
+			if (split[1]) {
+				moveToNewLine = this.findBetweenTextUnits(split[1]).units
 			}
 		}
-
-		this.cursor.lineNo++;
-		this.makeNewLine(this.cursor.lineNo)
-		this.cursorPutOnLine(this.cursor, this.cursor.lineNo, true);
-		this.cursorSeekTextUnit(this.cursor, 0)
-		for (const [key, value] of Object.entries(moveToNewLine)) {
-			this.container.setParent(value, this.cursor.line, this.appId)
+		console.log(moveToNewLine)
+		//make new line and pull in items
+		let line = this.makeNewLine(this.cursor.lineNo + 1)
+		for (const textUnit of moveToNewLine) {
+			this.container.setParent(textUnit, line, this.appId)
 		}
+		//update cursor
+		this.cursorToNextUnit(this.cursor)
 	}
 
 	//ToDo: remove lines rendered empty
-	//ToDo: Bug: when deleting sometimes everyting after the pointer gets erased
+	//BUG: sometimes removing in between text units creates ghost text units
+	//BUG: when deleting past line end, the current line does not get moved into the upper line
+	//BUG: sometimes this doesn't delete anyting...
 	removePrintable(count) {
+		console.log(`Remove printable ${count}`)
+		console.log(this.cursor)
+
 		if (!count) {
 			return;
 		}
@@ -473,21 +680,24 @@ class ContainerTextInjector {
 
 		let start = undefined
 		let end = undefined
-		console.log("REM")
-		console.log(this.cursor)
+
 		if (count > 0) {
 			start = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
 			this.cursorMove(this.cursor, count)
 			end = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
+			if(start[1] && start[1] == end[1]) { //split happened on the same text unit
+				start[1] = end[0]
+			}
 		} else {
 			end = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
 			this.cursorMove(this.cursor, count)
-			start = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)	
+			start = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
+			if (this.cursor.textUnit == end[0]) {
+				//this is a special annoying case
+				end[0] = start[1]
+			}
 		}
-		console.log(this.cursor)
-		console.log("--------")
 		let delList = this.findBetweenTextUnits(start[1] || start[0], end[0] || end[1])
-		console.log(delList)
 		let toDelete = delList.units
 		if (!start[1]) {
 			toDelete.delete(start[0])
@@ -496,6 +706,28 @@ class ContainerTextInjector {
 			toDelete.delete(end[1])
 		}
 		this.deleteTextUnits(toDelete)
+
+		console.log(this.cursor)
+		console.log("Remove printable ----")
+	}
+
+	getTextUnitDistanceFromRoot(textUnit) {
+		let dist = 0;
+		let node = textUnit
+		while (node) {
+			if (this.isTextUnit(node) && !node.previousSibling) {
+				node = node.parentNode
+			} else {
+				node = node.previousSibling	
+			}
+			dist ++;
+		}
+
+		return dist;
+	}
+
+	isTextUnitBefore(textUnit1, textUnit2) {
+		return this.getTextUnitDistanceFromRoot(textUnit1) < this.getTextUnitDistanceFromRoot(textUnit2)
 	}
 
 	styleTextUnits(style, textUnits) {
@@ -544,6 +776,8 @@ class ContainerTextInjector {
 			}
 		}
 		this.styleTextUnits({"font-size": modFunc}, selection.units)
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	setFontSize (fontSize) {
@@ -552,6 +786,8 @@ class ContainerTextInjector {
 			selection = {units:this.getAllTextUnits()}
 		}
 		this.styleTextUnits({"font-size": fontSize}, selection.units)
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	setFont(fontFam) {
@@ -560,6 +796,8 @@ class ContainerTextInjector {
 			selection = {units:this.getAllTextUnits()}
 		}
 		this.styleTextUnits({"font-family": fontFam}, selection.units);
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	align (alignment) {
@@ -568,6 +806,8 @@ class ContainerTextInjector {
 			selection = {lines:this.target.children}
 		}
 		this.styleLines({"text-align": alignment,  "text-justify": "inter-word"}, selection.lines)
+		
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	bold () {
@@ -584,6 +824,8 @@ class ContainerTextInjector {
 		} else {
 			this.state.bold = toggleFunc(this.state.bold);
 		}
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	italic (textUnits) {
@@ -600,6 +842,8 @@ class ContainerTextInjector {
 		} else {
 			this.state.italic = toggleFunc(this.state.italic);
 		}
+
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	underlined (textUnits) {
@@ -616,126 +860,8 @@ class ContainerTextInjector {
 		} else {
 			this.state.underlined = toggleFunc(this.state.underlined);
 		}
-	}
 
-	/*
-		Inclusive set of text units from start to end
-	*/
-	findBetweenTextUnits (start, end) {
-		if (!start && !end) {
-			throw `Can't find text units between nothing and nothing...`
-		}
-		if (!end) {
-			end = start.parentNode.lastChild
-		}
-		if (!start) {
-			start = end.parentNode.firstChild;
-		}
-
-		let units = new Set([])
-		let lines = new Set([])
-		var currentLine = start.parentNode
-		var currentTextUnit = start
-			
-		while (currentLine) {
-			if (!currentTextUnit) {
-				currentTextUnit = currentLine.firstChild
-			}
-
-			lines.add(currentLine)
-			while (currentTextUnit) {
-				if (this.isTextUnit(currentTextUnit)){
-					units.add(currentTextUnit)
-					if (currentTextUnit == end) {
-						units.add(end)
-						return {lines:lines, units:units}
-					}
-				}
-				currentTextUnit = currentTextUnit.nextSibling
-			}
-
-			currentLine = currentLine.nextSibling
-		}
-		return {lines:lines, units:units}
-	}
-
-	makeSelection(start, end) {
-		let range = new Range();
-  		range.setStart(start.firstChild, 0);
-  		range.setEnd(end.lastChild, end.lastChild.length);
-
-  		let sel = this.clearSelection()
-		sel.addRange(range)
-	}
-
-	clearSelection () {
-		let sel = document.getSelection();
-		sel.removeAllRanges();
-		return sel;
-	}
-
-	//ToDo: deal with reversed selections
-	getSelected () {
-		let docSelect = document.getSelection();
-		
-		//figure out if selection belongs to target
-		if (docSelect 
-			&& docSelect.focusNode
-			&& docSelect.anchorNode
-			&& this.isTextUnit(docSelect.focusNode.parentNode) 
-			&& this.isTextUnit(docSelect.anchorNode.parentNode)) {
-			
-			var start = docSelect.anchorNode.parentNode
-			var startOffset = docSelect.anchorOffset
-			var end = docSelect.focusNode.parentNode
-			var endOffset = docSelect.focusOffset
-			
-			if (start == end && startOffset == endOffset) {
-				this.clearSelection();
-				return null;
-			}
-
-			let position = start.compareDocumentPosition(end)
-			if (position === Node.DOCUMENT_POSITION_PRECEDING){
-			  var aux = start;
-			  start = end;
-			  end = start;
-			}
-			if (!position && startOffset > endOffset) {
-			  var aux = startOffset;
-			  startOffset = endOffset;
-			  endOffset = startOffset;
-			}
-
-			let startSplit = this.splitTextUnit(start, startOffset)
-			let startNode = startSplit[1]
-			if (start == end) {
-			 	endOffset -= startOffset
-				end = startNode
-			}
-			let endSplit = this.splitTextUnit(end, endOffset)
-			let endNode = endSplit[0]
-
-			//position cursor
-			//ToDo: set the cursor where the selection ends
-			if (startSplit[0]) {
-				this.cursorSetOnTextUnit(this.cursor, startSplit[0], startSplit[0].innerHTML.length)
-			} else if(endSplit[1]) {
-				this.cursorSetOnTextUnit(this.cursor, endSplit[1], 0)
-			}
-			console.log("Cursor now at")
-			console.log(this.cursor)
-			
-			this.makeSelection(startNode, endNode)	
-			return this.findBetweenTextUnits(startNode, endNode)			
-		}
-		return null;
-	}
-
-	selectAll() {
-		if (this.target) {
-			this.makeSelection(this.target.firstChild.firstChild, this.target.lastChild.lastChild)
-		}
+		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
 	}
 
 	handleKeydown(e) {
@@ -750,7 +876,18 @@ class ContainerTextInjector {
 		if (key == 'Control') {
 			this.state.control = true;
 		}
-
+		if (key == "Down" || key == "ArrowDown") {
+			this.cursorPutAt(this.cursor, this.cursor.lineNo + 1, this.cursor.charNo)
+		}
+   	 	if (key == "Up" || key == "ArrowUp") {
+   	 		this.cursorPutAt(this.cursor, this.cursor.lineNo - 1, this.cursor.charNo)
+   	 	}
+		if (key == "Left" || key == "ArrowLeft") {
+			this.cursorMove(this.cursor, -1)
+		}
+      	if (key == "Right" || key == "ArrowRight") {
+      		this.cursorMove(this.cursor, 1)
+      	}
 		if (!this.state.control) {
 			if (ContainerTextInjector.isPrintableCharacter(key)) {
 				this.addPrintable(key)
@@ -840,10 +977,10 @@ class ContainerTextInjector {
 			if (key == '4') {
 				this.align('justify')
 			}
-			if (key == '+') {
+			if (key == '8') {
 				this.changeFontSize(1)
 			}
-			if (key == '-') {
+			if (key == '9') {
 				this.changeFontSize(-1)
 			}
 			if (key == 'a') {
@@ -865,7 +1002,7 @@ class ContainerTextInjector {
 					this.container.createFromSerializable(this.target.id, {
 						nodeName:"img",
 						src:text
-					});
+					},null,this.appId);
 				}
 
 				let r = this.isData(text)
@@ -879,7 +1016,7 @@ class ContainerTextInjector {
 						this.container.createFromSerializable(this.target.id, {
 							nodeName:"img",
 							src:text
-						});
+						},null,this.appId);
 					}
 					console.log(r)
 				}
