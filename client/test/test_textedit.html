@@ -35,13 +35,15 @@
 
     function beforeTest(){
       let node = document.getElementById('text-surface')
-      for (const child of node.children) {
-        node.removeChild(child)
+      if (node.children) {
+        for (const child of node.children) {
+          node.removeChild(child)
+        }
       }
     }
     
     function afterTest() {
-      beforeTest()
+
     }
     
     function test_deleting_past_limit() {
@@ -73,8 +75,8 @@
 
     function runTests() {
       for(const test of tests) {
+        alert("TEST")
         beforeTest();
-        //alert("TEST")
         test.apply()
         afterTest();
       }

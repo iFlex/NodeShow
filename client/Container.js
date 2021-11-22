@@ -15,7 +15,7 @@ export const ACTIONS = {
     setHeight: 'container.set.height',
     setAngle: 'container.set.angle',
     hide: 'container.hide',
-    show: 'container.show',
+    show: 'container.show'
 }
 
 export class Container {
@@ -262,16 +262,20 @@ export class Container {
     //</extensions subsystem>
     
     //<nesting>
-	setParent(childId, parentId, callerId) {
+	setParent(childId, parentId, callerId, options) {
         //ToDo permissions
         //this.isOperationAllowed('container.delete', id, callerId);
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
-        let prevParentId = child.parent.id;
-        jQuery(child).detach().appendTo(parent);
-        this.emit(ACTION.setParent, {
+        let prevParentId = child.parentNode.id;
+        if (options && options.insertBefore && parent.firstChild) {
+            jQuery(child).detach().insertBefore(Container.lookup(options.insertBefore));
+        } else {
+            jQuery(child).detach().appendTo(parent);    
+        }
+        this.emit(ACTIONS.setParent, {
             id: childId,
             prevParent: prevParentId,
             parentId: parentId,
