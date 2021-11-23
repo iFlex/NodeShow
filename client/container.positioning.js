@@ -52,22 +52,18 @@ ToDo: fix bug where absolute % doesn't work - caused by the height % being calcu
     - seems like the page width and height that % calculations use are based on maybe viewport percentages rather than the actual document.body
     - the bug behaves differently depending on the final size of document.body (parent)
 ToDo: support more position types
+ Absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower)
 */
 Container.prototype.setPosition = function(id, position, callerId) {
     let elem = Container.lookup(id);
     this.isOperationAllowed('container.move', elem, callerId);
-    //console.log("Before setpos translate")
-    //console.log(position)
 
     let posType = elem.style.position 
-    if (posType != 'absolute') {
-        //needs translation
-        if (posType == 'relative') {
-            let parentPos = this.getPosition(elem.parentNode || this.parent)
-            position.top = parentPos.top - position.top
-            position.left = parentPos.left - position.left
-        }
-    }
+    
+    //do position translation (even if the positioning is absolute, it still uses the parent x,y as the origin point)
+    let parentPos = this.getPosition(elem.parentNode || this.parent)
+    position.top -= parentPos.top
+    position.left -= parentPos.left
     
     //remove margin offset
     let margins = this.getTopCornerMargin(elem, position)
@@ -88,8 +84,6 @@ Container.prototype.setPosition = function(id, position, callerId) {
         position.top = parseFloat(position.top) / this.getHeight(elem.parentNode || this.parent)*100
     }
 
-    //console.log("Position after translation")
-    //console.log(position)
     jQuery(elem).css({top: `${position.top}${yUnit}`, left: `${position.left}${xUnit}`});
     this.emit("container.setPosition", {
         id: id, 
@@ -101,10 +95,9 @@ Container.prototype.setPosition = function(id, position, callerId) {
 //ToDo take angle into consideration somehow
 /* Returned position is always absolute and without account for transforms */
 Container.prototype.getPosition = function(id) {
-    //return jQuery(Container.lookup(id)).position();
     let node = Container.lookup(id)
     let p = findAbsPos(node)
-    
+
     let pos = {
         top:p[1],
         left:p[0],

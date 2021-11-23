@@ -160,16 +160,32 @@
   <script type="module" src="nodeshow.js"></script>
   <script type="module">
     import {container} from '../nodeshow.js'
+    let excount = 20
+    let positions = {}
     function step() {
         let containers = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14"];
-
         for (const id of containers) {
-            let pos = container.getPosition(id)
-            container.setPosition(id, pos)
+            let pos1 = container.getPosition(id)
+            container.setPosition(id, pos1)
+            let pos2 = container.getPosition(id)
+            
+            console.log(id)
+            console.log(pos1)
+            console.log(pos2)
+            let deltaX = pos2.left - pos1.left
+            let deltaY = pos2.top - pos1.top
+            if( deltaX != 0 || deltaY  != 0) {
+              console.error(`Node ${id} has moved by dx:${deltaX} dy:${deltaY} and it shouldn't have`)
+            }
             //container.move(id, 0, 0)
         }
+
+        excount--;
+        if (excount > 0)
+          setTimeout(step, 1000)
     }
     
-    setInterval(step, 1000)
+    alert("start?")
+    setTimeout(step, 1000)
   </script>
 </html>

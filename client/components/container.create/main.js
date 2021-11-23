@@ -99,7 +99,10 @@ class ContainerCreator {
 		let node = this.container.createFromSerializable(this.target.id, div)
 		this.setChildStyleSuggestion(node)
 		if (x != undefined && y!= undefined) {
+			console.log(`Creating new container @abspos{${x}x${y}}`)
+			console.log(node)
 			this.container.setPosition(node.id, {top:y, left:x})
+			console.log("Final position")
 			console.log(this.container.getPosition(node.id))
 		}
 	}
