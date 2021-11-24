@@ -48,9 +48,9 @@ class ContainerTextInjector {
 		nodeName: "SPAN", 
 		className: "text-document-unit", 
 		permissions:textItemPerms,
-		"data-container-actions":[
-			{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}
-		]
+		"data":{
+			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}]
+		}
 	}
 	preventDefaults = {'u':true,'b':true,'i':true,' ':true}
 	

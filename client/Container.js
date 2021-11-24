@@ -460,15 +460,16 @@ export class Container {
             }
             
             try {
-                if (tag.includes('data-')) {
-                    child.setAttribute(tag, JSON.stringify(value))
-                } else {
-                    child[tag] = value;
-                }
+                child[tag] = value;
             } catch (e) {
                 console.error(`Could not set tag:${tag} on ${child.id}`);
                 console.error(e);
             }
+        }
+
+        //set data attributes
+        for( const [tag, value] of Object.entries(rawDescriptor.data || {})) {
+            child.dataset[tag] = JSON.stringify(value)
         }
 
         //applying style
@@ -683,11 +684,10 @@ export class Container {
 
         serialize['cssText'] = elem.style.cssText;
 		serialize['computedStyle'] = this.toSerializableStyle(id);
+        
         //save data- tags
-        let data = $(elem).data();
-        for(const [tag, value] of Object.entries(data)) {
-            serialize[tag] = value
-        }
+        serialize['data'] = $(elem).data();
+        
         //save metadata
         serialize["permissions"] = this.permissions[elem.id]
 

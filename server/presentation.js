@@ -19,11 +19,10 @@ const DESCRIPTOR_FIELD_ALLOW_LIST = {
 		"src":{sanitize:false},
 		"cssText":{sanitize:false},
 		"permissions":{sanitize:false},
-		"innerHTML":{sanitize:true},	
+		"data":{sanitize:false},
+		"innerHTML":{sanitize:true},
 	},
-	partial:{
-		"data-":{sanitize:false},
-	}
+	partial:{}
 }
 
 class Presentation {
@@ -97,6 +96,7 @@ class Presentation {
 			if (key in schema.exact) {
 				rule = schema.exact[key]
 			} else {
+				console.log(`Unmatched key ${key}`)
 				for (const wildc of Object.keys(schema.partial)) {
 					if (key.includes(wildc)) {
 						rule = schema.partial[wildc]
