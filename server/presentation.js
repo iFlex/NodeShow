@@ -117,7 +117,9 @@ class Presentation {
 
 	//ToDo maybe validate the outer object as well, not just the one about HTML Nodes
 	validate(data) {
-		data.detail.descriptor = this.sanitize(data.detail.descriptor, DESCRIPTOR_FIELD_ALLOW_LIST)
+		if(data.detail && data.detail.descriptor) {
+			data.detail.descriptor = this.sanitize(data.detail.descriptor, DESCRIPTOR_FIELD_ALLOW_LIST)
+		}
 		return data
 	}
 	
@@ -126,7 +128,8 @@ class Presentation {
         //ToDo: plug in logic to check if op is allowed
         try{
 			if (data.event == Events.CONTAINER_CREATE || data.event == Events.CONTAINER_UPDATE) {
-	        	let child = data.detail.descriptor;
+	        	console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
+				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
 				
@@ -149,7 +152,7 @@ class Presentation {
 				if (id in this.roots) {
 					delete this.roots[id]
 				}
-			} else {
+			} else if(this.rawData[data.detail.id]) {
 				this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor.computedStyle;
 			}
 

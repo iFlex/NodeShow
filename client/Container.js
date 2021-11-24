@@ -114,7 +114,6 @@ export class Container {
 		var labeledCount = 0;
 		do {
 			let item = queue[index]
-            console.log(item)
             if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
                 CONTAINER_COUNT++;
@@ -496,8 +495,6 @@ export class Container {
 
         let childNodes = this.initQueue[elem.id].childNodes
         let index = this.initQueue[elem.id].index
-        console.log("Child nodes")
-        console.log(childNodes)
         for (; index < childNodes.length; ++index) {
             let node = childNodes[index]
             if (node.id) {
@@ -505,8 +502,6 @@ export class Container {
                 break;
             } else {
                 let nodeDOM = document.createTextNode(node.value)
-                console.log("Leaf Node")
-                console.log(nodeDOM)
                 elem.appendChild(nodeDOM)
             }
         }
@@ -523,7 +518,8 @@ export class Container {
     //has the ability to wait for parent to show up
 	createFromSerializable(parentId, rawDescriptor, insertBefore, callerId) {
         //this.isOperationAllowed('container.create', parentId, callerId);
-
+        console.log("Create from serializable")
+        console.log(rawDescriptor)
 		let parent = this.parent;
         let child = undefined
 		
@@ -546,7 +542,6 @@ export class Container {
         }
         
         if (!child) {
-            console.log(rawDescriptor)
             if (rawDescriptor.nodeName.toLowerCase() == 'body'){
                 //child = this.parent
                 console.log("No need to re-create the body object");
@@ -596,6 +591,8 @@ export class Container {
         }
 
         CONTAINER_COUNT ++;
+        console.log(`EMITTING ${callerId}`)
+        console.log(rawDescriptor)
         this.emit(ACTIONS.create, {
             presentationId: this.presentationId, 
             parentId: parent.id, 

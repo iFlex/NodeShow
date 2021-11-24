@@ -102,6 +102,7 @@ class ContainerTextInjector {
 		},
 		null,
 		this.appId)
+
 		this.container.hide(this.#interface)
 		//load interface style and html
 		this.container.loadStyle("style.css", this.appId)
@@ -219,7 +220,7 @@ class ContainerTextInjector {
 
 	makeNewTextChild (line) {
 		console.log(this.textUnitDescriptor)
-		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor)
+		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor, null, this.appId)
 		return unit
 	}
 
@@ -577,7 +578,7 @@ class ContainerTextInjector {
 		descriptor.innerHTML = rightText;
 		descriptor.permissions = textItemPerms
 
-		let right = this.container.createFromSerializable(unit.parentNode.id, descriptor, unit.nextSibling)	
+		let right = this.container.createFromSerializable(unit.parentNode.id, descriptor, unit.nextSibling, this.appId)	
 		
 		return [unit, right]
 	}

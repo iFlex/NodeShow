@@ -4,6 +4,7 @@ export class LiveBridge {
 	container = null;
 	socket = null;
 	userId = null;
+    #users = {}
 
     host = window.location.host;
     port = window.location.port;
@@ -32,10 +33,16 @@ export class LiveBridge {
         }
 	}
 
+    //no caller id, current user or component
+    isCallerIdLocal(callerId) {
+        return (!callerId || callerId == this.userId || this.container.getComponent(callerId))
+    }
+
     sendUpdate(e) {
         //check if this update originates from our user and not from the network
-        if(e.detail.callerId && e.detail.callerId != this.userId){
-            console.log("Not sending network update back to the network")
+        if(!this.isCallerIdLocal(e.detail.callerId)) {
+            console.log(`Not sending network update back to the network. CallerId ${e.detail.callerId}`)
+            console.log(e.detail)
             return;
         }
 
@@ -88,8 +95,14 @@ export class LiveBridge {
 		});
 
 		this.socket.on('update', d => this.handleUpdate(JSON.parse(d)))
-        this.socket.on('user.joined', d => console.log(`User joined ${d.userId}`))
-        this.socket.on('user.left', d => console.log(`User left ${d.userId}`))
+        this.socket.on('user.joined', d => {
+            this.#users[d.userId] = true;
+            console.log(`User joined ${d.userId}`)
+        })
+        this.socket.on('user.left', d =>{
+            delete this.#users[d.userId]
+            console.log(`User left ${d.userId}`)
+        })
         this.socket.on('insert', d => this.handleInsert(JSON.parse(d)))
     }
 
@@ -100,6 +113,8 @@ export class LiveBridge {
         if (!data.userId) {
             //populate with userId in case it's not there. all network updates should have a value for the userid
             data.userId = this.host
+        } else {
+            this.#users[data.userId] = true;
         }
 
 		let detail = data.detail
