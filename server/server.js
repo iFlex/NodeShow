@@ -65,12 +65,10 @@ const Users = new UserBase(UserStorage);
 const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
-const SecurityFilter = require('./SecurityFilter')
 
 //dispatcher.setStatic("/");
 //dispatcher.setStaticDirname(NGPS_LOCATION);
 const debug_level = 0;
-let uploaded_files = {}
 
 var utils = new (function(){
   this.makeAuthToken = function(length){
@@ -263,10 +261,7 @@ function handleBridgeUpdate(data) {
     let originSocket = prezzo.sockets[userId];
     if(originSocket || isRobot(originSocket)) {
       console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
-      //filter with side-effects
-      SecurityFilter.filterUpdate(parsed);    
-
-      prezzo.presentation.update(parsed);
+      parsed = prezzo.presentation.update(parsed);
       broadcast(userId, ['update', JSON.stringify(parsed)], prezzo.sockets);
     }
   }

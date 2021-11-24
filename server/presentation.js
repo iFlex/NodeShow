@@ -1,5 +1,30 @@
+const { filter } = require('httpdispatcher');
 const Events = require('./NodeShowEvents')
+const SecurityFilter = require('./SecurityFilter')
+
 console.log(Events)
+
+//ToDo impose schema on update object as well and validate fields
+//allow list of fields in a presentation unit descriptor
+
+const DESCRIPTOR_FIELD_ALLOW_LIST = {
+	exact:{
+		"nodeName":{sanitize:false, validate:true},
+		"id":{sanitize:false},
+		"childNodes":{sanitize:false},
+		"parentId":{sanitize:false},
+		"style":{sanitize:false},
+		"computedStyle":{sanitize:false},
+		"className":{sanitize:false},
+		"src":{sanitize:false},
+		"cssText":{sanitize:false},
+		"permissions":{sanitize:false},
+		"innerHTML":{sanitize:true},	
+	},
+	partial:{
+		"data-":{sanitize:false},
+	}
+}
 
 class Presentation {
 
@@ -64,7 +89,40 @@ class Presentation {
 		console.log(`${this.id} - roots(${Object.keys(this.roots).length}) nodes(${nodeCount}) unadressable(${unadresasble}) brokenParentLinks(${brokenParentLinks}) brokenChildLinks(${brokenChildLinks})`)
 	}	
 
+	sanitize(obj, schema) {
+		let result = {}
+		for (const key of Object.keys(obj)) {
+			let rule = null
+			//find sanitization rule
+			if (key in schema.exact) {
+				rule = schema.exact[key]
+			} else {
+				for (const wildc of Object.keys(schema.partial)) {
+					if (key.includes(wildc)) {
+						rule = schema.partial[wildc]
+					}
+				}
+			}
+				
+			if (rule) {
+				if (rule.sanitize) {
+					result[key] = SecurityFilter.filterString(obj[key])
+				} else {
+					result[key] = obj[key]
+				}
+			}
+		}
+		return result
+	}
+
+	//ToDo maybe validate the outer object as well, not just the one about HTML Nodes
+	validate(data) {
+		data.detail.descriptor = this.sanitize(data.detail.descriptor, DESCRIPTOR_FIELD_ALLOW_LIST)
+		return data
+	}
+	
 	update(data) {
+		data = this.validate(data)
         //ToDo: plug in logic to check if op is allowed
         try{
 			if (data.event == Events.CONTAINER_CREATE || data.event == Events.CONTAINER_UPDATE) {
@@ -100,6 +158,8 @@ class Presentation {
         	console.log("Failed to update");
         	console.log(e);
         }
+
+		return data
 	}
 
 	getNodesInOrder() {

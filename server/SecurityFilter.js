@@ -16,16 +16,6 @@ function filterScriptsFromString(html) {
     return result; 
 }
 
-//Filter with side effects
-function filterUpdate(update) {
-    let descriptor = update.detail.descriptor
-    //Filter innerHTML
-    if (descriptor) {
-        descriptor.innerHTML = filterScriptsFromString(descriptor.innerHTML)
-        descriptor.innerText = filterScriptsFromString(descriptor.innerText)
-    }
-}
-
 module.exports = {
-    filterUpdate:filterUpdate
+    filterString: filterScriptsFromString,
 }
