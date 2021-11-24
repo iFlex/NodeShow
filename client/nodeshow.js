@@ -12,4 +12,4 @@ container.init();
 let bridge = new LiveBridge(container);
 bridge.registerSocketIo();
 
-export {container as container}
+export {container as container, bridge as bridge}

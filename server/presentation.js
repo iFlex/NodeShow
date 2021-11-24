@@ -23,56 +23,45 @@ class Presentation {
 	}
 
 	findRoots() {
+		let unadresasble = 0;
+		let brokenChildLinks = 0;
+		let brokenParentLinks = 0;
 		let nodeCount = Object.entries(this.rawData).length
 		if (nodeCount == 0) {
 			return;
 		}
 
-		console.log(`Finding foots of ${this.id} nodes ${nodeCount}`)
+		console.log(`Finding roots of ${this.id} nodes ${nodeCount}`)
 		for (const [key, value] of Object.entries(this.rawData)) {
-			if(this.isRoot(value)) {
+			if(this.isRoot(value) || !this.rawData[value.parentId]) {
 				this.roots[value.id] = true;
 			}
-			delete this.rawData[key].children
-		}
-		if (Object.keys(this.roots).length == 0) {
-			throw `${this.id} - has an invalid state. No root containers found, which means the presentation can't be constructed as it references unknown nodes`
-		}
-		let rootCount = Object.keys(this.roots).length
-		let prevOrphanCount = 0;
-		let linked = 0;
-		let curOrphanCount = Object.keys(this.rawData).length;
-		
-		do {
-			prevOrphanCount = curOrphanCount;
-			curOrphanCount = 0;
-			for (const [key, value] of Object.entries(this.rawData)) {
-				if (!this.isRoot(value)) {
-					let parentId = value.parentId;
-					let parent = this.rawData[parentId];
-					
-					if (!parent) {
-						curOrphanCount += 1
+			//broken parent node (parentId doesn't exist)
+			//this is recoverable - just place it in root (body)
+			if(value.parentId && !this.rawData[value.parentId]){
+				brokenParentLinks++;
+			}
+
+			//broken child node
+			//not recoverable
+			if(value.childNodes) {
+				for (const child of value.childNodes) {
+					if (child.id) {
+						if(!this.rawData[child.id]) {
+							brokenChildLinks++;
+						}
 					} else {
-						if (!parent.children) {
-							parent.children = {}
-						}
-						if (!(value.id in parent.children)) {	
-							linked++;
-							parent.children[value.id] = true
-						}
+						unadresasble++;
 					}
 				}
 			}
-		} while(curOrphanCount != prevOrphanCount)
-
-		console.log(`Linked Children: ${linked} Remaining orphans: ${curOrphanCount}`)
-		if(curOrphanCount > 0) {
-			throw `Presentation ${this.id} has ${curOrphanCount} orphaned nodes. It should have 0`
 		}
-		if (rootCount + linked != nodeCount) {
-			throw `Presentation ${this.id} has ${rootCount} roots and ${linked} linked children. Which should add up to ${nodeCount} total nodes.`
+		
+		if (Object.keys(this.roots).length == 0) {
+			throw `${this.id} - has an invalid state. No root containers found, which means the presentation can't be constructed as it references unknown nodes`
 		}
+		
+		console.log(`${this.id} - roots(${Object.keys(this.roots).length}) nodes(${nodeCount}) unadressable(${unadresasble}) brokenParentLinks(${brokenParentLinks}) brokenChildLinks(${brokenChildLinks})`)
 	}	
 
 	update(data) {
@@ -82,17 +71,12 @@ class Presentation {
 	        	let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
-				if (!child.children) {
-					child['children'] = {}
-				}
-
+				
 				if (parentId) {
 					this.rawData[child.id]['parentId'] = parentId
 					if (!this.rawData[parentId]) {
 						this.roots[parentId] = true
-						this.rawData[parentId] = {id:parentId, children:{}}
 					}
-					this.rawData[parentId].children[child.id] = true
 				}
 		        
 				//track roots
@@ -123,24 +107,36 @@ class Presentation {
 		let visited = {}
 		
 		//add roots
-		for (let [key, value] of Object.entries(this.roots)) {
+		for (const key of Object.keys(this.roots)) {
 			result.push(this.rawData[key])
+			console.log(`push root ${key}`)
 		}
 
 		let i = 0;
+		let noChildNodes = 0;
 		while(i < result.length) {
 			let current = result[i]
-			if (current.children){
-				for (const child of Object.keys(current.children)) {
-					if(!(child in visited)) {
-						result.push(this.rawData[child])
-						visited[child] = true
+			visited[current.id] = true
+
+			if (current.childNodes){
+				for (const child of current.childNodes) {
+					if(child.id && !visited[child.id]) {
+						result.push(this.rawData[child.id])
+						console.log(`${current.id} Push child ${child.id}`)
+						visited[child.id] = true
 					}
 				}
+			} else {
+				noChildNodes++;
 			}
 			i++;
 		}
+		console.log(`number of leafs: ${noChildNodes}`)
 		return result;
+	}
+
+	getNodesAnyOrder() {
+		return Object.values(this.rawData)
 	}
 
 	isRoot(node) {

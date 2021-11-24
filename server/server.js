@@ -7,6 +7,8 @@ const NGPS_ENTRYPOINT = NGPS_LOCATION + "/index.html";
 const USER_STORAGE = process.env.USER_STORAGE_HOME || '../users'
 const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../prezzos'
 const DEBUG_MODE = process.env.DEBUG_MODE || false;
+const STATIC_CONTENT = './static'
+const UPLOADS = './static/'
 
 console.log(`Configured NodeShow server with`)
 console.log(`Server config: ${SERVER}`)
@@ -17,6 +19,7 @@ console.log(`Presentation Storage: ${PERSIST_LOCATION}`)
 const https = require('https');
 const url = require('url');
 const fs = require('fs');
+const formidable = require('formidable')
 
 if (!process.env.TLS_CERT_KEY || !process.env.TLS_CERT) {
   console.log("Please provide environment variables for the HTTPS server TLS config")
@@ -66,7 +69,8 @@ const SecurityFilter = require('./SecurityFilter')
 
 //dispatcher.setStatic("/");
 //dispatcher.setStaticDirname(NGPS_LOCATION);
-const debug_level = 2;
+const debug_level = 0;
+let uploaded_files = {}
 
 var utils = new (function(){
   this.makeAuthToken = function(length){
@@ -147,6 +151,30 @@ dispatcher.onGet("/edit", function(req, res) {
   } 
 });
 
+
+function handlePost(request, response) {
+  var form = new formidable.IncomingForm({uploadDir:UPLOADS});
+  form.parse(request, function(err, fields, files) {
+      if (err) {
+        console.error(err.message);
+        return;
+      }
+
+      response.writeHead(200, {'content-type': 'text/plain'});
+      response.write('received upload:\n\n');
+
+      // This last line responds to the form submission with a list of the parsed data and files.
+      response.end(JSON.stringify({fields: fields, files: files}));
+      try {
+        insertUploadedContent(fields.pid, files.file.newFilename)
+      } catch (e) {
+        console.log("Failed to notify of content upload")
+        console.error(e)
+      }
+  });
+  return;
+}
+
 function handleRequest(request, response){
     console.log(`${request.method} - ${request.url}`)
     try {
@@ -154,9 +182,14 @@ function handleRequest(request, response){
       if(request.method.toLowerCase() == "get") {
         //static content server
         wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
-      }
-      if (!wasStatic) {
-        dispatcher.dispatch(request, response);
+        if (!wasStatic){
+          wasStatic = HttpUtils.handleStaticGet(request, response, STATIC_CONTENT)
+        }
+        if (!wasStatic) {
+          dispatcher.dispatch(request, response);
+        }
+      } else if(request.method.toLowerCase() == "post") {
+        handlePost(request, response)
       }
     } catch(err) {
       console.log(err.stack);
@@ -258,7 +291,7 @@ function broadcast(senderId, message, sockets) {
 
 function sendPresentationToNewUser(socket, prezzo) {
   console.log("Beaming presentation to new user");
-  let nodes = prezzo.getNodesInOrder();
+  let nodes = prezzo.getNodesAnyOrder(); //prezzo.getNodesInOrder();
   console.log(`Node count ${nodes.length}`)
   for (const node of nodes) {
     if (debug_level > 1) {
@@ -272,6 +305,28 @@ function sendPresentationToNewUser(socket, prezzo) {
           descriptor: node
       }
     }));
+  }
+}
+
+//ToDo this is very fragile, replace with headless browser joining prezzo
+function insertUploadedContent(prezId, filePath, uploader) {
+  let prezzo = presentations[prezId];
+  if (!prezzo) {
+    console.log(`Presentation ${prezId} not found`)
+    return;
+  }
+
+  for (const [socUserId, socket] of Object.entries(prezzo.sockets)) {
+    if (!uploader || socUserId == uploader) {
+      socket.emit('insert', JSON.stringify({
+        presentationId: prezzo.id,
+        event: Events.INSERT,
+        detail: {
+            url: filePath
+        }
+      }));
+      break;
+    }
   }
 }
 

@@ -63,8 +63,8 @@ export class LiveBridge {
             }
         }
 
-        //console.log("Sending server update")
-        //console.log(update)
+        console.log("Sending server update")
+        console.log(update)
         
         this.socket.emit("update", JSON.stringify(update));
     }
@@ -90,6 +90,7 @@ export class LiveBridge {
 		this.socket.on('update', d => this.handleUpdate(JSON.parse(d)))
         this.socket.on('user.joined', d => console.log(`User joined ${d.userId}`))
         this.socket.on('user.left', d => console.log(`User left ${d.userId}`))
+        this.socket.on('insert', d => this.handleInsert(JSON.parse(d)))
     }
 
 	handleUpdate(data) {
@@ -118,6 +119,23 @@ export class LiveBridge {
         }
 	}
 
+    handleInsert(data) {
+        let holder = this.container.createFromSerializable(null, {
+            "nodeName":"DIV",
+            "computedStyle": {
+                "position":"absolute",
+                "top":"0px",
+                "left":"20px",
+                "min-width":"500px",
+                "min-height":"500px",
+                "width":"auto",
+                "height":"auto",
+                "overflow": "auto"
+            }
+        })
+
+        this.container.loadHtml(holder, data.detail.url, undefined, true)
+    }
 
 	//TESTING
 	beam() {	

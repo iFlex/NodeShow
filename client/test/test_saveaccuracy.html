@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/socket-io.js"></script>
+    <script src="../libs/jquery.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>NodeShow Text Editor Test</title>
+    <style>
+        div {
+            border-width:  2px;
+            border-color: red;
+        }
+    </style>
+</head>
+  <body>
+    Body level text
+    <h3> Some heading </h3>
+    <div>
+        Testing the nesting thins
+        <span> Nesting <b>should work</b> 
+        well
+    </div>
+    Some more body level text
+    <div>And some inner text<div>more inner text</div> here</div>
+  </body>
+  <script type="module" src="../nodeshow.js"></script>
+  <script type="module">
+    import {container, bridge} from "../nodeshow.js"
+    container.index()
+    setTimeout(function(){
+      bridge.beam()
+    },1000)
+  </script>
+</html>

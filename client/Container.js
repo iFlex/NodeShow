@@ -41,9 +41,11 @@ export class Container {
     */
     permissions = {}
 	metastate = {}
+    initQueue = {}
+    orphans = {}
 
     components = {}
-    skipSetOnDOM = {"nodeName":true, "children":true}
+    skipSetOnDOM = {"nodeName":true, "children":true, "childNodes":true}
 
     constructor(parentDom) {
         console.log("CREATED CONTAINER OBJECT")
@@ -106,18 +108,25 @@ export class Container {
         return Container.lookup(id);
     }
 
-    index(root) {
+    index(root, emit) {
 		let queue = [root || this.parent]
 		var index = 0
 		var labeledCount = 0;
 		do {
 			let item = queue[index]
-			if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
+            console.log(item)
+            if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
                 CONTAINER_COUNT++;
 				labeledCount += 1;
 			}
             
+            if (item.children) {
+				for (const child of item.children) {
+					queue.push(child)
+				}
+			}
+
             //init actions
             try {
                 this.initActions(item)
@@ -126,13 +135,15 @@ export class Container {
                 console.log("Could not init container actions. Did you not include the module?")
                 console.error(e)
             }
-
-			if (item.children) {
-				for (const child of item.children) {
-					queue.push(child)
-				}
-			}
 			index ++;
+
+            if(emit) {
+                this.emit(ACTIONS.create, {
+                    presentationId: this.presentationId, 
+                    parentId: (item.parentNode || this.root).id, 
+                    id: item.id
+                });
+            }
 		} while(index < queue.length)
 
 		console.log(`Indexed ${index} document entities. Labeled ${labeledCount}`)
@@ -412,7 +423,11 @@ export class Container {
         Container.lookup(id).getBoundingClientRect();
     }
 
-    styleChild(child, style, callerId) {
+    styleChild(child, style, callerId, emit) {
+        if (emit == undefined) {
+            emit = true;
+        }
+
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -422,10 +437,16 @@ export class Container {
                 child.style.setProperty(tag, value) //important
             }
         }
-        this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
+
+        if(emit) {
+            this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
+        }
     }
 
-    updateChild(child, rawDescriptor, callerId){
+    updateChild(child, rawDescriptor, callerId, emit){
+        if (emit == undefined) {
+            emit = true;
+        }
         var total = 0;
         var set = 0;
         
@@ -440,7 +461,11 @@ export class Container {
             }
             
             try {
-                child[tag] = value;
+                if (tag.includes('data-')) {
+                    child.setAttribute(tag, JSON.stringify(value))
+                } else {
+                    child[tag] = value;
+                }
             } catch (e) {
                 console.error(`Could not set tag:${tag} on ${child.id}`);
                 console.error(e);
@@ -453,8 +478,8 @@ export class Container {
         }
 
         if (rawDescriptor['computedStyle']) {
-            this.styleChild(child, rawDescriptor['computedStyle'], callerId)    
-        } else {
+            this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
+        } else if(emit) {
             this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
         }  
     }
@@ -464,7 +489,38 @@ export class Container {
         this.styleChild(child, style)
     }
 
+    #addChildNodes(elem) {
+        if (!this.initQueue[elem.id]) {
+            return;
+        }
+
+        let childNodes = this.initQueue[elem.id].childNodes
+        let index = this.initQueue[elem.id].index
+        console.log("Child nodes")
+        console.log(childNodes)
+        for (; index < childNodes.length; ++index) {
+            let node = childNodes[index]
+            if (node.id) {
+                index++;
+                break;
+            } else {
+                let nodeDOM = document.createTextNode(node.value)
+                console.log("Leaf Node")
+                console.log(nodeDOM)
+                elem.appendChild(nodeDOM)
+            }
+        }
+
+        //update index
+        this.initQueue[elem.id].index = index;
+        //initialisation complete
+        if (childNodes.length <= index) {
+            delete this.initQueue[elem.id]
+        }
+    }
+
     //Prone to UID collisions. It won't complain if you want to create an element that already exists
+    //has the ability to wait for parent to show up
 	createFromSerializable(parentId, rawDescriptor, insertBefore, callerId) {
         //this.isOperationAllowed('container.create', parentId, callerId);
 
@@ -472,8 +528,17 @@ export class Container {
         let child = undefined
 		
         if (parentId) {
-			parent = Container.lookup(parentId);
-		}
+			try{
+                parent = Container.lookup(parentId);
+		    } catch (e) {
+                //save it in case the parrent shows up :D 
+                if (!this.orphans[parentId]) {
+                    this.orphans[parentId] = []
+                }
+                this.orphans[parentId].push(rawDescriptor)
+                return null;
+            }
+        }
 		try {
             child = Container.lookup(rawDescriptor.id)
         } catch (e){
@@ -481,6 +546,7 @@ export class Container {
         }
         
         if (!child) {
+            console.log(rawDescriptor)
             if (rawDescriptor.nodeName.toLowerCase() == 'body'){
                 //child = this.parent
                 console.log("No need to re-create the body object");
@@ -489,13 +555,34 @@ export class Container {
                 child = document.createElement(rawDescriptor['nodeName'])    
                 if (insertBefore) {
                     parent.insertBefore(child, insertBefore);
+                    //ToDo: insert before could mess up with correct initialisation of parents...hmm
                 } else {
                     parent.appendChild(child);
                 }
             }
         }
         
-        this.updateChild(child, rawDescriptor)
+        this.updateChild(child, rawDescriptor, null, false)
+        //initialise unidentifiable leafs inide child
+        if (rawDescriptor.childNodes) {
+            this.initQueue[child.id] = {
+                childNodes: rawDescriptor.childNodes,
+                index: 0
+            }
+            this.#addChildNodes(child)
+        }
+        
+        //parent has shown up, no longer orphans
+        if (this.orphans[child.id]) {
+            for (const orphan of this.orphans[child.id]) {
+                this.createFromSerializable(child.id, orphan, null, callerId)
+            }
+        }
+
+        //continue parent initialisation if waiting for node
+        if (this.initQueue[parent.id]) {
+            this.#addChildNodes(parent)
+        }
 
         if (rawDescriptor.permissions) {
             this.permissions[child.id] = Container.clone(rawDescriptor.permissions)
@@ -570,7 +657,7 @@ export class Container {
     }
 
 	toSerializable(id) {
-		let relevantProps = ['id','nodeName','innerHTML','className', 'src']
+		let relevantProps = ['id','nodeName','className', 'src']
 
 		let elem = Container.lookup(id);
 		
@@ -578,6 +665,24 @@ export class Container {
 		for (const tag of relevantProps) {
 			serialize[tag] = elem[tag];
 		}
+
+        //only save inner html if leaf node
+        if (!elem.children || elem.children.length == 0) {
+            serialize['innerHTML'] = elem.innerHTML
+        } else {
+            serialize['childNodes'] = []
+            for (const child of elem.childNodes) {
+                if(!child.id) {
+                    serialize['childNodes'].push({
+                        nodeName:child.nodeName, 
+                        nodeType:child.nodeType, 
+                        value:   child.nodeValue,
+                        text:    child.textContent})
+                } else {
+                    serialize['childNodes'].push({id:child.id})
+                }
+            }
+        }
 
         serialize['cssText'] = elem.style.cssText;
 		serialize['computedStyle'] = this.toSerializableStyle(id);

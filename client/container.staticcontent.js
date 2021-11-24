@@ -1,8 +1,12 @@
 import {Container} from "./Container.js"
 
 //ToDo: tidy
-Container.prototype.loadHtml = function(node, resource, callerId) {
+Container.prototype.loadHtml = function(node, resource, callerId, emit) {
     let url = `components/${callerId}/${resource}`;
+    if (!callerId) {
+        url = resource
+    }
+
     console.log(`Fetching: ${url}`) 
     return fetch(url)
     .then(resp => {
@@ -36,7 +40,7 @@ Container.prototype.loadHtml = function(node, resource, callerId) {
     .then(blob => blob.text())
     .then(text => {
         node.innerHTML = text;
-        this.index(node)
+        this.index(node, emit)
     })
     .catch(err => {
         console.error(`Failed to fetch html fragment from ${resource}`)

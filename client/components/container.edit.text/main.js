@@ -34,9 +34,24 @@ class ContainerTextInjector {
 	#newline = '&#13;'
 
 	#cursorDiv = null
-	cursorDescriptor = {nodeName:"DIV", className: "text-document-cursor", computedStyle:{"position":"absolute"}}
-	lineDescriptor = {nodeName: "DIV", className: "text-document-line", permissions:textItemPerms}
-	textUnitDescriptor = {nodeName: "SPAN", className: "text-document-unit", permissions:textItemPerms}
+	cursorDescriptor = {
+		nodeName:"DIV", 
+		className: "text-document-cursor", 
+		computedStyle:{"position":"absolute"}
+	}
+	lineDescriptor = {
+		nodeName: "DIV", 
+		className: "text-document-line", 
+		permissions:textItemPerms
+	}
+	textUnitDescriptor = {
+		nodeName: "SPAN", 
+		className: "text-document-unit", 
+		permissions:textItemPerms,
+		"data-container-actions":[
+			{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}
+		]
+	}
 	preventDefaults = {'u':true,'b':true,'i':true,' ':true}
 	
 	textContainerStyle  = {
@@ -205,7 +220,6 @@ class ContainerTextInjector {
 	makeNewTextChild (line) {
 		console.log(this.textUnitDescriptor)
 		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor)
-		unit.addEventListener("click", e => this.onTextUnitClick(e))
 		return unit
 	}
 
@@ -564,7 +578,6 @@ class ContainerTextInjector {
 		descriptor.permissions = textItemPerms
 
 		let right = this.container.createFromSerializable(unit.parentNode.id, descriptor, unit.nextSibling)	
-		right.addEventListener("click", e => this.onTextUnitClick(e))
 		
 		return [unit, right]
 	}

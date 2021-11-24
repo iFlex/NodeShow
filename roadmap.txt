@@ -31,6 +31,15 @@ ContentConfig (choose things like position: relative, etc, wrapping)
 e.g. data-action:{event:"onClick",action:"container.move",params:[10,10]}
 
 Server
+0. Ability to upload HTML and PDF files to the Server 
+   - PDF files will be converted to HTML by the Server
+   - then sanitized to remove all script forms
+0. Uploaded HTML data will be then processed by a headless browser
+    :open file
+    :connect to prezzo
+    :create container for data
+    :beam over contents to server (so it gets persisted)
+
 0. Filter out all forms of scripts from beamed html
 1. Socket management
 2. Persisting presentation to file (DONE)
@@ -62,4 +71,3 @@ HTTP Server -------- Users
                             permissions   ---- Authorization Engine
 
 
-BUGLIST:  nested absolute positioned elements - editor fails to properly drag them
