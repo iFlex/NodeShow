@@ -118,21 +118,6 @@ dispatcher.onGet("/list", function(req, res) {
   res.end();
 });
 
-// dispatcher.onGet("/", function(req, res) {
-//   const queryObject = url.parse(req.url, true).query;
-//   console.log(queryObject);
-
-//   try{
-//     let file = fs.readFileSync(NGPS_ENTRYPOINT);
-//     res.writeHead(200, {'Content-Type': "text/html"});
-//     res.write(file);
-//     res.end();
-//   }catch(e){
-//     console.log("Error locating:"+url);
-//     file = 0;
-//   } 
-// });
-
 
 dispatcher.onGet("/edit", function(req, res) {
   const queryObject = url.parse(req.url, true).query;
@@ -163,12 +148,7 @@ function handlePost(request, response) {
 
       // This last line responds to the form submission with a list of the parsed data and files.
       response.end(JSON.stringify({fields: fields, files: files}));
-      try {
-        insertUploadedContent(fields.pid, files.file.newFilename)
-      } catch (e) {
-        console.log("Failed to notify of content upload")
-        console.error(e)
-      }
+      //ToDo: submit this to a headless browser which can then beam the contents over to everyone (via this server ofc)
   });
   return;
 }
@@ -303,28 +283,6 @@ function sendPresentationToNewUser(socket, prezzo) {
           descriptor: node
       }
     }));
-  }
-}
-
-//ToDo this is very fragile, replace with headless browser joining prezzo
-function insertUploadedContent(prezId, filePath, uploader) {
-  let prezzo = presentations[prezId];
-  if (!prezzo) {
-    console.log(`Presentation ${prezId} not found`)
-    return;
-  }
-
-  for (const [socUserId, socket] of Object.entries(prezzo.sockets)) {
-    if (!uploader || socUserId == uploader) {
-      socket.emit('insert', JSON.stringify({
-        presentationId: prezzo.id,
-        event: Events.INSERT,
-        detail: {
-            url: filePath
-        }
-      }));
-      break;
-    }
   }
 }
 
