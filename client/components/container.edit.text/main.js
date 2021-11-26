@@ -37,13 +37,16 @@ class ContainerTextInjector {
 	cursorDescriptor = {
 		nodeName:"DIV", 
 		className: "text-document-cursor", 
-		computedStyle:{"position":"absolute"}
+		computedStyle:{"position":"absolute"},
+		permissions:{"container.broadcast":{"*":false}}
 	}
+
 	lineDescriptor = {
 		nodeName: "DIV", 
 		className: "text-document-line", 
 		permissions:textItemPerms
 	}
+	
 	textUnitDescriptor = {
 		nodeName: "SPAN", 
 		className: "text-document-unit", 

@@ -71,6 +71,7 @@ class Presentation {
 				for (const child of value.childNodes) {
 					if (child.id) {
 						if(!this.rawData[child.id]) {
+							console.log(`----- broken child link ${value.id} -> ${child.id}`)
 							brokenChildLinks++;
 						}
 					} else {
@@ -186,7 +187,7 @@ class Presentation {
 				let childId = data.detail.id;
 				let prevParentId = data.detail.prevParent;
 				let newParentId = data.detail.parentId;
-
+				
 				//add new link
 				if (!this.rawData[newParentId].childNodes) {
 					this.rawData[newParentId].childNodes = []

@@ -38,10 +38,10 @@ function addChildNodes(context, elem, callerId, emit) {
 
     //update index
     initQueue[elem.id].index = index;
-    
+    //update order of siblings 
+    context.updateChild(elem, initQueue[elem.id].descriptor, callerId, emit)
     //initialisation complete
     if (childNodes.length <= index) {
-        context.updateChild(elem, initQueue[elem.id].descriptor, callerId, emit)
         delete initQueue[elem.id]
     }
 }

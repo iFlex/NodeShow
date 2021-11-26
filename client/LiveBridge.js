@@ -70,15 +70,16 @@ export class LiveBridge {
             }
         } 
 
+        let detail = Container.clone(e.detail)
+        detail.parentId = parentId,
+        detail.id = targetId
+        detail.descriptor = raw
+
         let update = {
             presentationId: this.container.presentationId,
             userId: this.userId,
             event: eventType,
-            detail: {
-                parentId: parentId,
-                id: targetId,
-                descriptor:raw
-            }
+            detail: detail
         }
 
         if(this.debug) {
