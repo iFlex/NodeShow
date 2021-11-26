@@ -34,7 +34,7 @@ class ContainerCreator {
 		},
 		null,
 		this.appId)
-		this.container.hide(this.#interface)
+		this.container.hide(this.#interface, this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 	}
 
@@ -47,7 +47,7 @@ class ContainerCreator {
 		document.addEventListener('container.edit.pos.unselected', (e) => this.unfocus());
 		document.addEventListener("touchstart", (e) => this.tapHandler(e));
 
-		this.container.show(this.#interface)
+		this.container.show(this.#interface, this.appId)
 	}
 
 	disable() {
@@ -59,12 +59,12 @@ class ContainerCreator {
 		document.removeEventListener('container.edit.pos.selected', e => this.focusOn(e.detail.id));
 		document.removeEventListener('container.edit.pos.unselected', (e) => this.unfocus());
 		
-		this.container.hide(this.#interface)
+		this.container.hide(this.#interface, this.appId)
 	}
 
 	delete () {
 		if(this.target) {
-			this.container.delete(this.target.id);
+			this.container.delete(this.target.id, this.appId);
 		}
 		this.target = null;
 	}
@@ -96,12 +96,12 @@ class ContainerCreator {
 			"nodeName":"div",
 			"computedStyle": childStyle
 		}
-		let node = this.container.createFromSerializable(this.target.id, div)
+		let node = this.container.createFromSerializable(this.target.id, div, null, this.appId)
 		this.setChildStyleSuggestion(node)
 		if (x != undefined && y!= undefined) {
 			console.log(`Creating new container @abspos{${x}x${y}}`)
 			console.log(node)
-			this.container.setPosition(node.id, {top:y, left:x})
+			this.container.setPosition(node.id, {top:y, left:x}, this.appId)
 			console.log("Final position")
 			console.log(this.container.getPosition(node.id))
 		}
@@ -151,7 +151,7 @@ class ContainerCreator {
 		if (this.target) {
 			let rules = this.lookupStyleRules(cls)
 			$(this.target).addClass(cls)
-			this.container.styleChild(this.target, rules)
+			this.container.styleChild(this.target, rules, this.appId)
 			this.setChildStyleSuggestion(this.target)
 		}
 	}
@@ -159,12 +159,12 @@ class ContainerCreator {
 	focusOn(id) {
 		let node = this.container.lookup(id)
 		this.target = node
-		this.container.show(this.#interface)
+		this.container.show(this.#interface, this.appId)
 	}
 
 	unfocus() {
 		this.target = null
-		this.container.hide(this.#interface)
+		this.container.hide(this.#interface, this.appId)
 	}
 
 	pickColor(notThis) {

@@ -109,12 +109,12 @@ class ContainerMover {
 				dx = change.dx;
 				dy = change.dy;
 			}
-			this.container.setWidth(this.target.id, w + dx);
-			this.container.setHeight(this.target.id, h + dy);
+			this.container.setWidth(this.target.id, w + dx, this.appId);
+			this.container.setHeight(this.target.id, h + dy, this.appId);
 		} else {
 			console.log(`Moving by dx:${dx} dy:${dy}`)
 			console.log(this.container.getPosition(this.target.id))
-			this.container.move(this.target.id, dx, dy)
+			this.container.move(this.target.id, dx, dy, this.appId)
 		} 
 	}
 

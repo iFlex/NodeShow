@@ -147,13 +147,30 @@ class Presentation {
 	    	} else if(data.event == Events.DELETE) {
 				let id = data.detail.id
 				if (id in this.rawData) {
+					if (this.rawData[id].parentId) {
+						//remove child ref
+						let parent = this.rawData[this.rawData[id].parentId]
+						if (parent) {
+							//remove from child links
+							for (let i = 0 ; i < parent.childNodes; ++i) {
+								if (parent.childNodes[i].id == id) {
+									parent.childNodes.splice(i, 1)
+									break;
+								}
+							}
+						}
+					}
+					
 					delete this.rawData[id]
 				}
 				if (id in this.roots) {
 					delete this.roots[id]
 				}
+				//ToDo: this creates a broken child link - remove from child list as well and maybe save in edit history
 			} else if(this.rawData[data.detail.id]) {
 				this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor.computedStyle;
+			} else {
+				console.log(`WARNING: uncategorised event type ${data.event}`)
 			}
 
 			this.storage.put(this.id, this.rawData);

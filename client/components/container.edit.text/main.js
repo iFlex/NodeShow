@@ -103,14 +103,14 @@ class ContainerTextInjector {
 		null,
 		this.appId)
 
-		this.container.hide(this.#interface)
+		this.container.hide(this.#interface, this.appId)
 		//load interface style and html
 		this.container.loadStyle("style.css", this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 
 		//create cursor pointer
 		this.#cursorDiv = this.container.createFromSerializable(null, this.cursorDescriptor, null, this.appId)
-		this.container.hide(this.#cursorDiv)
+		this.container.hide(this.#cursorDiv, this.appId)
 	}
  
 	enable() {
@@ -139,7 +139,7 @@ class ContainerTextInjector {
 		document.removeEventListener('cut', (event) => this.cut(event));
 		//selection
 		document.removeEventListener('selectionchange', (e) => this.onSelectionChange(e));	
-		this.container.hide(this.#interface)
+		this.container.hide(this.#interface, this.appId)
 	}
 
 	static isPrintableCharacter(key) {
@@ -168,12 +168,12 @@ class ContainerTextInjector {
 		pos.originY = 1.0
 		this.container.setPosition(this.#interface, pos, this.appId)
 		this.#interface.style['min-width'] = this.container.getWidth(this.target)
-		this.container.show(this.#interface)
+		this.container.show(this.#interface, this.appId)
 	}
 
 	unsetTarget(){
 		this.target = null;
-		this.container.hide(this.#interface)
+		this.container.hide(this.#interface, this.appId)
 	}
 
 	//doesn't support rich text yet
@@ -226,7 +226,7 @@ class ContainerTextInjector {
 
 	styleTarget() {
 		if ( this.target ) {
-			this.container.styleChild(this.target, this.textContainerStyle)
+			this.container.styleChild(this.target, this.textContainerStyle, this.appId)
 		}
 	}
 	/*
@@ -387,10 +387,10 @@ class ContainerTextInjector {
 		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length
 		unitPos.left += Math.ceil(charWidth * cursor.localCharNo)
 
-		this.container.setPosition(this.#cursorDiv, {top:unitPos.top,left:unitPos.left})
-		this.container.setHeight(this.#cursorDiv, unitHeight)
-		this.container.show(this.#cursorDiv)
-		this.container.bringToFront(this.#cursorDiv)
+		this.container.setPosition(this.#cursorDiv, {top:unitPos.top,left:unitPos.left}, this.appId)
+		this.container.setHeight(this.#cursorDiv, unitHeight, this.appId)
+		this.container.show(this.#cursorDiv, this.appId)
+		this.container.bringToFront(this.#cursorDiv, this.appId)
 	}
 
 	cursorPutOnLine(cursor, lineNo, makeIfAbsent) {
@@ -578,6 +578,7 @@ class ContainerTextInjector {
 		descriptor.innerHTML = rightText;
 		descriptor.permissions = textItemPerms
 
+		this.container.notifyUpdate(unit, this.appId)
 		let right = this.container.createFromSerializable(unit.parentNode.id, descriptor, unit.nextSibling, this.appId)	
 		
 		return [unit, right]
@@ -635,22 +636,20 @@ class ContainerTextInjector {
 
 	addPrintable(text) {
 		this.styleTarget()
+		
 		//if there's a selection delete it first
 		this.deleteSelection();
-		console.log("Add printable: cursor:")
-		console.log(this.cursor)
 		
 		this.cursorPutAt(this.cursor, this.cursor.lineNo, this.cursor.charNo, true);
-		console.log(this.cursor)
+		
 		let textUnit = this.cursor.textUnit;
 		let existing = textUnit.innerHTML
 		let before = existing.substring(0, this.cursor.localCharNo)
 		let after = existing.substring(this.cursor.localCharNo, existing.length)
 		textUnit.innerHTML = `${before}${text}${after}`
+		
 		this.cursorMove(this.cursor, text.length)
-		this.container.notifyUpdate(textUnit.id)
-		console.log(this.cursor)
-		console.log("Add printable---------")
+		this.container.notifyUpdate(textUnit.id, this.appId)
 	}
 
 	/*
@@ -747,7 +746,7 @@ class ContainerTextInjector {
 	styleTextUnits(style, textUnits) {
 		for (const unit of textUnits) {
 			if (this.isTextUnit(unit)) {
-				this.container.styleChild(unit, style)
+				this.container.styleChild(unit, style, this.appId)
 			}
 		}
 	}
@@ -755,7 +754,7 @@ class ContainerTextInjector {
 	styleLines (style, lines) {
 		for (const unit of lines) {
 			if (this.isLine(unit)) {
-				this.container.styleChild(unit, style)
+				this.container.styleChild(unit, style, this.appId)
 			}
 		}
 	}
@@ -1011,7 +1010,7 @@ class ContainerTextInjector {
 				}
 				if (this.isLink(text)) {
 					for(const unit of units) {
-						this.container.delete(unit.id);
+						this.container.delete(unit.id, this.appId);
 					}
 					this.container.createFromSerializable(this.target.id, {
 						nodeName:"img",
@@ -1023,7 +1022,7 @@ class ContainerTextInjector {
 				if (r) {
 					if (r.content == 'image') {
 						for(const unit of units) {
-							this.container.delete(unit.id);
+							this.container.delete(unit.id, this.appId);
 						}
 
 						console.log("adding image...")
@@ -1044,10 +1043,10 @@ class ContainerTextInjector {
 
 				let style = this.textToStyle(text)
 				console.log(style)
-				this.container.styleChild(this.target, style)
+				this.container.styleChild(this.target, style, this.appId)
 				
 				for(const unit of units) {
-					this.container.delete(unit.id);
+					this.container.delete(unit.id, this.appId);
 				}
 			}
 		}

@@ -27,7 +27,7 @@ class ContainerLink {
                 "background-color": "black",
                 "position":"absolute"
             }
-        }, null, "app:"+this.appId)
+        }, null, this.appId)
     }
 
     link(left, right, settings) {
@@ -91,10 +91,10 @@ class ContainerLink {
         
         
         let angle = this.calculateLinkAngle(leftPos, rightPos)
-        this.#container.setPosition(linkId, leftPos,"app:"+this.appId)
-        this.#container.setAngle(linkId, angle+"rad", "0%", "0%", "app:"+this.appId)
-        this.#container.setWidth(linkId, this.calculateDistance(leftPos, rightPos), "app:"+this.appId)
-        this.#container.setHeight(linkId, 5, "app:"+this.appId)
+        this.#container.setPosition(linkId, leftPos, this.appId)
+        this.#container.setAngle(linkId, angle+"rad", "0%", "0%", this.appId)
+        this.#container.setWidth(linkId, this.calculateDistance(leftPos, rightPos), this.appId)
+        this.#container.setHeight(linkId, 5, this.appId)
     }
 
     remove(link) {
@@ -202,7 +202,7 @@ class ContainerLink {
             this.left = null
             this.right = null
             //Link preview
-            this.#container.delete(this.#currentLink.node)
+            this.#container.delete(this.#currentLink.node, this.appId)
             this.#currentLink = null
         } else {
             this.left = target
@@ -220,10 +220,10 @@ class ContainerLink {
             pos.originX = 0.5
             pos.originY = 0.5
             
-            this.#container.show(this.#leftDot)
-            this.#container.hide(this.#rightDot)
-            this.#container.setPosition(this.#leftDot, pos)
-            this.#container.bringToFront(this.#leftDot)
+            this.#container.show(this.#leftDot, this.appId)
+            this.#container.hide(this.#rightDot, this.appId)
+            this.#container.setPosition(this.#leftDot, pos, this.appId)
+            this.#container.bringToFront(this.#leftDot, this.appId)
         } else if (this.left && this.right){
             let pos = this.#container.getPosition(this.right.target)
             pos.top += details.localY;
@@ -231,22 +231,22 @@ class ContainerLink {
             pos.originX = 0.5
             pos.originY = 0.5
 
-            this.#container.show(this.#rightDot)
-            this.#container.setPosition(this.#rightDot, pos)
-            this.#container.bringToFront(this.#rightDot)
+            this.#container.show(this.#rightDot, this.appId)
+            this.#container.setPosition(this.#rightDot, pos, this.appId)
+            this.#container.bringToFront(this.#rightDot, this.appId)
         }
     }
 
     cancelLink() {
         if (this.#currentLink) {
-            this.#container.delete(this.#currentLink.node)
+            this.#container.delete(this.#currentLink.node, this.appId)
         }
         this.#currentLink = null
         this.left = null
         this.right = null
 
-        this.#container.hide(this.#leftDot)
-        this.#container.hide(this.#rightDot)
+        this.#container.hide(this.#leftDot, this.appId)
+        this.#container.hide(this.#rightDot, this.appId)
     }
 }
 

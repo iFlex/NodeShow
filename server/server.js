@@ -252,7 +252,10 @@ function isRobot(socket) {
 
 function handleBridgeUpdate(data) {
   let parsed = JSON.parse(data);
-  
+  if(debug_level > 1) {
+    console.log(data)
+  }
+
   let prezId = parsed.presentationId;
   let userId = parsed.userId;
   let prezzo = presentations[prezId];

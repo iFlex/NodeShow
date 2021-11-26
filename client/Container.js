@@ -286,9 +286,9 @@ export class Container {
             jQuery(child).detach().appendTo(parent);    
         }
         this.emit(ACTIONS.setParent, {
-            id: childId,
+            id: child.id,
             prevParent: prevParentId,
-            parentId: parentId,
+            parentId: parent.id,
             callerId: callerId
         })
     }
@@ -303,7 +303,7 @@ export class Container {
         let prevWidth = this.getWidth(id);
         jQuery(elem).css({width: width});
         this.emit(ACTIONS.setWidth, {
-            id: id, 
+            id: elem.id, 
             width: width, 
             prevWidth: prevWidth,
             callerId: callerId
@@ -314,10 +314,10 @@ export class Container {
         let elem = Container.lookup(id);
         this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
         
-        let prevHeight = this.getHeight(id);
+        let prevHeight = this.getHeight(elem);
         jQuery(elem).css({height: height});
         this.emit(ACTIONS.setHeight, {
-            id: id, 
+            id: elem.id, 
             height: height, 
             prevHeight: prevHeight,
             callerId: callerId
@@ -341,7 +341,7 @@ export class Container {
             "transform":`rotate(${angle})`
         })
         this.emit(ACTIONS.setAngle, {
-            id:id, 
+            id:node.id, 
             //prevAngle:prevAngle,
             // prevOrigin:{
 
@@ -366,7 +366,7 @@ export class Container {
         
         $(elem).hide();
         this.emit(ACTIONS.hide, {
-            id:id,
+            id:elem.id,
             callerId:callerId
         });
     }
@@ -377,7 +377,7 @@ export class Container {
         
         $(elem).show();
         this.emit(ACTIONS.show, {
-            id:id,
+            id:elem.id,
             callerId:callerId
         });
     }
@@ -482,11 +482,6 @@ export class Container {
         } else if(emit) {
             this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
         }  
-    }
-
-    updateStyleFromSerializable(id, style) {
-        let child = Container.lookup(id)
-        this.styleChild(child, style)
     }
 
     #addChildNodes(elem) {
@@ -629,7 +624,7 @@ export class Container {
             child.parentNode.removeChild(child);
             CONTAINER_COUNT--;
             this.emit(ACTIONS.delete, {
-                id:id,
+                id: child.id,
                 callerId: callerId
             });
 

@@ -117,20 +117,26 @@ export class LiveBridge {
             this.#users[data.userId] = true;
         }
 
-		let detail = data.detail
-        if(data.event == 'container.setPosition' || data.event == 'container.set.width' || data.even == 'container.set.height') {
-            this.container.updateStyleFromSerializable(detail.id, detail.descriptor.computedStyle, data.userId);
-        }
-        if(data.event == 'container.update') {
-            let child = this.container.lookup(detail.id)
-            this.container.updateChild(child, detail.descriptor, data.userId)
-        }
-        if(data.event == 'container.delete') {
-            this.container.delete(detail.id, "user:"+data.userId, data.userId)
-        }
+        try {
+            let detail = data.detail
+            if(data.event == 'container.update' //Should maybe not listen to the other 3 as they should cause a container.update anyway
+            || data.event == 'container.setPosition'
+            || data.event == 'container.set.width'
+            || data.even  == 'container.set.height'
+            ) {
+                let child = this.container.lookup(detail.id)
+                this.container.updateChild(child, detail.descriptor, data.userId)
+            }
+            if(data.event == 'container.delete') {
+                this.container.delete(detail.id, "user:"+data.userId, data.userId)
+            }
 
-        if(data.event == 'container.create') {
-            this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.userId);
+            if(data.event == 'container.create') {
+                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.userId);
+            }
+        } catch (e) {
+            console.error(`Failed to handle update`)
+            console.error(e)
         }
 	}
 
