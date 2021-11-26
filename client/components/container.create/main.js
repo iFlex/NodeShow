@@ -30,7 +30,8 @@ class ContainerCreator {
 				"top":"0px",
 				"left":"0px",
 				"position":"absolute"
-			}
+			},
+			"permissions":{"container.broadcast":{"*":false}}
 		},
 		null,
 		this.appId)

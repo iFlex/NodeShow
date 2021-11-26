@@ -1,4 +1,4 @@
-import {Container} from "./Container.js"
+import {Container, ACTIONS} from "./Container.js"
 
 //Stolen from stack overflow because I was hoping to get this directly from the browser somehow.
 //ToDo: find a way to simplify this
@@ -56,7 +56,7 @@ ToDo: support more position types
 */
 Container.prototype.setPosition = function(id, position, callerId) {
     let elem = Container.lookup(id);
-    this.isOperationAllowed('container.move', elem, callerId);
+    this.isOperationAllowed(ACTIONS.setPosition, elem, callerId);
 
     let posType = elem.style.position 
     
@@ -85,8 +85,8 @@ Container.prototype.setPosition = function(id, position, callerId) {
     }
 
     jQuery(elem).css({top: `${position.top}${yUnit}`, left: `${position.left}${xUnit}`});
-    this.emit("container.setPosition", {
-        id: id, 
+    this.emit(ACTIONS.setPosition, {
+        id: elem.id, 
         position: position,
         callerId: callerId
     });

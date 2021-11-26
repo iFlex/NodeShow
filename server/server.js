@@ -277,7 +277,7 @@ function sendPresentationToNewUser(socket, prezzo) {
     }
     socket.emit('update', JSON.stringify({
       presentationId: prezzo.id,
-      event: Events.CONTAINER_CREATE,
+      event: Events.create,
       detail: {
           parentId: node.parentId,
           descriptor: node

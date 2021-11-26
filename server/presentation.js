@@ -1,4 +1,3 @@
-const { filter } = require('httpdispatcher');
 const Events = require('./NodeShowEvents')
 const SecurityFilter = require('./SecurityFilter')
 
@@ -125,9 +124,25 @@ class Presentation {
 	
 	update(data) {
 		data = this.validate(data)
+		if (data.detail && data.detail.descriptor && data.detail.descriptor.permissions) {
+			let persistPermission = data.detail.descriptor.permissions[Events.persist];
+			let broadcastPermission = data.detail.descriptor.permissions[Events.broadcast];
+			
+			if (broadcastPermission && broadcastPermission['*'] == false) {
+				console.log(`DROPPED ${data.event} on:${data.presentationId} by:${data.userId}`)
+				//this container wasn't meant to be broadcast to anyone
+				return {}
+			}
+
+			if (persistPermission && persistPermission['*'] == false) {
+				console.log(`NOT_PERSISTED ${data.event} on:${data.presentationId} by:${data.userId}`)
+				//this event is meant to be broadcast but not persisted
+				return data;
+			}
+		}
         //ToDo: plug in logic to check if op is allowed
         try{
-			if (data.event == Events.CONTAINER_CREATE || data.event == Events.CONTAINER_UPDATE) {
+			if (data.event == Events.create || data.event == Events.update) {
 	        	console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
@@ -144,7 +159,7 @@ class Presentation {
 		        if (this.isRoot(child)) { 
 		        	this.roots[child.id] = true;
 		        }
-	    	} else if(data.event == Events.DELETE) {
+	    	} else if(data.event == Events.delete) {
 				let id = data.detail.id
 				if (id in this.rawData) {
 					if (this.rawData[id].parentId) {
@@ -167,8 +182,32 @@ class Presentation {
 					delete this.roots[id]
 				}
 				//ToDo: this creates a broken child link - remove from child list as well and maybe save in edit history
-			} else if(this.rawData[data.detail.id]) {
-				this.rawData[data.detail.id]['computedStyle'] = data.detail.descriptor.computedStyle;
+			} else if(data.event == Events.setParent) {
+				let childId = data.detail.id;
+				let prevParentId = data.detail.prevParent;
+				let newParentId = data.detail.parentId;
+
+				//add new link
+				if (!this.rawData[newParentId].childNodes) {
+					this.rawData[newParentId].childNodes = []
+				}
+				this.rawData[newParentId].childNodes.push({id:childId})
+
+				//update graph links
+				this.rawData[childId].parentId = newParentId
+				
+				//remove old link
+				if (this.rawData[prevParentId]) {
+					let prevChildLinks = this.rawData[prevParentId].childNodes;
+					if (prevChildLinks) {
+						for (let i = 0 ; i < prevChildLinks.length; ++i ) {
+							if(prevChildLinks[i].id == childId) {
+								prevChildLinks.splice(i,1)
+								break;
+							}
+						}
+					}
+				}
 			} else {
 				console.log(`WARNING: uncategorised event type ${data.event}`)
 			}

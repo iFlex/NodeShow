@@ -4,26 +4,37 @@
 
 //Node data attributes are strings
 //ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
-let CONTAINER_COUNT = 0
-
 export const ACTIONS = {
     create: 'container.create',
-    update: 'container.update',
     delete: 'container.delete',
     setParent: 'container.set.parent',
+    update: 'container.update',
+    
+    setPosition: 'container.setPosition',
     setWidth: 'container.set.width',
     setHeight: 'container.set.height',
     setAngle: 'container.set.angle',
+    setSiblingPosition: 'container.set.sibling.position',
     hide: 'container.hide',
     show: 'container.show'
 }
+
+//events that can automatically triger other events.
+//WARNING: the related events will only receive id and callerId as details as well as the original_event data.
+let ACTIONS_CHAIN = {}
+    ACTIONS_CHAIN[ACTIONS.setPosition] = [ACTIONS.update]
+    ACTIONS_CHAIN[ACTIONS.setWidth] = [ACTIONS.update]
+    ACTIONS_CHAIN[ACTIONS.setHeight] = [ACTIONS.update]
+    ACTIONS_CHAIN[ACTIONS.setAngle] = [ACTIONS.update]
+    ACTIONS_CHAIN[ACTIONS.setSiblingPosition] = [ACTIONS.update]
 
 export class Container {
 	//ToDo: make all fields private
     parent = null;
 	presentationId = null;
 	socket = null;
-
+    debug = false;
+    CONTAINER_COUNT = 0;
     /*
     Permissions describing what operations can be performed on containers
     Format {"containerId":{"operation":{"callerId":true/false}}}
@@ -33,7 +44,7 @@ export class Container {
                 "app:container.creator":false - denies delete permissions to app container.create
                 "777398fas99292": false - denies delete permissions to user 777398fas99292
             },
-            "container.move":{
+            "container.setPosition":{
                 "*":false - denied move permissions to everyone
             }
         }
@@ -41,17 +52,16 @@ export class Container {
     */
     permissions = {}
 	metastate = {}
-    initQueue = {}
-    orphans = {}
-
+    
     components = {}
     skipSetOnDOM = {"nodeName":true, "children":true, "childNodes":true}
 
-    constructor(parentDom) {
+    constructor(parentDom, debug) {
         console.log("CREATED CONTAINER OBJECT")
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
-	}
+        this.debug = debug
+    }
 
     //<utils>
     static clone(obj) {
@@ -116,7 +126,7 @@ export class Container {
 			let item = queue[index]
             if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
-                CONTAINER_COUNT++;
+                this.CONTAINER_COUNT++;
 				labeledCount += 1;
 			}
             
@@ -136,7 +146,7 @@ export class Container {
             }
 			index ++;
 
-            if(emit) {
+            if(emit != false) {
                 this.emit(ACTIONS.create, {
                     presentationId: this.presentationId, 
                     parentId: (item.parentNode || this.root).id, 
@@ -174,7 +184,7 @@ export class Container {
         if (rules) {
             let explicit = rules[callerId]
             if(explicit == false) {
-                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
+                throw `DENIEemit(D ${operation} on ${resource.id} to ${callerId}`
             }
             if(explicit == true) {
                 return true;
@@ -273,24 +283,27 @@ export class Container {
     
     //<nesting>
 	setParent(childId, parentId, callerId, options) {
-        //ToDo permissions
-        //this.isOperationAllowed('container.delete', id, callerId);
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
+
+        this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
-        
+        console.log(`Change parent for ${child.id} to ${parent.id}`)
+
         let prevParentId = child.parentNode.id;
         if (options && options.insertBefore && parent.firstChild) {
             jQuery(child).detach().insertBefore(Container.lookup(options.insertBefore));
         } else {
             jQuery(child).detach().appendTo(parent);    
         }
+
         this.emit(ACTIONS.setParent, {
             id: child.id,
             prevParent: prevParentId,
             parentId: parent.id,
             callerId: callerId
         })
+        this.notifyUpdate(parent, callerId)
     }
     //</nesting>
 
@@ -423,10 +436,6 @@ export class Container {
     }
 
     styleChild(child, style, callerId, emit) {
-        if (emit == undefined) {
-            emit = true;
-        }
-
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -437,166 +446,67 @@ export class Container {
             }
         }
 
-        if(emit) {
+        if(emit != false) {
             this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
         }
     }
 
-    updateChild(child, rawDescriptor, callerId, emit){
-        if (emit == undefined) {
-            emit = true;
+    getChildAt(parentId, index) {
+        let parent = Container.lookup(parentId)
+        if (index < 0 || index >= parent.childNodes.length) {
+            return undefined;
         }
-        var total = 0;
-        var set = 0;
+
+        return parent.childNodes[index]
+    }
+
+    getSiblingPosition(siblingId) {
+        let sibling = Container.lookup(siblingId)
+        let parent = sibling.parentNode
+        if (parent) {
+            for ( let i = 0 ; i < parent.childNodes.length; ++i ) {
+                if (parent.childNodes[i].id == sibling.id) {
+                    return i;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    setSiblingPosition(siblingId, index, callerId) {
+        let sibling = Container.lookup(siblingId)
+        this.isOperationAllowed(ACTIONS.setSiblingPosition, sibling, callerId);
+        let parent = sibling.parentNode
+
+        let switchSibling = this.getChildAt(parent, index)
         
-        //set an id for this untagged child...
-        if (!child.id && !rawDescriptor.id) {
-            child.id = Container.generateUUID();
+        if(this.debug) {
+            console.log(`Moving ${siblingId} before:`)
+            console.log(switchSibling)
         }
-        //bulindly applying all properties received
-        for (const [tag, value] of Object.entries(rawDescriptor)) {
-            if (this.skipSetOnDOM[tag] || !value){
-                continue;
-            }
-            
-            try {
-                child[tag] = value;
-            } catch (e) {
-                console.error(`Could not set tag:${tag} on ${child.id}`);
-                console.error(e);
-            }
-        }
-
-        //set data attributes
-        for( const [tag, value] of Object.entries(rawDescriptor.data || {})) {
-            child.dataset[tag] = JSON.stringify(value)
-        }
-
-        //applying style
-        if (rawDescriptor['cssText']){
-            child.style.cssText = rawDescriptor['cssText']    
-        }
-
-        if (rawDescriptor['computedStyle']) {
-            this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
-        } else if(emit) {
-            this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
-        }  
-    }
-
-    #addChildNodes(elem) {
-        if (!this.initQueue[elem.id]) {
+        //special case, no move needed
+        if (switchSibling == sibling) {
             return;
         }
 
-        let childNodes = this.initQueue[elem.id].childNodes
-        let index = this.initQueue[elem.id].index
-        for (; index < childNodes.length; ++index) {
-            let node = childNodes[index]
-            if (node.id) {
-                index++;
-                break;
-            } else {
-                let nodeDOM = document.createTextNode(node.value)
-                elem.appendChild(nodeDOM)
-            }
+        parent.removeChild(sibling)
+        if (switchSibling) {
+            parent.insertBefore(sibling, switchSibling)
+        } else {
+            parent.appendChild(sibling)
         }
 
-        //update index
-        this.initQueue[elem.id].index = index;
-        //initialisation complete
-        if (childNodes.length <= index) {
-            delete this.initQueue[elem.id]
-        }
+        this.emit(ACTIONS.setSiblingPosition, {
+            id: sibling.id,
+            position: index,
+            callerId: callerId
+        })
     }
 
-    //Prone to UID collisions. It won't complain if you want to create an element that already exists
-    //has the ability to wait for parent to show up
-	createFromSerializable(parentId, rawDescriptor, insertBefore, callerId) {
-        //this.isOperationAllowed('container.create', parentId, callerId);
-        console.log("Create from serializable")
-        console.log(rawDescriptor)
-		let parent = this.parent;
-        let child = undefined
-		
-        if (parentId) {
-			try{
-                parent = Container.lookup(parentId);
-		    } catch (e) {
-                //save it in case the parrent shows up :D 
-                if (!this.orphans[parentId]) {
-                    this.orphans[parentId] = []
-                }
-                this.orphans[parentId].push(rawDescriptor)
-                return null;
-            }
-        }
-		try {
-            child = Container.lookup(rawDescriptor.id)
-        } catch (e){
-            console.log(`Could not locate child by id ${rawDescriptor.id}, will generate it`)
-        }
-        
-        if (!child) {
-            if (rawDescriptor.nodeName.toLowerCase() == 'body'){
-                //child = this.parent
-                console.log("No need to re-create the body object");
-                return;
-            } else {
-                child = document.createElement(rawDescriptor['nodeName'])    
-                if (insertBefore) {
-                    parent.insertBefore(child, insertBefore);
-                    //ToDo: insert before could mess up with correct initialisation of parents...hmm
-                } else {
-                    parent.appendChild(child);
-                }
-            }
-        }
-        
-        this.updateChild(child, rawDescriptor, null, false)
-        //initialise unidentifiable leafs inide child
-        if (rawDescriptor.childNodes) {
-            this.initQueue[child.id] = {
-                childNodes: rawDescriptor.childNodes,
-                index: 0
-            }
-            this.#addChildNodes(child)
-        }
-        
-        //parent has shown up, no longer orphans
-        if (this.orphans[child.id]) {
-            for (const orphan of this.orphans[child.id]) {
-                this.createFromSerializable(child.id, orphan, null, callerId)
-            }
-        }
-
-        //continue parent initialisation if waiting for node
-        if (this.initQueue[parent.id]) {
-            this.#addChildNodes(parent)
-        }
-
-        if (rawDescriptor.permissions) {
-            this.permissions[child.id] = Container.clone(rawDescriptor.permissions)
-        }
-        
-        try {
-            this.initActions(child)
-        } catch (e) {
-            console.log("Could not init container actions. Did you not include the module?")
-            console.error(e)
-        }
-
-        CONTAINER_COUNT ++;
-        console.log(`EMITTING ${callerId}`)
-        console.log(rawDescriptor)
-        this.emit(ACTIONS.create, {
-            presentationId: this.presentationId, 
-            parentId: parent.id, 
-            id: child.id, 
-            callerId: callerId,
-            descriptor: rawDescriptor
-        });
-        return child;
+    changeSiblingPosition(siblingId, amount, callerId) {
+        let sibling = Container.lookup(siblingId)
+        let pos = this.getSiblingPosition(sibling)
+        this.setSiblingPosition(sibling, pos + amount, callerId)
     }
 
     addDomChild(parentId, domNode, callerId) {
@@ -606,7 +516,7 @@ export class Container {
         if (domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
-            CONTAINER_COUNT++;
+            this.CONTAINER_COUNT++;
             this.emit(ACTIONS.create, {
                 presentationId: this.presentationId, 
                 parentId: parent.id,
@@ -622,7 +532,7 @@ export class Container {
 
         if (child != this.parent) {
             child.parentNode.removeChild(child);
-            CONTAINER_COUNT--;
+            this.CONTAINER_COUNT--;
             this.emit(ACTIONS.delete, {
                 id: child.id,
                 callerId: callerId
@@ -633,66 +543,9 @@ export class Container {
         }
     }
 
-    //<serialization>
-    toSerializableStyle(id, snapshot) {
-        let elem = Container.lookup(id);
-        let computedStyle = elem.style;
-        if (snapshot) {
-            computedStyle = window.getComputedStyle(elem)
-        }
-
-        let result = {}
-        for (const item of computedStyle) {
-            result[item] = computedStyle.getPropertyValue(item)
-        }
-
-        return result;
-    }
-
-	toSerializable(id) {
-		let relevantProps = ['id','nodeName','className', 'src']
-
-		let elem = Container.lookup(id);
-		
-		let serialize = {}
-		for (const tag of relevantProps) {
-			serialize[tag] = elem[tag];
-		}
-
-        //only save inner html if leaf node
-        if (!elem.children || elem.children.length == 0) {
-            serialize['innerHTML'] = elem.innerHTML
-        } else {
-            serialize['childNodes'] = []
-            for (const child of elem.childNodes) {
-                if(!child.id) {
-                    serialize['childNodes'].push({
-                        nodeName:child.nodeName, 
-                        nodeType:child.nodeType, 
-                        value:   child.nodeValue,
-                        text:    child.textContent})
-                } else {
-                    serialize['childNodes'].push({id:child.id})
-                }
-            }
-        }
-
-        serialize['cssText'] = elem.style.cssText;
-		serialize['computedStyle'] = this.toSerializableStyle(id);
-        
-        //save data- tags
-        serialize['data'] = $(elem).data();
-        
-        //save metadata
-        serialize["permissions"] = this.permissions[elem.id]
-
-		return serialize;
-	}
-    //</serialization>
-
     bringToFront(id) {
         let node = Container.lookup(id)
-        node.style.zIndex = `${CONTAINER_COUNT + 1}` 
+        node.style.zIndex = `${this.CONTAINER_COUNT + 1}` 
     }
 
     sendToBottom(id) {
@@ -706,9 +559,9 @@ export class Container {
     }
 
     //<events>
-    notifyUpdate(id) {
+    notifyUpdate(id, callerId) {
         let node = Container.lookup(id)
-        this.emit(ACTIONS.update, {id:node.id})
+        this.emit(ACTIONS.update, {id:node.id, callerId:callerId})
     }
 
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
@@ -720,6 +573,13 @@ export class Container {
 		});
 
         this.parent.dispatchEvent(event);
+
+        //fire related events
+        if (ACTIONS_CHAIN[type]) {
+            for (const relatedEvent of ACTIONS_CHAIN[type]) {
+                this.emit(relatedEvent, { id:details.id, callerId:details.callerId, original_event:details})
+            }
+        }
 	}
 
     //ToDo: is this the best way to emit from app?

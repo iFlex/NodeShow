@@ -21,7 +21,7 @@ import {container} from '../../nodeshow.js'
 
 //line spacing
 
-const textItemPerms = {"container.move":{"*":false}, "container.edit":{"*":false}}
+const textItemPerms = {"container.setPosition":{"*":false}, "container.edit":{"*":false}}
 	
 class ContainerTextInjector {
 	appId = "container.edit.text"
@@ -98,7 +98,8 @@ class ContainerTextInjector {
 				"top":"0px",
 				"left":"0px",
 				"position":"absolute"
-			}
+			},
+			"permissions":{"container.broadcast":{"*":false}}
 		},
 		null,
 		this.appId)
@@ -387,10 +388,10 @@ class ContainerTextInjector {
 		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length
 		unitPos.left += Math.ceil(charWidth * cursor.localCharNo)
 
-		this.container.setPosition(this.#cursorDiv, {top:unitPos.top,left:unitPos.left}, this.appId)
-		this.container.setHeight(this.#cursorDiv, unitHeight, this.appId)
-		this.container.show(this.#cursorDiv, this.appId)
-		this.container.bringToFront(this.#cursorDiv, this.appId)
+		this.container.setPosition(blinker, {top:unitPos.top,left:unitPos.left}, this.appId)
+		this.container.setHeight(blinker, unitHeight, this.appId)
+		this.container.show(blinker, this.appId)
+		this.container.bringToFront(blinker, this.appId)
 	}
 
 	cursorPutOnLine(cursor, lineNo, makeIfAbsent) {

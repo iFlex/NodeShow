@@ -1,4 +1,4 @@
-import {Container} from "./Container.js"
+import {Container, ACTIONS} from "./Container.js"
 
 //ToDo: find a better way to store state rather than as string in data- objects
 //collpase settings should be sent to the server somehow
@@ -13,7 +13,7 @@ Container.prototype.isCollapsed = function(id) {
 
 Container.prototype.collapse = function(id, callerId) {
     let node = Container.lookup(id)
-    this.isOperationAllowed('container.collapse', node, callerId);
+    this.isOperationAllowed(ACTIONS.collapse, node, callerId);
     if (node.getAttribute('data-prev-style')) {
         //already collapsed
         return;
@@ -36,8 +36,8 @@ Container.prototype.collapse = function(id, callerId) {
     
     node.setAttribute('data-prev-style', JSON.stringify(prevState))
     node.style.overflow = 'hidden';
-    this.emit('container.collapse', {
-        id:id,
+    this.emit(ACTIONS.collapse, {
+        id:node.id,
         callerId:callerId
     });
 }
@@ -48,14 +48,14 @@ Container.prototype.setCollapseMode = function(id, settings) {
 
 Container.prototype.expand = function(id, callerId) {
     let node = Container.lookup(id);
-    this.isOperationAllowed('container.expand', node, callerId);
+    this.isOperationAllowed(ACTIONS.expand, node, callerId);
     
     let prevStat = JSON.parse(node.getAttribute('data-prev-style'))
     if (prevStat) {
         this.styleChild(node, prevStat)
         node.removeAttribute('data-prev-style')
-        this.emit('container.expand', {
-            id:id,
+        this.emit(ACTIONS.expand, {
+            id:node.id,
             callerId:callerId
         });
     }

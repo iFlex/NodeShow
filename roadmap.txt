@@ -28,7 +28,7 @@ ContentConfig (choose things like position: relative, etc, wrapping)
 [core] AppManager (Load/Unload Start/Stop)
 - download app interfaces from Server
 - container actions: name an event that would trigger a function
-e.g. data-action:{event:"onClick",action:"container.move",params:[10,10]}
+e.g. data-action:{event:"onClick",action:"container.setPosition",params:[10,10]}
 
 Server
 0. Ability to upload HTML and PDF files to the Server 

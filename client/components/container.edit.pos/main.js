@@ -30,7 +30,6 @@ class ContainerMover {
 		$('*').on('dragstart', function(event) { event.preventDefault(); });
 
 		document.addEventListener('container.create', e => {
-			console.log(`editor has now toy ${e.detail.id}`)
 			this.attachListeners("#" + e.detail.id)
 		});
 		//checking shift and ctrl

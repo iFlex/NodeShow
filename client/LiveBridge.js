@@ -1,27 +1,31 @@
-import {Container} from "./Container.js"
+import {Container, ACTIONS} from "./Container.js"
 
 export class LiveBridge {
 	container = null;
 	socket = null;
 	userId = null;
+    debug = false;
     #users = {}
 
     host = window.location.host;
     port = window.location.port;
 
-    #events = {
-        'container.create': {send:this.sendUpdate, recv:null},
-        'container.update': {send:this.sendUpdate, recv:null},
-        'container.setPosition': {send:this.sendUpdate, recv:null},
-        'container.set.width': {send:this.sendUpdate, recv:null},
-        'container.set.height': {send:this.sendUpdate, recv:null},
-        'container.delete': {send:this.sendUpdate, recv:null},
-    }
+    //events that are sent over the network
+    #events = {}
 
 	//should plug into all relevant events and report them to the server
-	constructor(container) {
+	constructor(container, debug) {
 		this.container = container;
-		this.container.parent.addEventListener("container.init", e => {
+		this.debug = debug;
+
+        for (const event of Object.values(ACTIONS)) {
+            this.#events[event] = {send:this.sendUpdate, recv:null}
+        }
+        
+        console.log("LiveBridge will act on the following events:")
+        console.log(Object.keys(this.#events))
+
+        this.container.parent.addEventListener("container.init", e => {
 			this.registerSocketIo()
 		});
         
@@ -41,15 +45,22 @@ export class LiveBridge {
     sendUpdate(e) {
         //check if this update originates from our user and not from the network
         if(!this.isCallerIdLocal(e.detail.callerId)) {
-            console.log(`Not sending network update back to the network. CallerId ${e.detail.callerId}`)
-            console.log(e.detail)
+            if(this.debug){
+                console.log(`Not sending network update back to the network. CallerId ${e.detail.callerId}`)
+                console.log(e.detail)
+            }
+            return;
+        }
+        let targetId = e.detail.id;
+        if (!targetId) {
+            console.error("Attempted to send update about undefined ID... Aborting")
             return;
         }
 
-        let targetId = e.detail.id;
         let eventType = e.detail.type
         let parentId = e.detail.parentId
         let raw = null
+
         if (eventType != 'container.delete') {
             raw = this.container.toSerializable(targetId);
 
@@ -70,9 +81,10 @@ export class LiveBridge {
             }
         }
 
-        console.log("Sending server update")
-        console.log(update)
-        
+        if(this.debug) {
+            console.log("Sending server update")
+            console.log(update)
+        }
         this.socket.emit("update", JSON.stringify(update));
     }
     
@@ -107,8 +119,10 @@ export class LiveBridge {
     }
 
 	handleUpdate(data) {
-		console.log("Received server update");
-		console.log(data);
+		if(this.debug) {
+            console.log("Received server update");
+		    console.log(data);
+        }
         
         if (!data.userId) {
             //populate with userId in case it's not there. all network updates should have a value for the userid
@@ -119,24 +133,28 @@ export class LiveBridge {
 
         try {
             let detail = data.detail
-            if(data.event == 'container.update' //Should maybe not listen to the other 3 as they should cause a container.update anyway
-            || data.event == 'container.setPosition'
-            || data.event == 'container.set.width'
-            || data.even  == 'container.set.height'
+            if(data.event == ACTIONS.update //Should maybe not listen to the other 3 as they should cause a container.update anyway
+            || data.event == ACTIONS.setPosition
+            || data.event == ACTIONS.setWidth
+            || data.event == ACTIONS.setHeight
             ) {
                 let child = this.container.lookup(detail.id)
                 this.container.updateChild(child, detail.descriptor, data.userId)
             }
-            if(data.event == 'container.delete') {
-                this.container.delete(detail.id, "user:"+data.userId, data.userId)
+            if(data.event == ACTIONS.delete) {
+                this.container.delete(detail.id, data.userId)
             }
-
-            if(data.event == 'container.create') {
+            if(data.event == ACTIONS.create) {
                 this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.userId);
             }
+            if(data.event == ACTIONS.setParent) {
+                this.container.setParent(detail.id, detail.parentId, data.userId)
+            }
         } catch (e) {
-            console.error(`Failed to handle update`)
-            console.error(e)
+            console.error(`Failed to handle update`, e);
+            if(this.debug) {
+                console.error(data)    
+            }
         }
 	}
 
@@ -178,23 +196,14 @@ export class LiveBridge {
                 let jsndata = JSON.stringify({
                     presentationId: this.container.presentationId,
                     userId: this.userId,
-                    event:"container.create",
+                    event: ACTIONS.create,
                     detail: {
                         parentId: parentId,
                         descriptor:raw
                     }
                 })
 
-				this.socket.emit("update", jsndata, function(err, success) {
-                    console.log(success);
-                    if (err) {
-                        console.log("Socket failure");
-                        console.log(err);
-                        faliures++;
-                    } else {
-                        count ++;
-                    }
-                });
+				this.socket.emit("update", jsndata);
 			}
 
 			if (item.children) {
