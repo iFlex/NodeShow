@@ -303,6 +303,9 @@ export class Container {
             parentId: parent.id,
             callerId: callerId
         })
+        //update server on updated elements
+        this.notifyUpdate(child, callerId)
+        this.notifyUpdate(prevParentId, callerId)
         this.notifyUpdate(parent, callerId)
     }
     //</nesting>

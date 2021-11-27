@@ -145,6 +145,8 @@ class Presentation {
         try{
 			if (data.event == Events.create || data.event == Events.update) {
 	        	console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
+				console.log(JSON.stringify(data.detail.childNodes))
+
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
@@ -184,31 +186,31 @@ class Presentation {
 				}
 				//ToDo: this creates a broken child link - remove from child list as well and maybe save in edit history
 			} else if(data.event == Events.setParent) {
-				let childId = data.detail.id;
-				let prevParentId = data.detail.prevParent;
-				let newParentId = data.detail.parentId;
+				// let childId = data.detail.id;
+				// let prevParentId = data.detail.prevParent;
+				// let newParentId = data.detail.parentId;
 				
-				//add new link
-				if (!this.rawData[newParentId].childNodes) {
-					this.rawData[newParentId].childNodes = []
-				}
-				this.rawData[newParentId].childNodes.push({id:childId})
+				// //add new link
+				// if (!this.rawData[newParentId].childNodes) {
+				// 	this.rawData[newParentId].childNodes = []
+				// }
+				// this.rawData[newParentId].childNodes.push({id:childId})
 
-				//update graph links
-				this.rawData[childId].parentId = newParentId
+				// //update graph links
+				// this.rawData[childId].parentId = newParentId
 				
-				//remove old link
-				if (this.rawData[prevParentId]) {
-					let prevChildLinks = this.rawData[prevParentId].childNodes;
-					if (prevChildLinks) {
-						for (let i = 0 ; i < prevChildLinks.length; ++i ) {
-							if(prevChildLinks[i].id == childId) {
-								prevChildLinks.splice(i,1)
-								break;
-							}
-						}
-					}
-				}
+				// //remove old link
+				// if (this.rawData[prevParentId]) {
+				// 	let prevChildLinks = this.rawData[prevParentId].childNodes;
+				// 	if (prevChildLinks) {
+				// 		for (let i = 0 ; i < prevChildLinks.length; ++i ) {
+				// 			if(prevChildLinks[i].id == childId) {
+				// 				prevChildLinks.splice(i,1)
+				// 				break;
+				// 			}
+				// 		}
+				// 	}
+				// }
 			} else {
 				console.log(`WARNING: uncategorised event type ${data.event}`)
 			}

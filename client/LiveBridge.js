@@ -152,7 +152,7 @@ export class LiveBridge {
                 this.container.setParent(detail.id, detail.parentId, data.userId)
             }
         } catch (e) {
-            console.error(`Failed to handle update`, e);
+            console.error(`Failed to handle update ${data.event}`, e);
             if(this.debug) {
                 console.error(data)    
             }
