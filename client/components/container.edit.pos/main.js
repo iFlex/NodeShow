@@ -1,5 +1,6 @@
 import {container} from '../../nodeshow.js'
 
+const SELECT_MOVE_TRESHOLD = 5;
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
 class ContainerMover {
 	container = null;
@@ -12,6 +13,10 @@ class ContainerMover {
 	#presenveRatio = false
 	#mode = 'move' //or size
 	
+	#targetOx = 0;
+	#targetOy = 0;
+	#moved = 0;
+
 	target = null;
 	selection = null;
 
@@ -99,7 +104,7 @@ class ContainerMover {
 	}
 
 	//ToDo: consider scale
-	modifyContainer(dx, dy) {
+	modifyContainer(dx, dy, x, y) {
 		if (this.#mode == 'size') {
 			let w = this.container.getWidth(this.target.id)
 			let h = this.container.getHeight(this.target.id)
@@ -111,9 +116,13 @@ class ContainerMover {
 			this.container.setWidth(this.target.id, w + dx, this.appId);
 			this.container.setHeight(this.target.id, h + dy, this.appId);
 		} else {
-			console.log(`Moving by dx:${dx} dy:${dy}`)
-			console.log(this.container.getPosition(this.target.id))
-			this.container.move(this.target.id, dx, dy, this.appId)
+			//this.container.move(this.target.id, dx, dy, this.appId)
+			this.container.setPosition(this.target, {
+				top: y,
+				left: x,
+				originX: this.#targetOx,
+				originY: this.#targetOy
+			}, this.appId)
 		} 
 	}
 
@@ -129,17 +138,24 @@ class ContainerMover {
 
 			this.target = event.target;
 			this.selection = event.target;
+			
+			this.#targetOx = event.originalEvent.layerX / this.container.getWidth(this.target) 
+			this.#targetOy = event.originalEvent.layerY / this.container.getHeight(this.target)
 
-			this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event.originalEvent});
+			this.#moved = 0;
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
+			if (this.#moved < SELECT_MOVE_TRESHOLD) {
+				this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event.originalEvent});
+			}
 			this.target = null;//ToDo: smaller ratio preserving change amount
 		}
 		else if (this.target) {
 			let dx = event.originalEvent.screenX - this.lastX;
 			let dy = event.originalEvent.screenY - this.lastY;
-			
-			this.modifyContainer(dx, dy)
+			this.#moved += Math.sqrt(Math.pow(Math.abs(dx),2) + Math.pow(Math.abs(dy),2))
+
+			this.modifyContainer(dx, dy, event.originalEvent.pageX, event.originalEvent.pageY)
 			
 			if(dx != 0 || dy != 0) {
 				this.selection = null;

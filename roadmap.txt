@@ -1,3 +1,9 @@
+Current Prios:
+Resilient Cursor in text
+Better Dragger (set pos instead of dx, dy based)
+Better implem of selection in dragger (on mouse up and no move rather than immediate)
+Authentication
+
 Current purpose:
 Serve as a view controller for my newsstand application. 
 It will receive updates in the form of HTML news bits which will get displayed on screen
@@ -12,21 +18,16 @@ Don't know for sure yet if this is feasable... (there are existing tools for suc
 
 Client
 -------------------------
-* FIX positioning system
-* FIX text editor ghost selection
-
-
-ContainerCollapser - a way to collapse containers in a smart way in order to enable a big picture & detailed picture view of the document
+* ContainerCollapser - a way to collapse containers in a smart way in order to enable a big picture & detailed picture view of the document
 Nice to have, maybe in the future whenever i have time:
-TestInjector - [status: Partial implementation]
+TextInjector - [status: Partial implementation]
 - Event System Wrapper (integrated with socket)
-ContainerMove - Done
-    - not working on mobile
-ContainerSize
+ContainerMove
+ContainerSize - no mobile
 ContainerStyle (css tags)
 ContentConfig (choose things like position: relative, etc, wrapping)
 [core] AppManager (Load/Unload Start/Stop)
-- download app interfaces from Server
+- download app interfaces from Server (html, css)
 - container actions: name an event that would trigger a function
 e.g. data-action:{event:"onClick",action:"container.setPosition",params:[10,10]}
 
@@ -69,5 +70,3 @@ HTTP Server -------- Users
                                                 - etc
 
                             permissions   ---- Authorization Engine
-
-
