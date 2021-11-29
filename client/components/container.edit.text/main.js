@@ -1,4 +1,5 @@
 import {container} from '../../nodeshow.js'
+import {Cursor} from './cursor.js'
 
 //ToDo:
 //newlines (support them properly)
@@ -72,12 +73,7 @@ class ContainerTextInjector {
 		underlined: false
 	}
 
-	cursor = {
-		lineNo: 0,
-		charNo: 0,
-		textUnit: null,
-		localCharNo: 0
-	}
+	cursor = null
 
 	constructor (container, debug) {
 		this.container = container;
@@ -93,6 +89,8 @@ class ContainerTextInjector {
 			this.textUnitDescriptor['computedStyle'] = this.lineDescriptor.computedStyle;
 			console.log("Text editor runnign in debug mode")
 		}
+
+		this.cursor = new Cursor()
 
 		//create interface holder
 		this.#interface = this.container.createFromSerializable(null, {
@@ -164,10 +162,14 @@ class ContainerTextInjector {
 	setTarget(id) {
 		console.log(`Setting text edit target to ${id}`)
 		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
+		this.cursor.setTarget(this.target)
+
 		console.log(`Closest div parent:`)
 		console.log(this.target)
 		
 		let pos = this.container.getPosition(this.target)
+
+		//set interface position
 		pos.originX = 0.0
 		pos.originY = 1.0
 		this.container.setPosition(this.#interface, pos, this.appId)
@@ -177,6 +179,8 @@ class ContainerTextInjector {
 
 	unsetTarget(){
 		this.target = null;
+		this.cursor.setTarget(null);
+
 		this.container.hide(this.#interface, this.appId)
 	}
 
@@ -193,7 +197,7 @@ class ContainerTextInjector {
 	}
 	
 	isLine(elem) {
-		return elem.className.includes(this.lineDescriptor.className); 
+		return elem && elem.className && elem.className.includes(this.lineDescriptor.className); 
 	}
 
 	isNewLine(elem) {
@@ -201,7 +205,7 @@ class ContainerTextInjector {
 	}
 
 	isTextUnit(elem) {
-		return elem.className && elem.className.includes(this.textUnitDescriptor.className);
+		return elem && elem.className && elem.className.includes(this.textUnitDescriptor.className);
 	}
 
 	isTextUnitInCurrentTarget(unit) {
@@ -233,13 +237,38 @@ class ContainerTextInjector {
 			this.container.styleChild(this.target, this.textContainerStyle, this.appId)
 		}
 	}
+	
+	findClosestTextUnit(line, direction) {
+		let pointer = line
+		let skippedLines = new Set([])
+		while (this.isNewLine(pointer)) {
+			skippedLines.add(pointer)
+			if (direction < 0) {
+				pointer = pointer.previousSibling
+			} else {
+				pointer = pointer.nextSibling
+			}
+		}
+
+		let result = null
+		if (pointer && !this.isNewLine(pointer)) {
+			if (direction < 0){
+				result = pointer.childNodes[pointer.childNodes.length - 1]
+			} else {
+				result = pointer.childNodes[0]
+			}
+		}
+		return {textUnit: result, skippedLines: skippedLines}
+	}
+
 	/*
 		Inclusive set of text units from start to end
+		//deprecate...
 		ToDo: deal with situatoin when start is after end
 	*/
 	findBetweenTextUnits (start, end, stopAtEOL) {
 		if (!start && !end) {
-			throw `Can't find text units between nothing and nothing...`
+			return {lines:new Set([]), units: new Set([])}
 		}
 		if (!end) {
 			end = start.parentNode.lastChild
@@ -270,6 +299,75 @@ class ContainerTextInjector {
 				currentTextUnit = currentTextUnit.nextSibling
 			}
 			if (stopAtEOL) {
+				break;
+			}
+			currentLine = currentLine.nextSibling
+		}
+		return {lines:lines, units:units}
+	}
+
+	findBetween (start, end, stopAtEOL) {
+		if (!start && !end) {
+			return {lines:new Set([]), units: new Set([])}
+		}
+
+		let currentLine = null
+		let currentTextUnit = null
+		if (this.isTextUnit(start)) {
+			currentTextUnit = start
+			currentLine = start.parentNode
+		} else if (this.isLine(start)) {
+			currentLine = start
+			currentTextUnit = start.firstChild
+		} else if (start) {
+			throw `Find only works using text units and lines, you seem to have provided a different kind of DOM element for start`
+		}
+
+		let endTextUnit = null
+		let endLine = null
+		if (this.isTextUnit(end)) {
+			endTextUnit = end
+			endLine = end.parentNode
+		} else if (this.isLine(end)) {
+			endLine = end
+			endTextUnit = end.lastChild
+		} else if(end) {
+			throw `Find only works using text units and lines, you seem to have provided a different kind of DOM element for end`	
+		}
+
+		if (!start) {
+			currentLine = endLine
+			currentTextUnit = currentLine.firstChild
+		}
+		
+		if (!end) {
+			endLine = currentLine
+			endTextUnit = currentLine.lastChild
+		}
+
+		let units = new Set([])
+		let lines = new Set([])			
+		while (currentLine) {
+			if (!currentTextUnit) {
+				currentTextUnit = currentLine.firstChild
+			}
+			lines.add(currentLine)
+
+			while (currentTextUnit) {
+				if (this.isTextUnit(currentTextUnit)) {
+					units.add(currentTextUnit)
+					if (currentTextUnit == endTextUnit) {
+						units.add(end)
+						return {lines:lines, units:units}
+					}
+				}
+				currentTextUnit = currentTextUnit.nextSibling
+			}
+			if (stopAtEOL) {
+				break;
+			}
+
+			if (currentLine == endLine) {
 				break;
 			}
 			currentLine = currentLine.nextSibling
@@ -352,9 +450,9 @@ class ContainerTextInjector {
 				this.makeSelection(startNode, endNode)
 
 				if (startSplit[0]) {
-					this.cursorSetOnTextUnit(this.cursor, startSplit[0], startSplit[0].innerHTML.length)
+					this.cursor.putOn(startSplit[0], startSplit[0].innerHTML.length)
 				} else if(endSplit[1]) {
-					this.cursorSetOnTextUnit(this.cursor, endSplit[1], 0)
+					this.cursor.putOn(endSplit[1], 0)
 				}
 
 				return this.findBetweenTextUnits(startNode, endNode)			
@@ -377,19 +475,28 @@ class ContainerTextInjector {
 		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length;
 		let offset = Math.ceil(clickP/charWidth)
 
-		this.cursorSetOnTextUnit(this.cursor, textUnit, offset)
+		this.cursor.putOn(textUnit, offset)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
-	cursorUpdateVisible(cursor, blinker) {
-		let textUnit = cursor.textUnit
+	cursorUpdateVisible(blinker) {
+		if (!blinker) {
+			blinker = this.#cursorDiv
+		}
+
+		let curStat = this.cursor.get()
+		
+		let textUnit = curStat.textUnit
+		let offset = curStat.localCharNumber
 		if(!textUnit) {
-			return
+			textUnit = curStat.line
+			offset = 0
 		}
 
 		let unitPos = this.container.getPosition(textUnit)
 		let unitHeight = this.container.getHeight(textUnit)
 		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length
-		unitPos.left += Math.ceil(charWidth * cursor.localCharNo)
+		unitPos.left += Math.ceil(charWidth * offset)
 
 		this.container.setPosition(blinker, {top:unitPos.top,left:unitPos.left}, this.appId)
 		this.container.setHeight(blinker, unitHeight, this.appId)
@@ -397,175 +504,11 @@ class ContainerTextInjector {
 		this.container.bringToFront(blinker, this.appId)
 	}
 
-	cursorPutOnLine(cursor, lineNo, makeIfAbsent) {
-		let line = Math.max(0, lineNo)
-		if (makeIfAbsent && (!this.target.children || line >= this.target.children.length)) {
-			this.makeNewLine()
-		}
-		line = Math.min(line, this.target.children.length - 1)
-
-		let linePtr = this.target.children[line]
-		if (!linePtr) {
-			throw `What the fuck JavaScript? line=${line} children=${this.target.children.length}`
-		}
-		cursor.lineNo = line
-		cursor.line = linePtr
-		return line == lineNo 
-	}
-
-
-	/* 
-	This will seek the text unit on the current line. If no text unit exists - then it will create one and cap the position
-	*/
-	cursorSeekTextUnit(cursor, charNo, makeIfAbsent) {
-		//console.log("Cursor SEEK")
-		cursor.textUnit = cursor.line.firstChild
-		if (!cursor.textUnit && makeIfAbsent) {
-			cursor.textUnit = this.makeNewTextChild(cursor.line)
-		}
-
-		let lineLen = 0;
-		for (const child of cursor.line.children) {
-			lineLen += child.innerHTML.length
-		}
-
-		cursor.charNo = 0;
-		cursor.localCharNo = 0;
-		this.cursorMove(cursor, Math.min(charNo, lineLen), true)	
-		
-		//console.log(cursor)
-		//console.log("Cursor SEEK---")
-	}
-
-
-	cursorToPrevUnit(cursor) {
-		console.log(`Cursor jump to prev text unit from`)
-		console.log(cursor.textUnit)
-		let switchTo = cursor.textUnit.previousSibling;
-		if(!switchTo && this.cursorPutOnLine(cursor, cursor.lineNo - 1)) {
-			switchTo = this.cursor.line.lastChild
-		}
-		console.log("Switch to:")
-		console.log(switchTo)
-		if (switchTo) {
-			this.cursorSetOnTextUnit(cursor, switchTo, switchTo.innerHTML.length)
-		}
-		console.log(cursor)
-		console.log("switch to prev------")
-	}
-
-	cursorToNextUnit(cursor) {
-		console.log(`Cursor jumps to next textUnit`)
-		console.log(cursor.textUnit)
-		let switchTo = cursor.textUnit.nextSibling
-		if(!switchTo && this.cursorPutOnLine(cursor, cursor.lineNo + 1)) {
-			switchTo = this.cursor.line.firstChild
-		}
-		
-		if(switchTo) {
-			this.cursorSetOnTextUnit(cursor, switchTo, 0)
-		}
-		console.log(cursor)
-		console.log("switch to next------")
-	}
-
-	/*
-	Seems stable for now
-	 */
-	cursorMove(cursor, charsRemaining) {
-		console.log(`Cursor will move by ${charsRemaining}`)
-		let moved = 0;
-		while (charsRemaining != 0) {
-			if (charsRemaining < 0) {
-				if (cursor.localCharNo == 0) {
-					this.cursorToPrevUnit(cursor)
-				}
-				
-				if (cursor.localCharNo == 0) {
-					//cannot cotinue moving
-					break
-				}
-
-				cursor.localCharNo --;
-				cursor.charNo --;
-				moved --;
-
-				charsRemaining ++;
-
-				if (cursor.localCharNo == 0) {
-					this.cursorToPrevUnit(cursor)
-				}
-			} else {
-				if (cursor.localCharNo == cursor.textUnit.innerHTML.length) {
-					this.cursorToNextUnit(cursor)
-				}
-				if (cursor.localCharNo == cursor.textUnit.innerHTML.length) {
-					//cannot continue moving
-					break;
-				}
-				cursor.localCharNo ++;
-				cursor.charNo ++;
-				moved ++;
-
-				charsRemaining --;
-
-				if (cursor.localCharNo == cursor.textUnit.innerHTML.length) {
-					this.cursorToNextUnit(cursor)
-				}
-			}
-		}
-
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
-	}
-
-	cursorPutAt(cursor, line, char, makeIfAbsent) {
-		this.cursorPutOnLine(cursor, line, makeIfAbsent)
-		this.cursorSeekTextUnit(cursor, char, makeIfAbsent)
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
-	}
-
-	cursorCharNoFromLocalCharNo(cursor) {
-		cursor.charNo = cursor.localCharNo;
-		let textUnit = cursor.textUnit.previousSibling;
-		while(textUnit) {
-			cursor.charNo += textUnit.innerHTML.length
-			textUnit = textUnit.previousSibling
-		}
-	}
-
-	cursorFromLocalCharNo(cursor) {
-		this.cursorCharNoFromLocalCharNo(cursor)
-		cursor.line = cursor.textUnit.parentNode;
-
-		let line = cursor.textUnit.parentNode
-		let lineNo = 0;
-		while(line) {
-			line = line.previousSibling
-			lineNo++;
-		}
-		cursor.lineNo = lineNo - 1;
-	}
-
-	cursorSetOnTextUnit(cursor, textUnit, offset) {
-		console.log(`Placing cursor on text unit at offset ${offset}`)
-		console.log(textUnit)
-		cursor.textUnit = textUnit
-		cursor.localCharNo = offset;
-		this.cursorFromLocalCharNo(cursor)
-		console.log(cursor)
-
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
-	}
-
 	splitTextUnit(unit, offset) {
 		if (!this.isTextUnit(unit)) {
 			throw 'You can use splitTextUnit only on textUnits'
 		}
 		
-		// if (unit.innerHTML.length == 0) {
-		// 	return [null, null]
-		// }
-
 		if (offset == 0) {
 			return [unit.previousSibling, unit]
 		}
@@ -588,51 +531,27 @@ class ContainerTextInjector {
 		return [unit, right]
 	}
 
-	getCurrentLine(makeIfNone) {
-		let lastLine = null;
-		for (let child of this.target.children) {
-			if (this.isLine(child)) {
-				lastLine = child;
-			}
-		}
-
-		if(makeIfNone && !lastLine) {
-			return this.makeNewLine();
-		}
-		return lastLine;
-	}
-
-	getCurrentTextChild(createIfNone) {
-		let line = this.getCurrentLine(createIfNone);
-		if (!line) {
-			return {};
-		}
-  		let lastChild = line.lastChild;
-		if (createIfNone && !lastChild) {
-			lastChild = this.makeNewTextChild(line);
-		}
-		if (createIfNone && lastChild && this.isNewLine(lastChild)) {
-			line = this.makeNewLine();
-			lastChild = this.makeNewTextChild(line);
-		}
-		return {child:lastChild, line:line}
-	}
-
 	deleteSelection() {
 		let selection = this.getSelected();
 		if (selection && selection.units && selection.units.size > 0) {
-			this.deleteTextUnits(selection.units);
+			this.deleteTextUnits(selection.units, true);
 			return true;
 		}
 		this.clearSelection()
 		return false;
 	}
 
-	deleteTextUnits(units) {
+	deleteLines(lines) {
+		for (const line of lines) {
+			this.container.delete(line, this.appId)
+		}
+	}
+
+	deleteTextUnits(units, andLines) {
 		for (const unit of units) {
 			let parent = unit.parentNode
 			this.container.delete(unit, this.appId)
-			if (parent.children.length == 0) {
+			if (parent.children.length == 0 && andLines) {
 				this.container.delete(parent, this.appId)
 			}
 		}
@@ -644,15 +563,24 @@ class ContainerTextInjector {
 		//if there's a selection delete it first
 		this.deleteSelection();
 		
-		this.cursorPutAt(this.cursor, this.cursor.lineNo, this.cursor.charNo, true);
-		
-		let textUnit = this.cursor.textUnit;
+		let curStat = this.cursor.get()
+		if (!curStat.line) {
+			let line = this.makeNewLine(0)
+			curStat = this.cursor.get()
+		}
+		if (!curStat.textUnit) {
+			let unit = this.makeNewTextChild(curStat.line)
+			curStat = this.cursor.get()
+		}
+	
+		let textUnit = curStat.textUnit;
 		let existing = textUnit.innerHTML
-		let before = existing.substring(0, this.cursor.localCharNo)
-		let after = existing.substring(this.cursor.localCharNo, existing.length)
+		let before = existing.substring(0, curStat.localCharNumber)
+		let after = existing.substring(curStat.localCharNumber, existing.length)
 		textUnit.innerHTML = `${before}${text}${after}`
 		
-		this.cursorMove(this.cursor, text.length)
+		this.cursor.move(text.length)
+		this.cursorUpdateVisible(this.#cursorDiv)
 		this.container.notifyUpdate(textUnit.id, this.appId)
 	}
 
@@ -660,32 +588,31 @@ class ContainerTextInjector {
 	ToDo: Seems to be working ok
 	*/
 	newLine() {
+		this.clearSelection()
+
 		let moveToNewLine = new Set([])
-		if (this.cursor.textUnit) {
-			let split = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
-			console.log(split)
+		let curStat = this.cursor.get()
+		if (curStat.textUnit) {
+			let split = this.splitTextUnit(curStat.textUnit, curStat.localCharNumber)
 			if (split[1]) {
 				moveToNewLine = this.findBetweenTextUnits(split[1]).units
 			}
 		}
-		console.log(moveToNewLine)
 		//make new line and pull in items
-		let line = this.makeNewLine(this.cursor.lineNo + 1)
+		let line = this.makeNewLine(curStat.lineNumber + 1)
 		for (const textUnit of moveToNewLine) {
 			this.container.setParent(textUnit, line, this.appId)
 		}
 		//update cursor
-		this.cursorToNextUnit(this.cursor)
+		let r = this.cursor.putAt(curStat.lineNumber + 1, 0)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
-	//ToDo: remove lines rendered empty
+	//ToDo: remove lines rendered empty	
 	//BUG: sometimes removing in between text units creates ghost text units
-	//BUG: when deleting past line end, the current line does not get moved into the upper line
-	//BUG: sometimes this doesn't delete anyting...
+	//BUG: sometimes this doesn't delete anyting... 
 	removePrintable(count) {
-		console.log(`Remove printable ${count}`)
-		console.log(this.cursor)
-
+		
 		if (!count) {
 			return;
 		}
@@ -696,36 +623,87 @@ class ContainerTextInjector {
 		}
 
 		let start = undefined
-		let end = undefined
+		let startLine = undefined
 
+		let end = undefined
+		let endLine = undefined
+
+		let cursorStart = this.cursor.get()
+		let cursorEnd = null
+		let currentLine = null
+		let carryOver = null
 		if (count > 0) {
-			start = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
-			this.cursorMove(this.cursor, count)
-			end = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
-			if(start[1] && start[1] == end[1]) { //split happened on the same text unit
+			//completely untested flow
+			if (cursorStart.textUnit) {
+				start = this.splitTextUnit(cursorStart.textUnit, cursorStart.localCharNumber)
+				carryOver = this.findBetween(null,start[0]).units
+			}
+			startLine = cursorStart.line
+
+			cursorEnd = this.cursor.move(count)
+			endLine = cursorEnd.line
+			currentLine = endLine
+
+			if (cursorEnd.textUnit) {
+				end = this.splitTextUnit(cursorEnd.textUnit, cursorEnd.localCharNumber)
+			}
+		
+			if(start && end && start[1] && start[1] == end[1]) { //split happened on the same text unit
 				start[1] = end[0]
 			}
+			//todo replicate below case
 		} else {
-			end = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
-			this.cursorMove(this.cursor, count)
-			start = this.splitTextUnit(this.cursor.textUnit, this.cursor.localCharNo)
-			if (this.cursor.textUnit == end[0]) {
+			if (cursorStart.textUnit) {
+				end = this.splitTextUnit(cursorStart.textUnit, cursorStart.localCharNumber)
+				carryOver = this.findBetween(end[1], null).units		
+			}
+			endLine = cursorStart.line
+
+			cursorEnd = this.cursor.move(count)
+			startLine = cursorEnd.line
+			currentLine = startLine
+
+			if (cursorEnd.textUnit) {
+				start = this.splitTextUnit(cursorEnd.textUnit, cursorEnd.localCharNumber)	
+			}
+
+			if (end && start && cursorEnd.textUnit == end[0]) {
 				//this is a special annoying case
 				end[0] = start[1]
 			}
 		}
-		let delList = this.findBetweenTextUnits(start[1] || start[0], end[0] || end[1])
+
+		//computing delete list
+		let startElem = (start) ? (start[1] || start[0]) : startLine
+		let endElem = (end) ? (end[0] || end[1]) : endLine
+
+		let delList = this.findBetween( startElem, endElem )
+
 		let toDelete = delList.units
-		if (!start[1]) {
+		if (start && !start[1]) {
 			toDelete.delete(start[0])
 		}
-		if (!end[0]) {
+		if (end && !end[0]) {
 			toDelete.delete(end[1])
 		}
-		this.deleteTextUnits(toDelete)
 
-		console.log(this.cursor)
-		console.log("Remove printable ----")
+		let linesToDelete = delList.lines
+		linesToDelete.delete(currentLine)
+		
+	
+		this.deleteTextUnits(toDelete, false)
+		if ( carryOver ) {
+			for (const carryOverUnit of carryOver) {
+				try { //
+					this.container.setParent(carryOverUnit, currentLine, this.appId)
+				} catch (e) {
+					console.log("PLEASE FIX THIS. THERE WAS AN INVALID ELEMENT IN THE CARRY OVER SET")
+				}
+			}
+		}
+		this.deleteLines(linesToDelete) 
+
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	getTextUnitDistanceFromRoot(textUnit) {
@@ -794,7 +772,7 @@ class ContainerTextInjector {
 		}
 		this.styleTextUnits({"font-size": modFunc}, selection.units)
 
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	setFontSize (fontSize) {
@@ -804,7 +782,7 @@ class ContainerTextInjector {
 		}
 		this.styleTextUnits({"font-size": fontSize}, selection.units)
 
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	setFont(fontFam) {
@@ -814,7 +792,7 @@ class ContainerTextInjector {
 		}
 		this.styleTextUnits({"font-family": fontFam}, selection.units);
 
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	align (alignment) {
@@ -824,7 +802,7 @@ class ContainerTextInjector {
 		}
 		this.styleLines({"text-align": alignment,  "text-justify": "inter-word"}, selection.lines)
 		
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	bold () {
@@ -842,7 +820,8 @@ class ContainerTextInjector {
 			this.state.bold = toggleFunc(this.state.bold);
 		}
 
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.clearSelection()
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	italic (textUnits) {
@@ -860,7 +839,8 @@ class ContainerTextInjector {
 			this.state.italic = toggleFunc(this.state.italic);
 		}
 
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.clearSelection()
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	underlined (textUnits) {
@@ -878,7 +858,8 @@ class ContainerTextInjector {
 			this.state.underlined = toggleFunc(this.state.underlined);
 		}
 
-		this.cursorUpdateVisible(this.cursor, this.#cursorDiv)
+		this.clearSelection()
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	handleKeydown(e) {
@@ -894,16 +875,26 @@ class ContainerTextInjector {
 			this.state.control = true;
 		}
 		if (key == "Down" || key == "ArrowDown") {
-			this.cursorPutAt(this.cursor, this.cursor.lineNo + 1, this.cursor.charNo)
+			let curStat = this.cursor.getPosition()
+			console.log("Cursor Down")
+			console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
+			this.cursorUpdateVisible(this.#cursorDiv)
 		}
    	 	if (key == "Up" || key == "ArrowUp") {
-   	 		this.cursorPutAt(this.cursor, this.cursor.lineNo - 1, this.cursor.charNo)
+   	 		let curStat = this.cursor.getPosition()
+   	 		console.log("Cursor Up")
+   	 		console.log(this.cursor.putAt(curStat.lineNumber - 1, curStat.charNumber))
+   	 		this.cursorUpdateVisible(this.#cursorDiv)
    	 	}
 		if (key == "Left" || key == "ArrowLeft") {
-			this.cursorMove(this.cursor, -1)
+			console.log("Cursor Left")
+			console.log(this.cursor.move(-1))
+			this.cursorUpdateVisible(this.#cursorDiv)
 		}
       	if (key == "Right" || key == "ArrowRight") {
-      		this.cursorMove(this.cursor, 1)
+      		console.log("Cursor Right")
+      		console.log(this.cursor.move(1))
+      		this.cursorUpdateVisible(this.#cursorDiv)
       	}
 		if (!this.state.control) {
 			if (ContainerTextInjector.isPrintableCharacter(key)) {
@@ -1057,5 +1048,5 @@ class ContainerTextInjector {
 	}
 }
 
-export let texter = new ContainerTextInjector(container, true);
+export let texter = new ContainerTextInjector(container);
 texter.enable()

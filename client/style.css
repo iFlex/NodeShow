@@ -60,35 +60,3 @@
     border-radius: 50%;
     background-color: lawngreen;
 } 
-
-/* Text Editor */
-
-.text-document-line {
-    width: 100%;
-    height: auto;
-    margin: 0;
-    padding:  0;
-}
-
-.text-document-cursor {
-  width: 3px;
-  height:  30px;
-  background-color: black;
-  border-width: 1px;
-  border-color: black;
-}
-
-.text-document-unit {
-  white-space:pre;
-}
-
-.blinking-cursor {
-  font-weight: 100;
-  font-size: 30px;
-  color: #2E3D48;
-  -webkit-animation: 1s blink step-end infinite;
-  -moz-animation: 1s blink step-end infinite;
-  -ms-animation: 1s blink step-end infinite;
-  -o-animation: 1s blink step-end infinite;
-  animation: 1s blink step-end infinite;
-}

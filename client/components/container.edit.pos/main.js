@@ -2,11 +2,11 @@ import {container} from '../../nodeshow.js'
 
 const SELECT_MOVE_TRESHOLD = 5;
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
+//happens because events stop firing
 class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
 
-	movable = "div, img, svg"
 	mouseEvents = ['mouseup','mousedown','mousemove']
 	touchEvents = ['touchstart','touchend', 'touchcancel', 'touchmove']
 	
@@ -31,49 +31,36 @@ class ContainerMover {
 	}
 
 	enable() {
-		this.attachListeners(this.movable)
+		//ToDo: forgot what this is for, document plz
 		$('*').on('dragstart', function(event) { event.preventDefault(); });
 
-		document.addEventListener('container.create', e => {
-			this.attachListeners("#" + e.detail.id)
-		});
+		for (const event of this.mouseEvents) {
+			document.addEventListener(event, e => this.handleMouseEvent(e))	
+		}
+		
+		for (const event of this.touchEvents) {
+			document.addEventListener(event, e => this.handleTouchEvent(e))	
+		}
+
 		//checking shift and ctrl
 		document.addEventListener("keydown", (e) => this.handleKeydown(e))
 		document.addEventListener("keyup",(e) => this.handleKeyUp(e))
-		document.addEventListener("mouseout", (e) => this.handleLoseFocus(e))
-	}
-
-	attachListeners(target) {
-		this.container.isOperationAllowed('container.edit',target, this.appId)
-		
-		for (const event of this.mouseEvents) {
-			$(target).on(event, e => this.handleMouseEvent(e))
-		}
-		for (const event of this.touchEvents) {
-			$(target).on(event, e => this.handleTouchEvent(e));
-		}
-		$(target).addClass("editable");
-	}
-
-	detachListeners(target) {
-		for (const event of this.mouseEvents) {
-			$(target).off(event, e => this.handleMouseEvent(e))
-		}
-		
-		for (const event of this.touchEvents) {
-			$(target).off(event, e => this.handleTouchEvent(e));
-		}
-		$(target).removeClass("editable");
 	}
 
 	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
-		this.detachListeners(this.movable)
-		document.removeEventListener('container.create', e => this.attachListeners(e));
+		$('*').off('dragstart', function(event) { event.preventDefault(); });
+
+		for (const event of this.mouseEvents) {
+			document.removeEventListener(event, e => this.handleMouseEvent(e))	
+		}
+		
+		for (const event of this.touchEvents) {
+			document.removeEventListener(event, e => this.handleTouchEvent(e))	
+		}
 		//checking shift and ctrl
 		document.removeEventListener("keydown", (e) => this.handleKeydown(e))
 		document.removeEventListener("keyup",(e) => this.handleKeyUp(e))
-		document.removeEventListener("mouseout", (e) => this.handleLoseFocus(e))
 	}
 
 	considerScale(id, dx, dy) {
@@ -139,32 +126,33 @@ class ContainerMover {
 			this.target = event.target;
 			this.selection = event.target;
 			
-			this.#targetOx = event.originalEvent.layerX / this.container.getWidth(this.target) 
-			this.#targetOy = event.originalEvent.layerY / this.container.getHeight(this.target)
+			this.#targetOx = event.layerX / this.container.getWidth(this.target) 
+			this.#targetOy = event.layerY / this.container.getHeight(this.target)
 
 			this.#moved = 0;
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
 			if (this.#moved < SELECT_MOVE_TRESHOLD) {
-				this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event.originalEvent});
+				this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event});
 			}
 			this.target = null;//ToDo: smaller ratio preserving change amount
 		}
 		else if (this.target) {
-			let dx = event.originalEvent.screenX - this.lastX;
-			let dy = event.originalEvent.screenY - this.lastY;
+			let dx = event.screenX - this.lastX;
+			let dy = event.screenY - this.lastY;
 			this.#moved += Math.sqrt(Math.pow(Math.abs(dx),2) + Math.pow(Math.abs(dy),2))
 
-			this.modifyContainer(dx, dy, event.originalEvent.pageX, event.originalEvent.pageY)
+			this.modifyContainer(dx, dy, event.pageX, event.pageY)
 			
 			if(dx != 0 || dy != 0) {
 				this.selection = null;
-				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event.originalEvent});
+				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event});
 			}
 		}
 		
-		this.lastX = event.originalEvent.screenX;
-		this.lastY = event.originalEvent.screenY;
+		this.lastX = event.screenX;
+		this.lastY = event.screenY;
+		
 	}
 
 	handleTouchEvent(event) {
@@ -209,14 +197,6 @@ class ContainerMover {
 		if (key == 'Shift') {
 			this.#presenveRatio = false;
 		}
-	}
-
-	handleLoseFocus(e) {		
-		e = e ? e : window.event;
-        var from = e.relatedTarget || e.toElement;
-        if (!from || from.nodeName == "HTML") {
-            this.target = null;
-        }
 	}
 }
 

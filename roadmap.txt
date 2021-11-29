@@ -1,7 +1,6 @@
 Current Prios:
-Resilient Cursor in text
-Better Dragger (set pos instead of dx, dy based)
-Better implem of selection in dragger (on mouse up and no move rather than immediate)
+Resilient Cursor in text!
+Better Dragger keep dragging even if the mouse goes out of the shape
 Authentication
 
 Current purpose:

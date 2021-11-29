@@ -47,8 +47,6 @@ class ContainerCreator {
 	    document.addEventListener('container.edit.pos.selected', e => this.focusOn(e.detail.id));
 		document.addEventListener('container.edit.pos.unselected', (e) => this.unfocus());
 		document.addEventListener("touchstart", (e) => this.tapHandler(e));
-
-		this.container.show(this.#interface, this.appId)
 	}
 
 	disable() {

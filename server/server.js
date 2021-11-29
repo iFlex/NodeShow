@@ -146,8 +146,11 @@ function handlePost(request, response) {
       response.writeHead(200, {'content-type': 'text/plain'});
       response.write('received upload:\n\n');
 
+      console.log(`Usaer Uploaded:`)
+      console.log(JSON.stringify({fields: fields, files: files}))
+
       // This last line responds to the form submission with a list of the parsed data and files.
-      response.end(JSON.stringify({fields: fields, files: files}));
+      response.end("OK");
       //ToDo: submit this to a headless browser which can then beam the contents over to everyone (via this server ofc)
   });
   return;
