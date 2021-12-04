@@ -186,14 +186,14 @@ class ContainerCreator {
 		if(e.key == 'Control') {
 			this.#control = true;
 		}
-		if (e.key == 'Delete') {
-			this.delete();
-		}
 	}
 
 	keyUp(e) {
 		if(e.key == 'Control') {
 			this.#control = false;
+		}
+		if (e.key == 'Delete') {
+			this.delete();
 		}
 		if (e.key == 'Insert' && this.#control) {
 			this.create();

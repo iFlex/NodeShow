@@ -1,6 +1,7 @@
-import {container} from '../../nodeshow.js'
-import {Cursor} from './cursor.js'
-
+import { container } from '../../nodeshow.js'
+import { ACTIONS } from '../../Container.js'
+import { Cursor } from './cursor.js'
+import { Keyboard } from './keyboard.js'
 //ToDo:
 //newlines (support them properly)
 //font and letter size tracking
@@ -30,8 +31,9 @@ class ContainerTextInjector {
 	container = null;	
 	target = null;
 	#interface = null;
-	#debug = false;
+	#keyboard = null;
 
+	#debug = false;
 	#newline = '&#13;'
 
 	#cursorDiv = null
@@ -56,7 +58,6 @@ class ContainerTextInjector {
 			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}]
 		}
 	}
-	preventDefaults = {'u':true,'b':true,'i':true,' ':true}
 	
 	textContainerStyle  = {
 	  "width": "auto",
@@ -91,6 +92,8 @@ class ContainerTextInjector {
 		}
 
 		this.cursor = new Cursor()
+		this.#keyboard = new Keyboard();
+		this.initKeyboard();
 
 		//create interface holder
 		this.#interface = this.container.createFromSerializable(null, {
@@ -116,9 +119,6 @@ class ContainerTextInjector {
 	}
  
 	enable() {
-		document.addEventListener("keydown", (e) => this.handleKeydown(e))
-		document.addEventListener("keyup",(e) => this.handleKeyUp(e))
-
 	    document.addEventListener('container.edit.pos.selected', e => this.setTarget(e.detail.id));
 		document.addEventListener('container.edit.pos.unselected', (e) => this.unsetTarget());
 
@@ -130,9 +130,6 @@ class ContainerTextInjector {
 	}
 
 	disable() {
-		document.removeEventListener("keydown", (e) => this.handleKeydown(e))
-		document.removeEventListener("keyup",(e) => this.handleKeyUp(e))
-
 		document.removeEventListener('container.edit.pos.selected', e => this.setTarget(e.detail.id));
 		document.removeEventListener('container.edit.pos.unselected', (e) => this.unsetTarget());
 
@@ -142,6 +139,38 @@ class ContainerTextInjector {
 		//selection
 		document.removeEventListener('selectionchange', (e) => this.onSelectionChange(e));	
 		this.container.hide(this.#interface, this.appId)
+	}
+
+	initKeyboard () {
+		this.#keyboard.onPritable(this, (key) => this.addPrintable(key))
+		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true)
+		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true)
+		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true)
+
+		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true)
+		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true)
+		this.#keyboard.setAction(new Set(['Up']), this,            (key) => this.cursorUp(), true)
+		this.#keyboard.setAction(new Set(['ArrowUp']), this,       (key) => this.cursorUp(), true)
+		this.#keyboard.setAction(new Set(['Left']), this,          (key) => this.cursorLeft(), true)
+		this.#keyboard.setAction(new Set(['ArrowLeft']), this,     (key) => this.cursorLeft(), true)
+		this.#keyboard.setAction(new Set(['Right']), this,         (key) => this.cursorRight(), true)
+		this.#keyboard.setAction(new Set(['ArrowRight']), this,    (key) => this.cursorRight(), true)
+
+		this.#keyboard.setAction(new Set(['Control','u']), this, (key) => this.underlined(), true)
+		this.#keyboard.setAction(new Set(['Control','i']), this, (key) => this.italic(), true)
+		this.#keyboard.setAction(new Set(['Control','b']), this, (key) => this.bold(), true)
+		this.#keyboard.setAction(new Set(['Control','a']), this, (key) => this.selectAll(), true)
+		this.#keyboard.setAction(new Set(['Control','1']), this, (key) => this.align('left'), true)
+		this.#keyboard.setAction(new Set(['Control','2']), this, (key) => this.align('center'), true)
+		this.#keyboard.setAction(new Set(['Control','3']), this, (key) => this.align('right'), true)
+		this.#keyboard.setAction(new Set(['Control','4']), this, (key) => this.align('justify'), true)
+		this.#keyboard.setAction(new Set(['Control','+']), this, (key) => this.changeFontSize(1), true)
+		this.#keyboard.setAction(new Set(['Control','-']), this, (key) => this.changeFontSize(-1), true)
+		this.#keyboard.setAction(new Set(['Control','/']), this, (key) => this.underlined(), true)
+		this.#keyboard.setAction(new Set(['Control',';']), this, (key) => this.underlined(), true)
+
+		this.#keyboard.setAction(new Set(['Control','c']), this, (key) => {}, false)
+		this.#keyboard.setAction(new Set(['Control','v']), this, (key) => {}, false)
 	}
 
 	static isPrintableCharacter(key) {
@@ -160,13 +189,20 @@ class ContainerTextInjector {
 	}
 
 	setTarget(id) {
+		this.unsetTarget();
+
+		this.#keyboard.enable();
+
 		console.log(`Setting text edit target to ${id}`)
 		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
-		this.cursor.setTarget(this.target)
-
 		console.log(`Closest div parent:`)
 		console.log(this.target)
 		
+		this.container.setPermission(this.target, ACTIONS.delete, '*', false, this.appId)
+		this.container.setPermission(this.target, 'container.edit.pos', '*', false, this.appId)
+
+		this.cursor.setTarget(this.target)
+
 		let pos = this.container.getPosition(this.target)
 
 		//set interface position
@@ -177,11 +213,17 @@ class ContainerTextInjector {
 		this.container.show(this.#interface, this.appId)
 	}
 
-	unsetTarget(){
-		this.target = null;
-		this.cursor.setTarget(null);
+	unsetTarget() {
+		if (this.target) {
+			this.#keyboard.disable();
+		
+			this.container.removePermission(this.target, ACTIONS.delete, '*', false, this.appId)
+			this.container.removePermission(this.target, 'container.edit.pos', null, false, this.appId)
 
-		this.container.hide(this.#interface, this.appId)
+			this.target = null;
+			this.cursor.setTarget(null);
+			this.container.hide(this.#interface, this.appId)
+		}
 	}
 
 	//doesn't support rich text yet
@@ -216,6 +258,32 @@ class ContainerTextInjector {
 			unit = unit.parentNode
 		}
 		return false;
+	}
+
+	cursorUp () {
+		let curStat = this.cursor.getPosition()
+		console.log("Cursor Up")
+		console.log(this.cursor.putAt(curStat.lineNumber - 1, curStat.charNumber))
+		this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	cursorDown () {
+		let curStat = this.cursor.getPosition()
+        console.log("Cursor Down")
+        console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
+        this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	cursorLeft () {
+		console.log("Cursor Left")
+		console.log(this.cursor.move(-1))
+		this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	cursorRight () {
+		console.log("Cursor Right")
+		console.log(this.cursor.move(1))
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	makeNewLine(insertAt) {
@@ -862,52 +930,6 @@ class ContainerTextInjector {
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
-	handleKeydown(e) {
-		let key = e.key
-		
-		if (key == 'Backspace') {
-			this.removePrintable(-1);
-		}
-		if (key == 'Enter') {
-			this.newLine();
-		}
-		if (key == 'Control') {
-			this.state.control = true;
-		}
-		if (key == "Down" || key == "ArrowDown") {
-			let curStat = this.cursor.getPosition()
-			console.log("Cursor Down")
-			console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
-			this.cursorUpdateVisible(this.#cursorDiv)
-		}
-   	 	if (key == "Up" || key == "ArrowUp") {
-   	 		let curStat = this.cursor.getPosition()
-   	 		console.log("Cursor Up")
-   	 		console.log(this.cursor.putAt(curStat.lineNumber - 1, curStat.charNumber))
-   	 		this.cursorUpdateVisible(this.#cursorDiv)
-   	 	}
-		if (key == "Left" || key == "ArrowLeft") {
-			console.log("Cursor Left")
-			console.log(this.cursor.move(-1))
-			this.cursorUpdateVisible(this.#cursorDiv)
-		}
-      	if (key == "Right" || key == "ArrowRight") {
-      		console.log("Cursor Right")
-      		console.log(this.cursor.move(1))
-      		this.cursorUpdateVisible(this.#cursorDiv)
-      	}
-		if (!this.state.control) {
-			if (ContainerTextInjector.isPrintableCharacter(key)) {
-				this.addPrintable(key)
-			}
-		}
-		
-		//stop annoying scroll down on space
-		if (key in this.preventDefaults) {
-			e.preventDefault();
-		}
-	}
-
 	isLink(data) {
 		var expression = /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
 		var regex = new RegExp(expression);
@@ -953,98 +975,6 @@ class ContainerTextInjector {
 		}
 
 		return stl;
-	}
-
-	handleKeyUp(e) {
-		let key = e.key
-		if (key == 'Control') {
-			this.state.control = false;
-		}
-
-		if (this.state.control) {
-			e.preventDefault();
-			console.log(`CTRL ${key}`)
-			if (key == 'b') {
-				this.bold()
-			}
-			if (key == 'i') {
-				this.italic()
-			}
-			if (key == 'u') {
-				this.underlined()
-			}
-			if (key == '1') {
-				this.align('left')
-			}
-			if (key == '2') {
-				this.align('center')
-			}
-			if (key == '3') {
-				this.align('right')
-			}
-			if (key == '4') {
-				this.align('justify')
-			}
-			if (key == '8') {
-				this.changeFontSize(1)
-			}
-			if (key == '9') {
-				this.changeFontSize(-1)
-			}
-			if (key == 'a') {
-				this.selectAll()
-			}
-			//special commands
-			if (key == '/') {
-				console.log("processing special command")
-				//href - interpret text as link
-				let units = this.getAllTextUnits()
-				let text = ""
-				for (const unit of units) {
-					text += unit.innerText;
-				}
-				if (this.isLink(text)) {
-					for(const unit of units) {
-						this.container.delete(unit.id, this.appId);
-					}
-					this.container.createFromSerializable(this.target.id, {
-						nodeName:"img",
-						src:text
-					},null,this.appId);
-				}
-
-				let r = this.isData(text)
-				if (r) {
-					if (r.content == 'image') {
-						for(const unit of units) {
-							this.container.delete(unit.id, this.appId);
-						}
-
-						console.log("adding image...")
-						this.container.createFromSerializable(this.target.id, {
-							nodeName:"img",
-							src:text
-						},null,this.appId);
-					}
-					console.log(r)
-				}
-			}
-			if (key == ';') {
-				let units = this.getAllTextUnits()
-				let text = ""
-				for (const unit of units) {
-					text += unit.innerText;
-				}
-
-				let style = this.textToStyle(text)
-				console.log(style)
-				this.container.styleChild(this.target, style, this.appId)
-				
-				for(const unit of units) {
-					this.container.delete(unit.id, this.appId);
-				}
-			}
-		}
 	}
 }
 

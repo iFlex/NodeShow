@@ -117,6 +117,7 @@ class ContainerMover {
 		let eventType = event.type;
 		try {
 			this.container.isOperationAllowed('container.edit', event.target, this.appId)
+			this.container.isOperationAllowed('container.edit.pos', event.target, this.appId)
 		} catch(e) {
 			return;
 		}

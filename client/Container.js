@@ -208,10 +208,26 @@ export class Container {
             this.permissions[elem.id] = {}
         }
         if (!(permName in this.permissions[elem.id])) {
-            this.permissions[elem.id][opCaller] = {}
+            this.permissions[elem.id][permName] = {}
         }
         this.permissions[elem.id][permName][opCaller] = allow
         //ToDo: emit update
+    }
+
+    removePermission(id, permName, opCaller, callerId) {
+        let elem = Container.lookup(id);
+        let operation = `remove.${permName}`
+        this.isOperationAllowed(operation, elem, callerId)
+        
+        if (this.permissions[elem.id] && this.permissions[elem.id][permName]){
+            if (opCaller) {
+                if (this.permissions[elem.id][permName][opCaller]) {
+                    delete this.permissions[elem.id][permName][opCaller]
+                }
+            } else {
+                delete this.permissions[elem.id][permName]
+            }
+        }
     }
 
     //ToDo: permission matching e.g. container.set.*
