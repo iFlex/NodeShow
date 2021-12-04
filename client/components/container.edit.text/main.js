@@ -3,14 +3,11 @@ import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from './keyboard.js'
 //ToDo:
-//newlines (support them properly)
+//delete via delete doesn't work well
 //font and letter size tracking
 //transparent text boxes that are draggable from text
 //better line comprehension in text manipulation:
 //  - fixed line heights
-//  - cursor move up to shorter line doesn't work (it works, but need to fix new line represenation for it to be perfect)
-//fix cursor bugs...
-//fix prevent default functionality (only do it for our commands, do not prevent default stuff for copy and paste)
 //span compaction (combine if style is identical)
 //unicode support
 
@@ -146,6 +143,7 @@ class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true)
 		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true)
 		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true)
+		this.#keyboard.setAction(new Set(['Escape']), this,     (key) => this.unsetTarget(), true)
 
 		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true)
 		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true)
@@ -198,7 +196,7 @@ class ContainerTextInjector {
 		console.log(`Closest div parent:`)
 		console.log(this.target)
 		
-		this.container.setPermission(this.target, ACTIONS.delete, '*', false, this.appId)
+		this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 		this.container.setPermission(this.target, 'container.edit.pos', '*', false, this.appId)
 
 		this.cursor.setTarget(this.target)
@@ -217,7 +215,7 @@ class ContainerTextInjector {
 		if (this.target) {
 			this.#keyboard.disable();
 		
-			this.container.removePermission(this.target, ACTIONS.delete, '*', false, this.appId)
+			this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 			this.container.removePermission(this.target, 'container.edit.pos', null, false, this.appId)
 
 			this.target = null;

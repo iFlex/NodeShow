@@ -113,6 +113,7 @@ class ContainerMover {
 		} 
 	}
 
+	//ToDo: drag through unmovable objects
 	handleMouseEvent(event) {
 		let eventType = event.type;
 		try {
