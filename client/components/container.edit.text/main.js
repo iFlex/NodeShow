@@ -20,7 +20,7 @@ import { Keyboard } from './keyboard.js'
 
 //line spacing
 
-const textItemPerms = {"container.setPosition":{"*":false}, "container.edit":{"*":false}}
+const textItemPerms = {"container.setPosition":{"*":false}}//, "container.edit":{"*":false}}
 	
 class ContainerTextInjector {
 	appId = "container.edit.text"

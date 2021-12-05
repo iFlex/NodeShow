@@ -1,4 +1,5 @@
-import {container} from '../../nodeshow.js'
+import { container } from '../../nodeshow.js'
+import { ACTIONS } from '../../Container.js'
 
 const SELECT_MOVE_TRESHOLD = 5;
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
@@ -67,6 +68,26 @@ class ContainerMover {
 
 	}
 
+	findActionableAnchestor(target) {
+		if (!target) {
+			return null;
+		}
+		
+		try {
+			this.container.isOperationAllowed('container.edit', target, this.appId)
+			this.container.isOperationAllowed('container.edit.pos', target, this.appId)
+		} catch(e) {
+			return null;
+		}
+
+		try {
+			this.container.isOperationAllowed(ACTIONS.setPosition, target, this.appId)
+			return target
+		} catch (e) {
+			return this.findActionableAnchestor(target.parentNode)
+		}
+	}
+
 	//ToDo: consider dragging form all corners
 	keepRatio (id, w, h, dx, dy) {
 		let sign = 1
@@ -116,28 +137,25 @@ class ContainerMover {
 	//ToDo: drag through unmovable objects
 	handleMouseEvent(event) {
 		let eventType = event.type;
-		try {
-			this.container.isOperationAllowed('container.edit', event.target, this.appId)
-			this.container.isOperationAllowed('container.edit.pos', event.target, this.appId)
-		} catch(e) {
-			return;
-		}
-		
 		if (eventType == 'mousedown' || eventType == 'touchstart') {
 
-			this.target = event.target;
-			this.selection = event.target;
-			
-			this.#targetOx = event.layerX / this.container.getWidth(this.target) 
-			this.#targetOy = event.layerY / this.container.getHeight(this.target)
+			this.target = this.findActionableAnchestor(event.target)
+			if (this.target) {
+				this.selection = event.target;
+				
+				this.#targetOx = event.layerX / this.container.getWidth(this.target) 
+				this.#targetOy = event.layerY / this.container.getHeight(this.target)
 
-			this.#moved = 0;
+				this.#moved = 0;
+			}
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
-			if (this.#moved < SELECT_MOVE_TRESHOLD) {
-				this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event});
+			if (this.target) {
+				if (this.#moved < SELECT_MOVE_TRESHOLD) {
+					this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event});
+				}
+				this.target = null;//ToDo: smaller ratio preserving change amount
 			}
-			this.target = null;//ToDo: smaller ratio preserving change amount
 		}
 		else if (this.target) {
 			let dx = event.screenX - this.lastX;
