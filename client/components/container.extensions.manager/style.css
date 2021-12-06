@@ -4,3 +4,11 @@
     border-radius: 2px;
     background-color: green;
 }
+
+.ns-extensions-manager-toggle-enabled {
+    background-color: blueviolet;
+}
+
+.ns-extensions-manager-toggle-disabled {
+    background-color: grey;
+}

@@ -16,7 +16,9 @@ export const ACTIONS = {
     setAngle: 'container.set.angle',
     setSiblingPosition: 'container.set.sibling.position',
     hide: 'container.hide',
-    show: 'container.show'
+    show: 'container.show',
+    componentAdded: 'container.component.added',
+    componentRemoved: 'container.component.removed'
 }
 
 //events that can automatically triger other events.
@@ -118,7 +120,7 @@ export class Container {
         return Container.lookup(id);
     }
 
-    index(root, emit) {
+    index (root, emit) {
 		let queue = [root || this.parent]
 		var index = 0
 		var labeledCount = 0;
@@ -136,14 +138,7 @@ export class Container {
 				}
 			}
 
-            //init actions
-            try {
-                this.initActions(item)
-                this.loadPermissionsFromDom(item)
-            } catch (e) {
-                console.log("Could not init container actions. Did you not include the module?")
-                console.error(e)
-            }
+            this.#initDOMcontainer(item)
 			index ++;
 
             if(emit != false) {
@@ -158,12 +153,23 @@ export class Container {
 		console.log(`Indexed ${index} document entities. Labeled ${labeledCount}`)
 	}
 
-	init(element) {
+	init (element) {
 		//ToDo: check element type and enforce dom object
 		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
 		this.index();
 		this.emit("Container.init", {presentationId:this.presentationId});
 	}
+
+    #initDOMcontainer(item) {
+        //init actions
+        try {
+            this.initActions(item)
+            this.loadPermissionsFromDom(item)
+        } catch (e) {
+            console.log("Could not init container actions. Did you not include the module?")
+            console.error(e)
+        }
+    }
 
     //ToDo: make this regex
     detectUnit(val) {
@@ -265,7 +271,7 @@ export class Container {
 
         this.components[name] = pointer;
         console.log(`Registered ${name}`);
-        this.emit('container.component.added', {
+        this.emit(ACTIONS.componentAdded, {
             name: name
         }) 
     }
@@ -274,7 +280,7 @@ export class Container {
         component.disable()
         delete this.components[component.appId]
         console.log(`Unregistered component ${component.appId}`)
-        this.emit('container.component.removed', {
+        this.emit(ACTIONS.componentRemoved, {
             name: component.appId
         }) 
     }
@@ -294,6 +300,10 @@ export class Container {
         }
 
         return null;
+    }
+
+    listComponents() {
+        return Object.keys(this.components)
     }
     //</extensions subsystem>
     
@@ -535,6 +545,8 @@ export class Container {
         if (domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
+            this.#initDOMcontainer(domNode)
+            
             this.CONTAINER_COUNT++;
             this.emit(ACTIONS.create, {
                 presentationId: this.presentationId, 

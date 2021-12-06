@@ -1,5 +1,5 @@
-import {container} from '../../nodeshow.js'
-
+import { container } from '../../nodeshow.js'
+import { ACTIONS } from '../../Container.js'
 //support only straignt lines for now
 class ContainerLink {
     appId = 'container.link'
@@ -11,11 +11,18 @@ class ContainerLink {
     #rightDot = null;
     #currentLink = null;
 
+    #handlers = {}
     #links = {}
     
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
+
+        this.#handlers[ACTIONS.setPosition] = (e) => this.onContainerChange(e)
+        this.#handlers["mousemove"] = (e) => this.handleMouseMove(e)
+        this.#handlers["keydown"] = (e) => this.cancelLink(e)
+        this.#handlers["container.edit.pos.selected"] = (e) => this.onSelect(e)
+		this.#handlers["container.edit.pos.unselected"] = (e) => this.cancelLink(e)
     }
 
     makeLinkObject() {
@@ -102,12 +109,9 @@ class ContainerLink {
     }
 
     enable() {
-        document.addEventListener('container.setPosition',(e) => this.onContainerChange(e))
-        document.addEventListener('mousemove', (e) => this.handleMouseMove(e))
-        document.addEventListener("keydown", (e) => this.cancelLink(e))
-
-        document.addEventListener('container.edit.pos.selected', e => this.onSelect(e));
-		document.addEventListener('container.edit.pos.unselected', (e) => this.cancelLink(e));
+        for (const [key, value] of Object.entries(this.#handlers)) {
+			document.addEventListener(key, value)
+		}
 
         let dot = {
             nodeName:"div",
@@ -129,12 +133,9 @@ class ContainerLink {
     }
 
     disable () {
-        document.removeEventListener('container.setPosition',(e) => this.onContainerChange(e))
-        document.removeEventListener('mousemove', (e) => this.handleMouseMove(e))
-        document.removeEventListener("keydown", (e) => this.cancelLink(e))
-
-        document.removeEventListener('container.edit.pos.selected', e => this.onSelect(e));
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.cancelLink(e));
+        for (const [key, value] of Object.entries(this.#handlers)) {
+			document.removeEventListener(key, value)
+		}
 
         this.container.delete(this.#leftDot, this.appId)
         this.container.delete(this.#rightDot, this.appId)

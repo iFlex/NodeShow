@@ -1,4 +1,5 @@
-import {container} from '../../nodeshow.js'
+import { container } from '../../nodeshow.js'
+import { ACTIONS } from '../../Container.js'
 
 //ToDo: make it toggle extensions on and off as well as register and deregister
 class ContainerExtensionsManager {
@@ -6,11 +7,16 @@ class ContainerExtensionsManager {
 	#container = null;
     #interface = null;
     #componentModelDom = null
+    #handlers = {}
+    #componentTogglers = {}
 
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
         
+        this.#handlers[ACTIONS.componentAdded] = (e) => this.onComponentRegistered(e)
+        this.#handlers[ACTIONS.componentRemoved] = (e) => this.onComponentUnregistered(e)
+    
         this.#interface = this.#container.createFromSerializable(null, {
 			"nodeName":"div",
 			"computedStyle":{
@@ -18,8 +24,7 @@ class ContainerExtensionsManager {
 				"left":"0px",
 				"position":"absolute",
                 "width":"48px",
-                "height":"100%",
-                "background-color":"blue"
+                "height":"100%"
 			}
 		},
 		null,
@@ -30,23 +35,55 @@ class ContainerExtensionsManager {
             e => {
                 this.#componentModelDom = this.#container.lookup('ns-extension-toggler')
                 this.#interface.removeChild(this.#componentModelDom)
+                this.loadExistingComponents()
             }
         )
     }
 
-
     enable() {
-        document.addEventListener('container.component.added', e => this.onComponentRegistered(e));
-        document.addEventListener('container.component.added', e => this.onComponentUnregistered(e));
+        for (const [key, value] of Object.entries(this.#handlers)) {
+			document.addEventListener(key, value)
+		}
+        this.#container.show(this.#interface)
     }
 
     disable() {
-        document.removeEventListener('container.component.added', e => this.onComponentRegistered(e));
-        document.removeEventListener('container.component.added', e => this.onComponentUnregistered(e));
+        for (const [key, value] of Object.entries(this.#handlers)) {
+			document.removeEventListener(key, value)
+		}
+        this.#container.hide(this.#interface)
+    }
+
+    loadExistingComponents() {
+        for( const id of this.#container.listComponents()) {
+            this.loadComponentIcon(id)
+        }
+    }
+
+    loadComponentIcon(id) {
+        if (id in this.#componentTogglers) {
+            return;
+        }
+        let cloned = this.#componentModelDom.cloneNode(true)
+        cloned.innerHTML = id
+        
+        this.#container.addDomChild(this.#interface, cloned, this.appId)
+        this.#container.show(cloned)
+        this.#componentTogglers[id] = cloned
+    }
+
+    unloadComponentIcon(id) {
+        if (!(id in this.#componentTogglers)) {
+            return;
+        }
+
+        let domNode = this.#componentTogglers[id]
+        domNode.parentNode.removeChild(domNode)
+        delete this.#componentTogglers[id]
     }
 
     enableComponent(e) {
-        let c = this.#container.addDomChild(this.#interface, this.#componentModelDom, this.appId)
+        
     }
 
     disableComponent(e) {
@@ -58,11 +95,11 @@ class ContainerExtensionsManager {
     }
 
     onComponentRegistered(e) {
-
+        this.loadComponentIcon(e.detail.name)
     }
 
     onComponentUnregistered(e) {
-
+        this.unloadComponentIcon(e.detail.name)
     }
 }
 

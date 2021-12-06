@@ -121,59 +121,6 @@ export class Keyboard {
         console.log(`KEY UP ${e.key}`)
         console.log(this.#pressedPrintables)
         console.log(this.#pressedNonPrintables)
-
-	
-		// 	//special commands
-		// 	if (key == '/') {
-		// 		console.log("processing special command")
-		// 		//href - interpret text as link
-		// 		let units = this.getAllTextUnits()
-		// 		let text = ""
-		// 		for (const unit of units) {
-		// 			text += unit.innerText;
-		// 		}
-		// 		if (this.isLink(text)) {
-		// 			for(const unit of units) {
-		// 				this.container.delete(unit.id, this.appId);
-		// 			}
-		// 			this.container.createFromSerializable(this.target.id, {
-		// 				nodeName:"img",
-		// 				src:text
-		// 			},null,this.appId);
-		// 		}
-
-		// 		let r = this.isData(text)
-		// 		if (r) {
-		// 			if (r.content == 'image') {
-		// 				for(const unit of units) {
-		// 					this.container.delete(unit.id, this.appId);
-		// 				}
-
-		// 				console.log("adding image...")
-		// 				this.container.createFromSerializable(this.target.id, {
-		// 					nodeName:"img",
-		// 					src:text
-		// 				},null,this.appId);
-		// 			}
-		// 			console.log(r)
-		// 		}
-		// 	}
-		// 	if (key == ';') {
-		// 		let units = this.getAllTextUnits()
-		// 		let text = ""
-		// 		for (const unit of units) {
-		// 			text += unit.innerText;
-		// 		}
-
-		// 		let style = this.textToStyle(text)
-		// 		console.log(style)
-		// 		this.container.styleChild(this.target, style, this.appId)
-				
-		// 		for(const unit of units) {
-		// 			this.container.delete(unit.id, this.appId);
-		// 		}
-		// 	}
-		// }
 	}
 
 }

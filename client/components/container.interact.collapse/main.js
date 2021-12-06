@@ -8,23 +8,28 @@ class ContainerCollapser {
 	#container = null;
     target = null;
     #hoverTarget = null;
+    #handlers = {}
 
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
+
+        this.#handlers["container.edit.pos.selected"] = (e) => { this.target = e.detail.id };
+        this.#handlers["container.edit.pos.unselected"] = (e) => { this.target = null };
+		this.#handlers["keydown"] = (e) => this.handleKeydown(e)
+        this.#handlers["mouseover"] = (e) => { this.#hoverTarget = e.target }
     }
 
     enable() {
-        document.addEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
-		document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
-        document.addEventListener("keydown", (e) => this.handleKeydown(e))
-        document.addEventListener('mouseover',(e) => this.#hoverTarget = e.target)
+        for (const [key, value] of Object.entries(this.#handlers)) {
+			document.addEventListener(key, value)
+		}
     }  
     
     disable() {
-        document.removeEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
-        document.removeEventListener('mouseover',(e) => this.#hoverTarget = e.target)
+        for (const [key, value] of Object.entries(this.#handlers)) {
+			document.removeEventListener(key, value)
+		}
     }
 
     findClosestDiv(start) {

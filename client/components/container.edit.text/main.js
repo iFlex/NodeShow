@@ -20,8 +20,11 @@ import { Keyboard } from './keyboard.js'
 
 //line spacing
 
-const textItemPerms = {"container.setPosition":{"*":false}}//, "container.edit":{"*":false}}
-	
+const textItemPerms = {}//, "container.edit":{"*":false}}
+textItemPerms[ACTIONS.setPosition] = {"*":false}
+//textItemPerms[ACTIONS.create] = {"*":false}
+
+
 class ContainerTextInjector {
 	appId = "container.edit.text"
 
@@ -29,6 +32,7 @@ class ContainerTextInjector {
 	target = null;
 	#interface = null;
 	#keyboard = null;
+	#handlers = {};
 
 	#debug = false;
 	#newline = '&#13;'
@@ -92,6 +96,12 @@ class ContainerTextInjector {
 		this.#keyboard = new Keyboard();
 		this.initKeyboard();
 
+		this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id),
+		this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget(),
+		this.#handlers['paste'] = (event) => this.paste(event),
+		this.#handlers['cut'] = (event) => this.cut(event),
+		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
+
 		//create interface holder
 		this.#interface = this.container.createFromSerializable(null, {
 			"nodeName":"div",
@@ -114,27 +124,20 @@ class ContainerTextInjector {
 		this.#cursorDiv = this.container.createFromSerializable(null, this.cursorDescriptor, null, this.appId)
 		this.container.hide(this.#cursorDiv, this.appId)
 	}
- 
-	enable() {
-	    document.addEventListener('container.edit.pos.selected', e => this.setTarget(e.detail.id));
-		document.addEventListener('container.edit.pos.unselected', (e) => this.unsetTarget());
 
-		//clipboard
-		document.addEventListener('paste', (event) => this.paste(event));
-		document.addEventListener('cut', (event) => this.cut(event));
-		//selection
-		document.addEventListener('selectionchange', (e) => this.onSelectionChange(e));	
+	/*
+		Maybe these 2 could be done automatically by core code
+	*/
+	enable() {
+		for (const [key, value] of Object.entries(this.#handlers)) {
+			document.addEventListener(key, value)
+		}	
 	}
 
 	disable() {
-		document.removeEventListener('container.edit.pos.selected', e => this.setTarget(e.detail.id));
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.unsetTarget());
-
-		//clipboard
-		document.removeEventListener('paste', (event) => this.paste(event));
-		document.removeEventListener('cut', (event) => this.cut(event));
-		//selection
-		document.removeEventListener('selectionchange', (e) => this.onSelectionChange(e));	
+		for (const [key, value] of Object.entries(this.#handlers)) {
+			document.removeEventListener(key, value)
+		}	
 		this.container.hide(this.#interface, this.appId)
 	}
 
@@ -193,6 +196,14 @@ class ContainerTextInjector {
 
 		console.log(`Setting text edit target to ${id}`)
 		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
+		
+		try {
+			this.container.isOperationAllowed('container.edit', this.target, this.appId)
+		} catch (e) {
+			this.unsetTarget();
+			return;
+		}
+		
 		console.log(`Closest div parent:`)
 		console.log(this.target)
 		
@@ -209,6 +220,7 @@ class ContainerTextInjector {
 		this.container.setPosition(this.#interface, pos, this.appId)
 		this.#interface.style['min-width'] = this.container.getWidth(this.target)
 		this.container.show(this.#interface, this.appId)
+		this.container.bringToFront(this.#interface)
 	}
 
 	unsetTarget() {
@@ -928,40 +940,6 @@ class ContainerTextInjector {
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
-	isLink(data) {
-		var expression = /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
-		var regex = new RegExp(expression);
-		
-		return data.match(regex);
-	}
-
-	isData(text) {
-		//data:image/jpeg;base64
-		let colon = text.indexOf(':')
-		let semi = text.indexOf(';')
-		let firstCom = text.indexOf(',')
-
-		let pre = text.substring(0, colon)
-		let type = text.substring(colon+1, semi)
-		
-		let encsep = type.indexOf('/')
-		let format = type.substring(encsep+1, type.length)
-		type = type.substring(0, encsep)
-
-		let encoding = text.substring(semi+1, firstCom)
-		let data = text.substring(firstCom+1, text.length)
-
-		if (pre == 'data') {
-			return {
-				content: type, 
-				format: format,
-				encoding: encoding,
-				data: data
-			}
-		}
-		return null;
-	}
-
 	textToStyle(text) {
 		let units = text.split(";")
 		let stl = {}
@@ -976,5 +954,5 @@ class ContainerTextInjector {
 	}
 }
 
-export let texter = new ContainerTextInjector(container);
+export let texter = new ContainerTextInjector(container, true);
 texter.enable()

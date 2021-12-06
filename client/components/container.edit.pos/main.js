@@ -11,6 +11,7 @@ class ContainerMover {
 	mouseEvents = ['mouseup','mousedown','mousemove']
 	touchEvents = ['touchstart','touchend', 'touchcancel', 'touchmove']
 	
+	#handlers = {}
 	#presenveRatio = false
 	#mode = 'move' //or size
 	
@@ -147,6 +148,7 @@ class ContainerMover {
 				this.#targetOy = event.layerY / this.container.getHeight(this.target)
 
 				this.#moved = 0;
+				event.preventDefault();
 			}
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
@@ -155,6 +157,7 @@ class ContainerMover {
 					this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event});
 				}
 				this.target = null;//ToDo: smaller ratio preserving change amount
+				event.preventDefault();
 			}
 		}
 		else if (this.target) {
@@ -168,6 +171,7 @@ class ContainerMover {
 				this.selection = null;
 				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event});
 			}
+			event.preventDefault();
 		}
 		
 		this.lastX = event.screenX;

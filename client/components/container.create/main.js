@@ -10,7 +10,7 @@ class ContainerCreator {
 	#paletteIndex = 0
 	#control = false;
 	#interface = null;
-
+	#handlers = {}
 	#nodeStyleTypeToChildStyle = {
 		"ns-horizontal-list":"ns-horizontal-list-unit ",
 		"ns-horizontal-list-unit":"",
@@ -23,6 +23,13 @@ class ContainerCreator {
 	constructor (container) {
 		this.container = container;
 		container.registerComponent(this);
+
+		this.#handlers['keydown'] = (e) => this.keyDown(e)
+		this.#handlers['keyup'] = (e) => this.keyUp(e)
+		this.#handlers['dblclick'] = (e) => this.onClick(e)
+		this.#handlers['container.edit.pos.selected'] = (e) => this.focusOn(e.detail.id)
+		this.#handlers['container.edit.pos.unselected'] = (e) => this.unfocus()
+		this.#handlers['touchstart'] = (e) => this.tapHandler(e)
 
 		this.#interface = this.container.createFromSerializable(null, {
 			"nodeName":"div",
@@ -40,24 +47,15 @@ class ContainerCreator {
 	}
 
 	enable() {
-		document.addEventListener('keydown',(e) => this.keyDown(e))
-		document.addEventListener('keyup',(e) => this.keyUp(e))
-		document.addEventListener('dblclick',(e) => this.onClick(e))
-		
-	    document.addEventListener('container.edit.pos.selected', e => this.focusOn(e.detail.id));
-		document.addEventListener('container.edit.pos.unselected', (e) => this.unfocus());
-		document.addEventListener("touchstart", (e) => this.tapHandler(e));
+		for (const [key, value] of Object.entries(this.#handlers)) {
+			document.addEventListener(key, value)
+		}
 	}
 
 	disable() {
-		document.removeEventListener('keydown',(e) => this.keyDown(e))
-		document.removeEventListener('keyup',(e) => this.keyUp(e))
-		document.removeEventListener('dblclick',(e) => this.onClick(e))
-		document.removeEventListener("touchstart", (e) => this.tapHandler(e));
-
-		document.removeEventListener('container.edit.pos.selected', e => this.focusOn(e.detail.id));
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.unfocus());
-		
+		for (const [key, value] of Object.entries(this.#handlers)) {
+			document.removeEventListener(key, value)
+		}
 		this.container.hide(this.#interface, this.appId)
 	}
 

@@ -1,0 +1,27 @@
+<select 
+id="ns-content-type" 
+name="ns-content-type" 
+data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+    <option 
+    value="default" 
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+    Image
+    </option>
+</select>
+<br/>
+<input 
+    id="ns-content-url" 
+    type="text" 
+    name="url" 
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+<button
+    type="button"
+    data-container-actions='{"0":{"trigger":"click","call":"container.content.loadFromText","params":[]}}'
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+Load
+</button>
+<br/>
+<form enctype="multipart/form-data" method="post" action="#" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+    <input type="file" id="file" name="file" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+    <input type="submit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+</form>
