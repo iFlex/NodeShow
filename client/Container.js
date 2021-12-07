@@ -313,7 +313,10 @@ export class Container {
 	setParent(childId, parentId, callerId, options) {
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
-
+        if (child.parentNode === parent) {
+            return; //noop
+        }
+        
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         console.log(`Change parent for ${child.id} to ${parent.id}`)

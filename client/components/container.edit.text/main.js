@@ -701,6 +701,7 @@ class ContainerTextInjector {
 	//ToDo: remove lines rendered empty	
 	//BUG: sometimes removing in between text units creates ghost text units
 	//BUG: sometimes this doesn't delete anyting... 
+	//BUG: fix forward deletion
 	removePrintable(count) {
 		
 		if (!count) {

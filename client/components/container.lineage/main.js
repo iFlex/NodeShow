@@ -1,7 +1,8 @@
 import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
 
-//ToDo: do lineage computation on drag end (needs proper drag end event)
+//BUG: when dragging sometimes the dragged element disappears (wrong move to parent)
+//BUG: fails to ignore interface
 class ContainerLineage {
     appId = 'container.lineage'
     container = null
@@ -11,7 +12,7 @@ class ContainerLineage {
     REVERSE_PARENT_OVERLAP_TRESHOLD = 4
     OVERLAP_TRESHOLD = 4
 
-    #isEnabled = null
+    #enabled = null
     #handlers = {}
     #keyboard = null;
     
@@ -29,8 +30,8 @@ class ContainerLineage {
     }
 
     enable () {
-        if (!this.#isEnabled) {
-            this.#isEnabled = true;
+        if (!this.#enabled) {
+            this.#enabled = true;
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.addEventListener(key, value)
             }
@@ -39,8 +40,8 @@ class ContainerLineage {
     }
 
     disable () {
-        if (this.#isEnabled) {false
-            this.isEnabled = false;
+        if (this.#enabled) {false
+            this.enabled = false;
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.removeEventListener(key, value)
             }
@@ -49,7 +50,7 @@ class ContainerLineage {
     }
 
     isEnabled () {
-        return this.#isEnabled
+        return this.#enabled
     }
 
     setTarget (id) {
@@ -182,4 +183,4 @@ class ContainerLineage {
 }
 
 let clinage = new ContainerLineage(container);
-clinage.enable();
+//clinage.enable();

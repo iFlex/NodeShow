@@ -7,12 +7,9 @@ Current Prios:
  -> Bug when text editing nested child sometimes the editor focuses on parent, but text shows on child
 
 - [must have] finish content importer
-- [must have] 
 - [nice to have] drag on screen to group in new parent
 - [must have] drag on screen to select
 - [must have] fix linker
-
-
 - [nice to have] create aligner
 
 - [should have] Authentication

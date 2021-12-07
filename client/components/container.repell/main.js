@@ -1,13 +1,18 @@
 import {container} from '../../nodeshow.js'
 
+//BUG: fails to ignore interface
 class ContainerRepeller {
     appId = 'container.format.repell'
 	#container = null;
     target = null;
     #enabled = false
+    #handlers = {}
+
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
+        
+        this.#handlers['container.edit.pos.drag.update'] = (e) => this.onDragUpdate(e.detail)
     }
 
     /*
@@ -21,18 +26,19 @@ class ContainerRepeller {
     */
     enable() {
         if (!this.#enabled) {
-            document.addEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
-		    document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
-            document.addEventListener("keydown", (e) => this.handleKeydown(e))
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.addEventListener(key, value)
+            }
+
             this.#enabled = true
         }
     }  
     
     disable() {
         if (this.#enabled) {
-            document.removeEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
-		    document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
-            document.addEventListener("keydown", (e) => this.handleKeydown(e))
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.removeEventListener(key, value)
+            }
 
             this.#enabled = false
         }
@@ -41,7 +47,77 @@ class ContainerRepeller {
     isEnabled() {
 		return this.#enabled
 	}
+    //EXTRACT
+    doBoundingBoxOverlap(leftBBox, rightBBox) {
+        return !(
+            leftBBox.right <= rightBBox.left 
+            || leftBBox.left >= rightBBox.right
+            || leftBBox.top >= rightBBox.bottom 
+            || leftBBox.bottom <= rightBBox.top)
+    }
 
+    calculateOverlapBBox(leftBBox, rightBBox) {
+        if (this.doBoundingBoxOverlap(leftBBox, rightBBox)) {
+            return {
+                left:(leftBBox.left < rightBBox.left) ? rightBBox.left : leftBBox.left, 
+                right:(leftBBox.right < rightBBox.right) ? leftBBox.right : rightBBox.right,
+                top:(leftBBox.top < rightBBox.top) ? rightBBox.top : leftBBox.top,
+                bottom:(leftBBox.bottom < rightBBox.bottom) ? leftBBox.bottom : rightBBox.bottom 
+            }
+        }
+        return undefined;
+    }
+    //EXTRACT
+    getOverlapBBox(left, right) {
+        let leftBBox = this.#container.getBoundingBox(left)
+        let rightBBox = this.#container.getBoundingBox(right)
+
+        return this.calculateOverlapBBox(leftBBox, rightBBox);
+    }
+
+    sign(val) {
+        if (val < 0){
+            return -1;
+        }
+        if (val > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    pushSiblingsAway (node, dx, dy, visited) {
+        let children = node.parentNode.children;
+        for(const child of children) {
+            if (child.id == node.id) {
+                continue;
+            }
+
+            let overlap = this.getOverlapBBox(node, child)
+            if (overlap) {
+                console.log(overlap)
+                let moveX = Math.abs(overlap.right - overlap.left)
+                let moveY = Math.abs(overlap.bottom - overlap.top)
+                if (moveX > moveY) {
+                    moveX = 0;
+                } else if (moveX < moveY) {
+                    moveY = 0;
+                }
+                let pos = this.#container.getPosition(child)
+                pos.left += this.sign(dx)*moveX;
+                pos.top += this.sign(dy)*moveY;
+                this.#container.setPosition(child, pos, this.appId)
+                //ToDo: don't do this recursively
+                if (!visited.has(child.id)) {
+                    this.pushSiblingsAway(child, dx, dy, visited.add(node.id))
+                } 
+            }
+        }
+    }
+
+    onDragUpdate (ev) {
+        let node = this.#container.lookup(ev.id)
+        this.pushSiblingsAway(node, ev.dx, ev.dy, new Set([]))
+    }
 
     //universe expansion type
     expand() {
@@ -82,4 +158,3 @@ class ContainerRepeller {
 }
 
 let crepeller = new ContainerRepeller(container);
-crepeller.enable()
