@@ -10,7 +10,7 @@ class ContainerLink {
     #leftDot = null;
     #rightDot = null;
     #currentLink = null;
-
+    #enabled = false
     #handlers = {}
     #links = {}
     
@@ -109,37 +109,48 @@ class ContainerLink {
     }
 
     enable() {
-        for (const [key, value] of Object.entries(this.#handlers)) {
-			document.addEventListener(key, value)
-		}
-
-        let dot = {
-            nodeName:"div",
-            className: "container-linker-dot",
-            permissions: {
-                "container.setPosition":{
-                    "*":false
-                }
-            },
-            computedStyle: {
-                position:"absolute",
-                top:"0px",
-                left:"0px"
+        if (!this.#enabled) {
+            this.#enabled = true
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.addEventListener(key, value)
             }
+    
+            let dot = {
+                nodeName:"div",
+                className: "container-linker-dot",
+                permissions: {
+                    "container.setPosition":{
+                        "*":false
+                    }
+                },
+                computedStyle: {
+                    position:"absolute",
+                    top:"0px",
+                    left:"0px"
+                }
+            }
+    
+            this.#leftDot = this.#container.createFromSerializable(null, dot, null, this.appId)
+            this.#rightDot = this.#container.createFromSerializable(null, dot, null, this.appId)
         }
-
-        this.#leftDot = this.#container.createFromSerializable(null, dot, null, this.appId)
-        this.#rightDot = this.#container.createFromSerializable(null, dot, null, this.appId)
     }
 
     disable () {
-        for (const [key, value] of Object.entries(this.#handlers)) {
-			document.removeEventListener(key, value)
-		}
+        if (this.#enabled) {
+            this.#enabled = false
 
-        this.container.delete(this.#leftDot, this.appId)
-        this.container.delete(this.#rightDot, this.appId)
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.removeEventListener(key, value)
+            }
+    
+            this.container.delete(this.#leftDot, this.appId)
+            this.container.delete(this.#rightDot, this.appId)
+        }
     }
+
+    isEnabled() {
+		return this.#enabled
+	}
 
     handleMouseMove(e) {
         if (this.left && !this.right) {
@@ -252,4 +263,4 @@ class ContainerLink {
 }
 
 const clinker = new ContainerLink(container);
-clinker.enable();
+//clinker.enable();

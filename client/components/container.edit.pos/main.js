@@ -4,6 +4,7 @@ import { ACTIONS } from '../../Container.js'
 const SELECT_MOVE_TRESHOLD = 5;
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
 //happens because events stop firing
+//ToDo: fire drag end event
 class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
@@ -11,9 +12,11 @@ class ContainerMover {
 	mouseEvents = ['mouseup','mousedown','mousemove']
 	touchEvents = ['touchstart','touchend', 'touchcancel', 'touchmove']
 	
+	#enabled = false
 	#handlers = {}
 	#presenveRatio = false
 	#mode = 'move' //or size
+	#editableClass = 'editable:hover'
 	
 	#targetOx = 0;
 	#targetOy = 0;
@@ -30,39 +33,70 @@ class ContainerMover {
 		this.#mode = 'move'
 
 		ngps.registerComponent(this);
+
+		this.#handlers['handleTouchEvent'] = (e) => this.handleTouchEvent(e)
+		this.#handlers['handleMouseEvent'] = (e) => this.handleMouseEvent(e)
+		this.#handlers['keyDown'] = (e) => this.handleKeydown(e)
+		this.#handlers['keyUp'] = (e) => this.handleKeyUp(e)
+		this.#handlers['dragStart'] = (e) => e.preventDefault()
+		this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)
 	}
 
 	enable() {
-		//ToDo: forgot what this is for, document plz
-		$('*').on('dragstart', function(event) { event.preventDefault(); });
+		if (!this.#enabled) {
+			this.#enabled = true
 
-		for (const event of this.mouseEvents) {
-			document.addEventListener(event, e => this.handleMouseEvent(e))	
-		}
-		
-		for (const event of this.touchEvents) {
-			document.addEventListener(event, e => this.handleTouchEvent(e))	
-		}
+			//ToDo: forgot what this is for, document plz
+			$('*').on('dragstart', this.#handlers.dragStart);
 
-		//checking shift and ctrl
-		document.addEventListener("keydown", (e) => this.handleKeydown(e))
-		document.addEventListener("keyup",(e) => this.handleKeyUp(e))
+			for (const event of this.mouseEvents) {
+				document.addEventListener(event, this.#handlers.handleMouseEvent)	
+			}
+			
+			for (const event of this.touchEvents) {
+				document.addEventListener(event, this.#handlers.handleTouchEvent)	
+			}
+
+			//checking shift and ctrl
+			document.addEventListener("keydown", this.#handlers.keyDown)
+			document.addEventListener("keyup", this.#handlers.keyUp)
+			document.addEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])	
+		}
 	}
 
 	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
-		$('*').off('dragstart', function(event) { event.preventDefault(); });
+		if (this.#enabled) {
+			this.#enabled = false
+			$('*').off('dragstart', this.#handlers.dragStart);
 
-		for (const event of this.mouseEvents) {
-			document.removeEventListener(event, e => this.handleMouseEvent(e))	
+			for (const event of this.mouseEvents) {
+				document.removeEventListener(event, this.#handlers.handleMouseEvent)	
+			}
+			
+			for (const event of this.touchEvents) {
+				document.removeEventListener(event, this.#handlers.handleTouchEvent)	
+			}
+			//checking shift and ctrl
+			document.removeEventListener("keydown", this.#handlers.keyDown)
+			document.removeEventListener("keyup", this.#handlers.keyUp)
+			document.removeEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])
 		}
-		
-		for (const event of this.touchEvents) {
-			document.removeEventListener(event, e => this.handleTouchEvent(e))	
+	}
+
+	isEnabled() {
+		return this.#enabled
+	}
+
+	markEditable(id) {
+		try {
+			let container = this.container.lookup(id)
+			this.container.isOperationAllowed('container.edit', container, this.appId)
+			$(container).addClass(this.#editableClass)
+		} catch (e) {
+			console.error(`${this.appId}: Failed to mark as editable ${id}`)
+			console.error(e)
 		}
-		//checking shift and ctrl
-		document.removeEventListener("keydown", (e) => this.handleKeydown(e))
-		document.removeEventListener("keyup",(e) => this.handleKeyUp(e))
 	}
 
 	considerScale(id, dx, dy) {
@@ -149,10 +183,20 @@ class ContainerMover {
 
 				this.#moved = 0;
 				event.preventDefault();
+				this.container.appEmit(this.appId,'drag.start',{
+					id:this.target.id, 
+					targetOx: this.#targetOx,
+					targetOy: this.#targetOy,
+					originalEvent: event});
 			}
 		}
 		else if (eventType == 'mouseup' || eventType == 'touchend' || eventType == 'touchcancel') {
 			if (this.target) {
+				this.container.appEmit(this.appId,'drag.end',{
+					id:this.target.id, 
+					originalEvent: event
+				});
+				
 				if (this.#moved < SELECT_MOVE_TRESHOLD) {
 					this.container.appEmit(this.appId,'selected',{id:this.target.id, originalEvent: event});
 				}
@@ -171,7 +215,14 @@ class ContainerMover {
 				this.selection = null;
 				this.container.appEmit(this.appId,'unselected',{id:this.target.id, originalEvent: event});
 			}
+			
 			event.preventDefault();
+			this.container.appEmit(this.appId,'drag.update',{
+				id:this.target.id, 
+				dx:dx,
+				dy:dy,
+				originalEvent: event
+			});
 		}
 		
 		this.lastX = event.screenX;

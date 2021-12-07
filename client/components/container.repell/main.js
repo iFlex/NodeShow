@@ -4,7 +4,7 @@ class ContainerRepeller {
     appId = 'container.format.repell'
 	#container = null;
     target = null;
-
+    #enabled = false
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
@@ -20,16 +20,28 @@ class ContainerRepeller {
     container.delete
     */
     enable() {
-        document.addEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
-		document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
-        document.addEventListener("keydown", (e) => this.handleKeydown(e))
+        if (!this.#enabled) {
+            document.addEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
+		    document.addEventListener('container.edit.pos.unselected', (e) => this.target = null);
+            document.addEventListener("keydown", (e) => this.handleKeydown(e))
+            this.#enabled = true
+        }
     }  
     
     disable() {
-        document.removeEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
-		document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
-        document.addEventListener("keydown", (e) => this.handleKeydown(e))
+        if (this.#enabled) {
+            document.removeEventListener('container.edit.pos.selected', e => this.target = e.detail.id);
+		    document.removeEventListener('container.edit.pos.unselected', (e) => this.target = null);
+            document.addEventListener("keydown", (e) => this.handleKeydown(e))
+
+            this.#enabled = false
+        }
     }
+    
+    isEnabled() {
+		return this.#enabled
+	}
+
 
     //universe expansion type
     expand() {

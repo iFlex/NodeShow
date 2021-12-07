@@ -9,7 +9,7 @@ class ContainerCollapser {
     target = null;
     #hoverTarget = null;
     #handlers = {}
-
+    #enabled = false
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
@@ -21,16 +21,26 @@ class ContainerCollapser {
     }
 
     enable() {
-        for (const [key, value] of Object.entries(this.#handlers)) {
-			document.addEventListener(key, value)
-		}
+        if(!this.#enabled) {
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.addEventListener(key, value)
+            }
+            this.#enabled = true
+        }
     }  
     
     disable() {
-        for (const [key, value] of Object.entries(this.#handlers)) {
-			document.removeEventListener(key, value)
-		}
+        if (this.#enabled) {
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.removeEventListener(key, value)
+            }
+            this.#enabled = false
+        }
     }
+
+    isEnabled() {
+		return this.#enabled
+	}
 
     findClosestDiv(start) {
         if(!start) {
@@ -75,4 +85,3 @@ class ContainerCollapser {
 }
 
 let ccollapser = new ContainerCollapser(container);
-ccollapser.enable()

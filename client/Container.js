@@ -7,6 +7,7 @@
 export const ACTIONS = {
     create: 'container.create',
     delete: 'container.delete',
+    deleteSparingChildren: 'container.delete.sparingChildren',
     setParent: 'container.set.parent',
     update: 'container.update',
     
@@ -43,7 +44,7 @@ export class Container {
     e.g. {
         "7702-container":{
             "container.delete":{
-                "app:container.creator":false - denies delete permissions to app container.create
+                "container.creator":false - denies delete permissions to app container.create
                 "777398fas99292": false - denies delete permissions to user 777398fas99292
             },
             "container.setPosition":{
@@ -190,7 +191,7 @@ export class Container {
         if (rules) {
             let explicit = rules[callerId]
             if(explicit == false) {
-                throw `DENIEemit(D ${operation} on ${resource.id} to ${callerId}`
+                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
             }
             if(explicit == true) {
                 return true;
@@ -227,13 +228,14 @@ export class Container {
         
         if (this.permissions[elem.id] && this.permissions[elem.id][permName]){
             if (opCaller) {
-                if (this.permissions[elem.id][permName][opCaller]) {
+                if (opCaller in this.permissions[elem.id][permName]) {
                     delete this.permissions[elem.id][permName][opCaller]
                 }
             } else {
                 delete this.permissions[elem.id][permName]
             }
         }
+        //ToDo: emit update
     }
 
     //ToDo: permission matching e.g. container.set.*
@@ -367,12 +369,20 @@ export class Container {
     }
     
     getWidth(id) {
-		return jQuery(Container.lookup(id)).width();
+        return jQuery(Container.lookup(id)).width()
 	}
 
 	getHeight(id) {
-		return jQuery(Container.lookup(id)).height();
+        return jQuery(Container.lookup(id)).height()
 	}
+
+    getContentHeight (id) {
+        return Container.lookup(id).scrollHeight
+    }
+
+    getContentWidth (id) {
+        return Container.lookup(id).scrollWidth
+    }
     //</size>
 	
     setAngle(id, angle, originX, originY, callerId) {
@@ -427,41 +437,49 @@ export class Container {
     //get bounding box in absolute coordinates
     //wonder if the browser is willing to give this up... rather than having to compute it in JS
     getContentBoundingBox(id) {
-        let result = {
-            top: undefined,
-            left: undefined,
-            bottom: undefined,
-            right: undefined,
-            width: undefined,
-            height: undefined
-        }
+        // let result = {
+        //     top: undefined,
+        //     left: undefined,
+        //     bottom: undefined,
+        //     right: undefined,
+        //     width: undefined,
+        //     height: undefined
+        // }
 
+        // let node = Container.lookup(id)
+        // if (node.children) {
+        //     for(const child of node.children) {
+        //         let rect = child.getBoundingClientRect();
+        //         if (result.left == undefined || result.left > rect.left) {
+        //             result.left = rect.left
+        //         }
+        //         if (result.top == undefined || result.top > rect.top) {
+        //             result.top = rect.top
+        //         }
+        //         if (result.bottom == undefined || result.bottom < rect.bottom) {
+        //             result.bottom = rect.bottom
+        //         }
+        //         if (result.right == undefined || result.right < rect.right) {
+        //             result.right = rect.right
+        //         }
+        //     }
+
+        //     result.width = Math.abs(result.right - result.left)
+        //     result.height = Math.abs(result.bottom - result.top)
+        // }
         let node = Container.lookup(id)
-        if (node.children) {
-            for(const child of node.children) {
-                let rect = child.getBoundingClientRect();
-                if (result.left == undefined || result.left > rect.left) {
-                    result.left = rect.left
-                }
-                if (result.top == undefined || result.top > rect.top) {
-                    result.top = rect.top
-                }
-                if (result.bottom == undefined || result.bottom < rect.bottom) {
-                    result.bottom = rect.bottom
-                }
-                if (result.right == undefined || result.right < rect.right) {
-                    result.right = rect.right
-                }
-            }
-
-            result.width = Math.abs(result.right - result.left)
-            result.height = Math.abs(result.bottom - result.top)
-        }
+        let result = this.getPosition(node)
+        result.right = result.left + node.scrollWidth //warning: scroll width and height are integers not fractions 
+        result.bottom = result.top + node.scrollHeight
+        result.bbox = node.getBoundingClientRect();
         return result;
     }
 
     getBoundingBox(id) {
-        Container.lookup(id).getBoundingClientRect();
+        let bbox = this.getPosition(id)
+        bbox.right = bbox.left + this.getWidth(id)
+        bbox.bottom = bbox.top + this.getHeight(id)
+        return bbox;
     }
 
     styleChild(child, style, callerId, emit) {
@@ -557,7 +575,7 @@ export class Container {
         }
     }
 
-    delete(id, callerId) {
+    delete (id, callerId) {
         let child = Container.lookup(id)
         this.isOperationAllowed(ACTIONS.delete, child, callerId);
 
@@ -572,6 +590,31 @@ export class Container {
         } else {
             console.log(`A delete attempt was made on the root of the doc. Pls don't...`);
         }
+    }
+
+    deleteSparingChildren(id, callerId) {
+        let elem = Container.lookup(id)
+        this.isOperationAllowed(ACTIONS.delete, elem, callerId);
+        this.isOperationAllowed(ACTIONS.deleteSparingChildren, elem, callerId);
+
+        let parent = elem.parentNode || this.parent
+        let children = []
+        for (const child of elem.children) {
+            children.push(child)
+        }
+        
+        for (const child of children) {
+            let pos = this.getPosition(child)
+            try {
+                this.setParent(child, parent, callerId)
+                this.setPosition(child, pos, callerId)
+            } catch (e) {
+                console.log(`core: failed to save child`)
+                console.error(e)
+            }
+        }
+
+        this.delete(elem, callerId)
     }
 
     bringToFront(id) {
@@ -591,7 +634,7 @@ export class Container {
 
     //<events>
     notifyUpdate(id, callerId) {
-        let node = Container.lookup(id)
+        let node = (id) ? Container.lookup(id) : this.parent
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId})
     }
 

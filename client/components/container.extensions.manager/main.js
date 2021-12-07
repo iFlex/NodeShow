@@ -7,8 +7,13 @@ class ContainerExtensionsManager {
 	#container = null;
     #interface = null;
     #componentModelDom = null
+    #enabled = false
     #handlers = {}
     #componentTogglers = {}
+
+    #enabledStyle = 'ns-extensions-manager-toggle-enabled'
+    #disabledStyle = 'ns-extensions-manager-toggle-disabled'
+    #modelTogglerId = 'ns-extension-toggler'
 
     constructor(container) {
         this.#container = container
@@ -33,7 +38,7 @@ class ContainerExtensionsManager {
 		this.#container.loadStyle("style.css", this.appId)
 		this.#container.loadHtml(this.#interface, "interface.html", this.appId).then(
             e => {
-                this.#componentModelDom = this.#container.lookup('ns-extension-toggler')
+                this.#componentModelDom = this.#container.lookup(this.#modelTogglerId)
                 this.#interface.removeChild(this.#componentModelDom)
                 this.loadExistingComponents()
             }
@@ -41,18 +46,28 @@ class ContainerExtensionsManager {
     }
 
     enable() {
-        for (const [key, value] of Object.entries(this.#handlers)) {
-			document.addEventListener(key, value)
-		}
-        this.#container.show(this.#interface)
+        if (!this.#enabled) {
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.addEventListener(key, value)
+            }
+            this.#container.show(this.#interface)
+            this.#enabled = true
+        }
     }
 
     disable() {
-        for (const [key, value] of Object.entries(this.#handlers)) {
-			document.removeEventListener(key, value)
-		}
-        this.#container.hide(this.#interface)
+        if (this.#enabled) {
+            for (const [key, value] of Object.entries(this.#handlers)) {
+                document.removeEventListener(key, value)
+            }
+            this.#container.hide(this.#interface)
+            this.#enabled = false
+        }
     }
+
+    isEnabled() {
+		return this.#enabled
+	}
 
     loadExistingComponents() {
         for( const id of this.#container.listComponents()) {
@@ -70,6 +85,13 @@ class ContainerExtensionsManager {
         this.#container.addDomChild(this.#interface, cloned, this.appId)
         this.#container.show(cloned)
         this.#componentTogglers[id] = cloned
+
+        let component = this.#container.getComponent(id)
+        if (component.isEnabled()){
+            $(cloned).addClass(this.#enabledStyle);
+        } else {
+            $(cloned).addClass(this.#disabledStyle);
+        }
     }
 
     unloadComponentIcon(id) {
@@ -82,16 +104,37 @@ class ContainerExtensionsManager {
         delete this.#componentTogglers[id]
     }
 
-    enableComponent(e) {
-        
+    enableComponent(component, toggler) {
+        component.enable()
+
+        $(toggler).addClass(this.#enabledStyle)
+        $(toggler).removeClass(this.#disabledStyle)
+        console.log(`${this.appId}:ENABLED -> ${component.appId}`)
     }
 
-    disableComponent(e) {
+    disableComponent(component, toggler) {
+        component.disable()
 
+        $(toggler).removeClass(this.#enabledStyle)
+        $(toggler).addClass(this.#disabledStyle)
+        console.log(`${this.appId}:DISABLED -> ${component.appId}`)
+    }
+
+    getComponentIdFromToggler(toggler) {
+        return toggler.innerHTML
     }
 
     toggle(e) {
+        e.preventDefault()
 
+        let id = this.getComponentIdFromToggler(e.target) 
+        let component = this.#container.getComponent(id)
+
+        if (component.isEnabled() != true) {
+            this.enableComponent(component, e.target)
+        } else {
+            this.disableComponent(component, e.target)
+        }
     }
 
     onComponentRegistered(e) {

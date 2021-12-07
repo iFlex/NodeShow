@@ -11,6 +11,7 @@ class ContainerCreator {
 	#control = false;
 	#interface = null;
 	#handlers = {}
+	#enabled = false
 	#nodeStyleTypeToChildStyle = {
 		"ns-horizontal-list":"ns-horizontal-list-unit ",
 		"ns-horizontal-list-unit":"",
@@ -47,21 +48,36 @@ class ContainerCreator {
 	}
 
 	enable() {
-		for (const [key, value] of Object.entries(this.#handlers)) {
-			document.addEventListener(key, value)
+		if (!this.#enabled) {
+			for (const [key, value] of Object.entries(this.#handlers)) {
+				document.addEventListener(key, value)
+			}
+			this.#enabled = true
 		}
 	}
 
 	disable() {
-		for (const [key, value] of Object.entries(this.#handlers)) {
-			document.removeEventListener(key, value)
+		if (this.#enabled) {
+			for (const [key, value] of Object.entries(this.#handlers)) {
+				document.removeEventListener(key, value)
+			}
+			this.container.hide(this.#interface, this.appId)
+			this.#enabled = false
 		}
-		this.container.hide(this.#interface, this.appId)
 	}
 
-	delete () {
+	isEnabled() {
+		return this.#enabled
+	}
+
+	delete (spareChildren) {
 		if(this.target) {
-			this.container.delete(this.target.id, this.appId);
+			console.log(`${this.appId}: deleting container: ${this.target.id}. Sparing children? ${spareChildren}`)
+			if (spareChildren) {
+				this.container.deleteSparingChildren(this.target, this.appId);
+			} else {
+				this.container.delete(this.target, this.appId);
+			}
 		}
 		this.target = null;
 	}
@@ -191,7 +207,10 @@ class ContainerCreator {
 			this.#control = false;
 		}
 		if (e.key == 'Delete') {
-			this.delete();
+			this.delete(false);
+		}
+		if (e.key == 'End') {
+			this.delete(true);
 		}
 		if (e.key == 'Insert' && this.#control) {
 			this.create();

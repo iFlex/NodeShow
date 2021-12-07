@@ -1,17 +1,21 @@
 Current Prios:
+[core]: [must-have] when creating within a parent, or changing parents - have the child conform to parent rules by default 
+(e.g. respect parent stylign suggesionts)
+
 [text-editor]: BUG: fix forward deletion
-[text-editor]: BUG: when hitting escape to disable app, seems like target is also set to null for pos editor
-    -> escape + delete on a text edited div doesn't delete it and it should...
-    
-! keyboard delete of containers ! Maybe ctr+del for now
  -> activate text editor only after keyboard event?
  -> Bug when text editing nested child sometimes the editor focuses on parent, but text shows on child
 
-- auto grouping
-- delete parent only function -> move all kids to parent's parent
-- fix linker
+- [must have] finish content importer
+- [must have] 
+- [nice to have] drag on screen to group in new parent
+- [must have] drag on screen to select
+- [must have] fix linker
 
-Authentication
+
+- [nice to have] create aligner
+
+- [should have] Authentication
 
 Current purpose:
 Serve as a view controller for my newsstand application. 

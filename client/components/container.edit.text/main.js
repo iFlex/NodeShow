@@ -1,7 +1,7 @@
 import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
-import { Keyboard } from './keyboard.js'
+import { Keyboard } from '../utils/keyboard.js'
 //ToDo:
 //delete via delete doesn't work well
 //font and letter size tracking
@@ -32,6 +32,8 @@ class ContainerTextInjector {
 	target = null;
 	#interface = null;
 	#keyboard = null;
+
+	#enabled = false
 	#handlers = {};
 
 	#debug = false;
@@ -96,10 +98,10 @@ class ContainerTextInjector {
 		this.#keyboard = new Keyboard();
 		this.initKeyboard();
 
-		this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id),
-		this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget(),
-		this.#handlers['paste'] = (event) => this.paste(event),
-		this.#handlers['cut'] = (event) => this.cut(event),
+		this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id)
+		this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget()
+		this.#handlers['paste'] = (event) => this.paste(event)
+		this.#handlers['cut'] = (event) => this.cut(event)
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
 
 		//create interface holder
@@ -129,16 +131,29 @@ class ContainerTextInjector {
 		Maybe these 2 could be done automatically by core code
 	*/
 	enable() {
-		for (const [key, value] of Object.entries(this.#handlers)) {
-			document.addEventListener(key, value)
+		if (!this.#enabled) {
+			for (const [key, value] of Object.entries(this.#handlers)) {
+				document.addEventListener(key, value)
+			}
+			this.#keyboard.enable()
+			this.#enabled = true
 		}	
 	}
 
 	disable() {
-		for (const [key, value] of Object.entries(this.#handlers)) {
-			document.removeEventListener(key, value)
-		}	
-		this.container.hide(this.#interface, this.appId)
+		if (this.#enabled) {
+			this.unsetTarget();
+			for (const [key, value] of Object.entries(this.#handlers)) {
+				document.removeEventListener(key, value)
+			}
+			this.#keyboard.disable()
+			this.container.hide(this.#interface, this.appId)
+			this.#enabled = false
+		}
+	}
+
+	isEnabled() {
+		return this.#enabled
 	}
 
 	initKeyboard () {
@@ -191,9 +206,7 @@ class ContainerTextInjector {
 
 	setTarget(id) {
 		this.unsetTarget();
-
-		this.#keyboard.enable();
-
+		
 		console.log(`Setting text edit target to ${id}`)
 		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
 		
@@ -207,8 +220,9 @@ class ContainerTextInjector {
 		console.log(`Closest div parent:`)
 		console.log(this.target)
 		
-		this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-		this.container.setPermission(this.target, 'container.edit.pos', '*', false, this.appId)
+		//these need to be ephemeral state, not sent to the server and propagated...
+		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
+		//this.container.setPermission(this.target, 'container.edit.pos', '*', false, this.appId)
 
 		this.cursor.setTarget(this.target)
 
@@ -225,10 +239,8 @@ class ContainerTextInjector {
 
 	unsetTarget() {
 		if (this.target) {
-			this.#keyboard.disable();
-		
-			this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-			this.container.removePermission(this.target, 'container.edit.pos', null, false, this.appId)
+			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
+			//this.container.removePermission(this.target, 'container.edit.pos', null, false, this.appId)
 
 			this.target = null;
 			this.cursor.setTarget(null);

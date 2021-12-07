@@ -4,6 +4,7 @@ class ContainerContent {
     appId = 'container.content'
     #interface = null
     #handlers = {}
+    #enabled = false
     target = null
 
     constructor (container) {
@@ -37,17 +38,28 @@ class ContainerContent {
     }
 
     enable () {
-      for (const [key, value] of Object.entries(this.#handlers)) {
-        document.addEventListener(key, value)
-      }	
-      this.container.show(this.#interface, this.appId)
+      if (!this.#enabled) {
+        this.#enabled = true
+        for (const [key, value] of Object.entries(this.#handlers)) {
+          document.addEventListener(key, value)
+        }	
+        this.container.show(this.#interface, this.appId)
+      }
     }
 
     disable () {
-      for (const [key, value] of Object.entries(this.#handlers)) {
-        document.removeEventListener(key, value)
-      }	
-      this.container.hide(this.#interface, this.appId)
+      if (this.#enabled) {
+        this.#enabled = false;
+
+        for (const [key, value] of Object.entries(this.#handlers)) {
+          document.removeEventListener(key, value)
+        }	
+        this.container.hide(this.#interface, this.appId)
+      }
+    }
+
+    isEnabled() {
+      return this.#enabled
     }
 
     setTarget (id) {
