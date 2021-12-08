@@ -54,8 +54,8 @@ export class Container {
     }
     */
     permissions = {}
-	metastate = {}
-    
+    localmetadata = {}
+	
     components = {}
     skipSetOnDOM = {"nodeName":true, "children":true, "childNodes":true}
 
@@ -633,6 +633,33 @@ export class Container {
     setZIndex(id, index) {
         let node = Container.lookup(id)
         node.style.zIndex = `${index}` 
+    }
+
+    setMetadata (id, key, value) {
+        let node = Container.lookup(id)
+        if (!(node.id in this.localmetadata)) {
+            this.localmetadata[node.id] = {}
+        }
+        this.localmetadata[node.id][key] = value
+    }
+    
+    removeMetadata (id, key) {
+        let node = Container.lookup(id)
+        if (this.localmetadata[node.id]) {
+            delete this.localmetadata[node.id][key]
+        }
+    }
+    
+    getMetadata (id, key) {
+        let node = Container.lookup(id)
+        if (this.localmetadata[node.id]) {
+            if (key) {
+                return this.localmetadata[node.id][key]
+            } else {
+                return Container.clone(this.localmetadata[node.id])
+            }
+        }
+        return null;
     }
 
     //<events>

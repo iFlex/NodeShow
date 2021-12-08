@@ -115,6 +115,10 @@ class ContainerMover {
 			return null;
 		}
 
+		if (this.container.getMetadata(target, 'text-editing')) {
+			return null;
+		}
+		
 		try {
 			this.container.isOperationAllowed(ACTIONS.setPosition, target, this.appId)
 			return target

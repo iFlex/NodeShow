@@ -72,6 +72,10 @@ class ContainerCreator {
 
 	delete (spareChildren) {
 		if(this.target) {
+			if (this.container.getMetadata(this.target, 'text-editing')) {
+				return;
+			}
+			
 			console.log(`${this.appId}: deleting container: ${this.target.id}. Sparing children? ${spareChildren}`)
 			if (spareChildren) {
 				this.container.deleteSparingChildren(this.target, this.appId);

@@ -221,9 +221,9 @@ class ContainerTextInjector {
 		console.log(this.target)
 		
 		//these need to be ephemeral state, not sent to the server and propagated...
+		this.container.setMetadata(this.target, 'text-editing', true)
 		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-		//this.container.setPermission(this.target, 'container.edit.pos', '*', false, this.appId)
-
+		
 		this.cursor.setTarget(this.target)
 
 		let pos = this.container.getPosition(this.target)
@@ -240,7 +240,7 @@ class ContainerTextInjector {
 	unsetTarget() {
 		if (this.target) {
 			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-			//this.container.removePermission(this.target, 'container.edit.pos', null, false, this.appId)
+			this.container.removeMetadata(this.target, 'text-editing')
 
 			this.target = null;
 			this.cursor.setTarget(null);
