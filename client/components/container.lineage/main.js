@@ -183,4 +183,4 @@ class ContainerLineage {
 }
 
 let clinage = new ContainerLineage(container);
-//clinage.enable();
+clinage.enable();

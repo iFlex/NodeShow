@@ -44,6 +44,7 @@ class ContainerContent {
           document.addEventListener(key, value)
         }	
         this.container.show(this.#interface, this.appId)
+        this.container.bringToFrint(this.#interface)
       }
     }
 
@@ -195,5 +196,4 @@ class ContainerContent {
     }
 }
 
-let ccontent = new ContainerContent(container);
-ccontent.enable()
+new ContainerContent(container);

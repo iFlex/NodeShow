@@ -1,3 +1,16 @@
+Client Features:
+1. Create, Delete content containers (via: UI & keyboard)
+2. Move, Size,  [[maybe: Rotate
+3. Text Edit (via: Keyboard & UI)
+- group (drag on screen to create a new parent for the captured elements)
+- change ownership (change parent to grandparent or sibling)
+- insert conent (img, video, svg, etc)
+- link containers 
+- collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude)
+- customize container style  (shape, color, border, width, heght nature (e.g. % or px or inherit))
+- customize container content arrangement
+--------------------------------------------
+
 Current Prios:
 [core]: [must-have] when creating within a parent, or changing parents - have the child conform to parent rules by default 
 (e.g. respect parent stylign suggesionts)
@@ -6,13 +19,16 @@ Current Prios:
  -> activate text editor only after keyboard event?
  -> Bug when text editing nested child sometimes the editor focuses on parent, but text shows on child
 
-- [must have] finish content importer
-- [nice to have] drag on screen to group in new parent
-- [must have] drag on screen to select
+- [must have] drag on screen to group in new parent
+- [must have] ! separate interface from editable containers
+- [must have] way to send things to back and bring them forward
 - [must have] fix linker
+- [should have] finish content importer
 - [nice to have] create aligner
+- [nice to have] drag on screen to select
 
 - [should have] Authentication
+- [should consider] Cnosider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 
 Current purpose:
 Serve as a view controller for my newsstand application. 

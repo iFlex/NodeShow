@@ -204,6 +204,15 @@ class ContainerTextInjector {
 		return ContainerTextInjector.findFirstDivParent(elem.parentNode)
 	}
 
+	isTargetTextEditable(target) {
+		for (const child of target.childNodes) {
+			if (!this.isLine(child)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	setTarget(id) {
 		this.unsetTarget();
 		
@@ -217,17 +226,16 @@ class ContainerTextInjector {
 			return;
 		}
 		
-		console.log(`Closest div parent:`)
-		console.log(this.target)
-		
+		if (!this.isTargetTextEditable(this.target)) {
+			return;
+		}	
+
 		//these need to be ephemeral state, not sent to the server and propagated...
 		this.container.setMetadata(this.target, 'text-editing', true)
 		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 		
 		this.cursor.setTarget(this.target)
-
 		let pos = this.container.getPosition(this.target)
-
 		//set interface position
 		pos.originX = 0.0
 		pos.originY = 1.0
