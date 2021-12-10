@@ -9,8 +9,8 @@ class ContainerLineage {
     target = null
     actOnDragEnd = true;
     
-    REVERSE_PARENT_OVERLAP_TRESHOLD = 4
-    OVERLAP_TRESHOLD = 4
+    REVERSE_PARENT_OVERLAP_TRESHOLD = 0.5
+    OVERLAP_TRESHOLD = 5
 
     #enabled = null
     #handlers = {}
@@ -172,7 +172,8 @@ class ContainerLineage {
         if(this.actOnDragEnd) {
             this.setTarget(e.detail.id)
             let reverseParentOverlap = this.calculateReverseParentOverlap()
-            if ( reverseParentOverlap >= this.REVERSE_PARENT_OVERLAP_TRESHOLD) {
+            let overlapRatio = reverseParentOverlap / (this.container.getWidth(this.target) * this.container.getHeight(this.target))
+            if ( overlapRatio >= this.REVERSE_PARENT_OVERLAP_TRESHOLD) {
                 this.parentUp();
             } else {
                 this.parentDown()
