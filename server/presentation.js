@@ -3,9 +3,7 @@ const SecurityFilter = require('./SecurityFilter')
 
 console.log(Events)
 
-//ToDo impose schema on update object as well and validate fields
-//allow list of fields in a presentation unit descriptor
-
+//ToDo: presentation metadata
 const DESCRIPTOR_FIELD_ALLOW_LIST = {
 	exact:{
 		"nodeName":{sanitize:false, validate:true},
@@ -30,22 +28,29 @@ class Presentation {
 		this.id = id;
 		this.storage = storage;
 
-		this.rawData = storage.get(id);
+		this.presentation = storage.get(id)
 		this.roots = {}
 		this.relations = {undefined:{}};
 
-		if (!this.rawData) {
+		if (!this.presentation) {
 			if (failOnNoStorage) {
 				throw `Failed to load ${id}`
 			}
-			this.rawData = {}
+			this.presentation = {data:{}}
+		}
+		
+		this.rawData = this.presentation.rawData;
+		if (!this.rawData) {
+			throw `Invalid presentation format found in storage for ${id}. Missing rawData`
 		}
 
-		storage.put(id, this.rawData);
+		storage.put(id, this.presentation);
 		this.findRoots();
 	}
 
 	findRoots() {
+		console.log("RAD PREZ DATRA:")
+		console.log(this.rawData)
 		let unadresasble = 0;
 		let brokenChildLinks = 0;
 		let brokenParentLinks = 0;
@@ -145,8 +150,7 @@ class Presentation {
         try{
 			if (data.event == Events.create || data.event == Events.update) {
 	        	console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
-				console.log(JSON.stringify(data.detail.childNodes))
-
+				
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
 		        this.rawData[child.id] = child;
@@ -215,7 +219,7 @@ class Presentation {
 				console.log(`WARNING: uncategorised event type ${data.event}`)
 			}
 
-			this.storage.put(this.id, this.rawData);
+			this.storage.put(this.id, this.presentation);
         } catch (e) {
         	console.log("Failed to update");
         	console.log(e);

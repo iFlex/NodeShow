@@ -4,8 +4,20 @@ class UserBase {
 		this.storage = userStorage;
 	}
 
+	newAnonymousUser () {
+		return {
+			id:'randooom',
+			name:'Random Randomer',
+			avatar_url:'nothing'
+		}
+	}
+
 	lookup(id) {
-		return userStorage.lookup(id)
+		let user = this.storage.get(id)
+		if (!user) {
+			return this.newAnonymousUser();
+		}
+		return user;
 	}
 
 	update(id) {

@@ -309,6 +309,21 @@ export class Container {
     }
     //</extensions subsystem>
     
+    nodeCountToRoot(id) {
+        let pointer = Container.lookup(id)
+        if (pointer == this.parent) {
+            return 0;
+        }
+        
+        let count = 0;
+        while (pointer && pointer != this.parent) {
+            count ++;
+            pointer = pointer.parentNode;
+        }
+
+        return count;
+    }
+
     //<nesting>
 	setParent(childId, parentId, callerId, options) {
         let parent = Container.lookup(parentId);

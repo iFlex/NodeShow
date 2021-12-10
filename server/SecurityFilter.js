@@ -1,9 +1,3 @@
-/*
-descriptor: {
-
-}
-*/
-
 var stripJs = require('strip-js');
 
 function filterScriptsFromString(html) {

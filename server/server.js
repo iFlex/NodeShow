@@ -106,6 +106,7 @@ dispatcher.onGet("/new", function(req, res) {
   res.end();
 });
 
+
 dispatcher.onGet("/list", function(req, res) {
   let result = []
   for (const [key, val] of Object.entries(presentations)) {
@@ -177,6 +178,25 @@ function handleRequest(request, response){
     }
 }
 
+function parseCookies (headers) {
+  var list = {},
+      rc = headers.cookie;
+
+  rc && rc.split(';').forEach(function( cookie ) {
+      var parts = cookie.split('=');
+      list[parts.shift().trim()] = decodeURI(parts.join('='));
+  });
+
+  return list;
+}
+
+
+function findUserIdFromRequest(hdr) {
+  console.log(hdr)
+  let cookies = parseCookies(hdr);
+  return cookies['user_id']
+}
+
 io.on('connection', function (socket) {
   console.log("New socket.io connection")
   socket.on('register', function (data) {
@@ -188,16 +208,20 @@ io.on('connection', function (socket) {
     let prezzo = presentations[prezId];
 
     if (prezzo) {
-      let userId = utils.makeAuthToken(64);
-      
-      prezzo.sockets[userId] = socket;
+      let user = Users.lookup(findUserIdFromRequest(socket.handshake.headers));
+      user.sessionId = utils.makeAuthToken(64); 
+      if (!user.id) {
+        user.id = user.sessionId
+      }
+
+      prezzo.sockets[user.sessionId] = { user: user, socket: socket };
       socket2prezzo[socket] = prezzo;
       
-      console.log(`Registered new user ${userId} for prezzo ${prezId}`)
-      socket.emit('register', JSON.stringify({"userId": userId}))
-
+      let registerMsg = {userId: user.id, sessionId: user.sessionId, name: user.name, presentationId: prezId}
+      console.log(`Registered new user Name(${user.name}) UID(${user.id}) SID(${user.sessionId}) for prezzo ${prezId}`)
+      socket.emit('register', JSON.stringify(registerMsg))
       //beam over presentation
-      broadcast(null, ['user.joined',{userId:userId}], prezzo.sockets);
+      broadcast(null, ['user.joined', registerMsg], prezzo.sockets);
       sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
     }
   });
@@ -210,19 +234,19 @@ io.on('connection', function (socket) {
     delete socket2prezzo[socket];
 
     if (prezzo) {
-      let leavingUserId = findUserBySocket(socket, prezzo);
-      delete prezzo.sockets[leavingUserId];
+      let leavingSessionId = findUserBySocket(socket, prezzo);
+      delete prezzo.sockets[leavingSessionId];
 
-      broadcast(null, ['user.left',{userId:leavingUserId}], prezzo.sockets);
-      console.log(`${leavingUserId} has closed their connection`);
+      broadcast(null, ['user.left',{sessionId:leavingSessionId}], prezzo.sockets);
+      console.log(`Session ${leavingSessionId} has ended`);
     }
   });
 });
   
 function findUserBySocket(socket, prezzo){
-  for( const [userId, psocket] of Object.entries(prezzo.sockets)) {
-    if (socket == psocket) {
-      return userId;
+  for( const [sessionId, record] of Object.entries(prezzo.sockets)) {
+    if (record.socket == socket) {
+      return sessionId;
     }
   }
   return null;
@@ -240,15 +264,25 @@ function handleBridgeUpdate(data) {
   }
 
   let prezId = parsed.presentationId;
-  let userId = parsed.userId;
+  let sessionId = parsed.sessionId;
   let prezzo = presentations[prezId];
 
   if (prezzo) {
-    let originSocket = prezzo.sockets[userId];
+    let sessionData = prezzo.sockets[sessionId]
+    if (!sessionData) {
+      console.log(`Could not find session data for session ${sessionId} in prezzo: ${prezId}`)
+      return;
+    }
+
+    let originSocket = sessionData.socket;
+    let userId = sessionData.user.id;
+
     if(originSocket || isRobot(originSocket)) {
-      console.log(`event:${parsed.event} on:${prezId} by:${userId}`)
+      console.log(`event:${parsed.event} on:${prezId} by: UID(${userId}) SID(${sessionId})`)
+      
+      parsed.userId = userId;
       parsed = prezzo.presentation.update(parsed);
-      broadcast(userId, ['update', JSON.stringify(parsed)], prezzo.sockets);
+      broadcast(sessionId, ['update', JSON.stringify(parsed)], prezzo.sockets);
     }
   }
 }
@@ -263,9 +297,9 @@ function broadcast(senderId, message, sockets) {
     return;
   }
 
-  for (const [socUserId, socket] of Object.entries(sockets)) {
-    if (socUserId != senderId) {
-      socket.emit(message[0], message[1]);
+  for (const [socSessionId, record] of Object.entries(sockets)) {
+    if (socSessionId != senderId) {
+      record.socket.emit(message[0], message[1]);
     }
   }
 }

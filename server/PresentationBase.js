@@ -15,13 +15,30 @@ class PresentationBase {
 			}
 		}
 	}
+	
+	createMetadata(tag, creator) {
+		return {
+			id: tag,
+			created: Date.now(),
+			owner: creator, 
+			creator: creator,
+			last_updated: Date.now(),
+			settings: {
+				public: true,
+				tbd: true
+			},
+			rawData: {}
+		}
+	}
 
 	createNew(tag, failOnNoStorage) {
 		if (!tag) {
 			tag = PresentationBase.makeId(5);
 			if (this.storage.get(tag)) {
 				throw 'Presentation ID already exists';
-			}	
+			}
+
+			this.storage.write(tag, this.createMetadata(tag, undefined))
 		}
 
 		let prezzo = new Presentation(tag, this.storage, failOnNoStorage);

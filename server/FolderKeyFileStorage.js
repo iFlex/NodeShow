@@ -40,6 +40,13 @@ class FolderKeyFileStorage {
 		this.updatesQueue.push({id:id, data:data})
 	}
 
+	//ToDo: broken interface, write is rather a create type operation
+	write(id, data) {
+		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
+		FolderKeyFileStorage.initStorage(path)
+		this.writeFile(id, data);
+	}
+
 	remove(id) {
 		
 	}
@@ -48,7 +55,7 @@ class FolderKeyFileStorage {
 		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
 		let filename = `${path}/${Date.now()}.json`
 		
-		try{
+		try {
 			fs.writeFileSync(filename, JSON.stringify(data));
 			let oldVersions = FolderKeyFileStorage.getAllVersions(path)
 			for(let old of oldVersions) {

@@ -7,7 +7,6 @@ class ContainerCreator {
 	container = null;
 	target = null;
 	palette = ["#605B56", "#837A75", "#ACC18A", "#DAFEB7", "#F2FBE0"]
-	#paletteIndex = 0
 	#control = false;
 	#interface = null;
 	#handlers = {}
@@ -97,7 +96,7 @@ class ContainerCreator {
 			'height':'150px',
 			'margin': '5px',
 			'padding': '5px',
-			'background-color': this.pickColor(this.target.style['background-color'])	
+			'background-color': this.pickColor()	
 		}
 
 		let parentSuggestion = this.target.getAttribute("data-child-style")
@@ -184,16 +183,10 @@ class ContainerCreator {
 		this.container.hide(this.#interface, this.appId)
 	}
 
-	pickColor(notThis) {
-	 	let clr = this.palette[this.#paletteIndex]
-		this.#paletteIndex++;
-		this.#paletteIndex %= this.palette.length
-		
-		if (notThis && notThis == clr) {
-			//take next color from palette
-			clr = this.palette[this.#paletteIndex]
-		}
-		return clr;
+	pickColor() {
+		let index = this.container.nodeCountToRoot(this.target) % this.palette.length;
+		console.log(`Picking color ${index} = ${this.palette[index]} :: ${this.target.id}(${this.container.nodeCountToRoot(this.target)})`)
+	 	return this.palette[index]
 	}
 
 	onClick(e) {

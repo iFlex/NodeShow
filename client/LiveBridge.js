@@ -3,10 +3,10 @@ import {Container, ACTIONS} from "./Container.js"
 export class LiveBridge {
 	container = null;
 	socket = null;
-	userId = null;
+    userId = null; //not currently used for any interaction
+	sessionId = null;
     debug = false;
-    #users = {}
-
+    
     host = window.location.host;
     port = window.location.port;
 
@@ -39,7 +39,7 @@ export class LiveBridge {
 
     //no caller id, current user or component
     isCallerIdLocal(callerId) {
-        return (!callerId || callerId == this.userId || this.container.getComponent(callerId))
+        return (!callerId || callerId == this.sessionId || this.container.getComponent(callerId))
     }
 
     sendUpdate(e) {
@@ -77,7 +77,7 @@ export class LiveBridge {
 
         let update = {
             presentationId: this.container.presentationId,
-            userId: this.userId,
+            sessionId: this.sessionId,
             event: eventType,
             detail: detail
         }
@@ -102,19 +102,18 @@ export class LiveBridge {
 				return;
 			}
 
-		  	console.log(`Registered with remote via SocketIo with UID: ${d.userId}`)
+		  	console.log(`Registered with remote via SocketIo with UID:${d.userId} SID:${d.sessionId}`)
 		  	this.userId = d.userId;
+            this.sessionId = d.sessionId;
 		 	console.log(d);
 		});
 
 		this.socket.on('update', d => this.handleUpdate(JSON.parse(d)))
         this.socket.on('user.joined', d => {
-            this.#users[d.userId] = true;
-            console.log(`User joined ${d.userId}`)
+            console.log(`User joined ${d.name}-${d.userId}`)
         })
-        this.socket.on('user.left', d =>{
-            delete this.#users[d.userId]
-            console.log(`User left ${d.userId}`)
+        this.socket.on('user.left', d => {
+            console.log(`User left ${d.name}-${d.userId}`)
         })
         this.socket.on('insert', d => this.handleInsert(JSON.parse(d)))
     }
@@ -125,11 +124,9 @@ export class LiveBridge {
 		    console.log(data);
         }
         
-        if (!data.userId) {
+        if (!data.sessionId) {
             //populate with userId in case it's not there. all network updates should have a value for the userid
-            data.userId = this.host
-        } else {
-            this.#users[data.userId] = true;
+            data.sessionId = this.host
         }
 
         try {
@@ -140,16 +137,16 @@ export class LiveBridge {
             || data.event == ACTIONS.setHeight
             ) {
                 let child = this.container.lookup(detail.id)
-                this.container.updateChild(child, detail.descriptor, data.userId)
+                this.container.updateChild(child, detail.descriptor, data.sessionId)
             }
             if(data.event == ACTIONS.delete) {
-                this.container.delete(detail.id, data.userId)
+                this.container.delete(detail.id, data.sessionId)
             }
             if(data.event == ACTIONS.create) {
-                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.userId);
+                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.sessionId);
             }
             if(data.event == ACTIONS.setParent) {
-                this.container.setParent(detail.id, detail.parentId, data.userId)
+                this.container.setParent(detail.id, detail.parentId, data.sessionId)
             }
         } catch (e) {
             console.error(`Failed to handle update ${data.event}`, e);
@@ -196,7 +193,7 @@ export class LiveBridge {
                 
                 let jsndata = JSON.stringify({
                     presentationId: this.container.presentationId,
-                    userId: this.userId,
+                    sessionId: this.sessionId,
                     event: ACTIONS.create,
                     detail: {
                         parentId: parentId,
