@@ -19,14 +19,14 @@ Current Prios:
  -> activate text editor only after keyboard event?
  -> Bug when text editing nested child sometimes the editor focuses on parent, but text shows on child
 
-- [must have] drag on screen to group in new parent
-- [must have] ! separate interface from editable containers
-- [must have] way to send things to back and bring them forward
-- [must have] fix linker
+- !![must have]!! separate interface from editable containers
+- [must have] way to send things to back and bring them forward (context menu)
+- [must have] fix linker 
 - [should have] finish content importer
 - [nice to have] create aligner
 - [nice to have] drag on screen to select
-
+- [nice to have] minimap
+- [nice to have] collaborators & follow
 - [should have] Authentication
 - [should consider] Cnosider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 

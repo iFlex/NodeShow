@@ -24,7 +24,8 @@ const textItemPerms = {}//, "container.edit":{"*":false}}
 textItemPerms[ACTIONS.setPosition] = {"*":false}
 //textItemPerms[ACTIONS.create] = {"*":false}
 
-
+//BUG: deselecting current text edited container sometimes deletes the newly selected...
+//or completely changes its position... wtf...
 class ContainerTextInjector {
 	appId = "container.edit.text"
 
