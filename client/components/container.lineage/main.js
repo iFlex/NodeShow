@@ -1,8 +1,8 @@
 import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
+import { ContainerOverlap } from '../utils/overlap.js'
+import { Mouse } from '../utils/mouse.js'
 
-//BUG: when dragging sometimes the dragged element disappears (wrong move to parent)
-//BUG: fails to ignore interface
 class ContainerLineage {
     appId = 'container.lineage'
     container = null
@@ -15,15 +15,18 @@ class ContainerLineage {
     #enabled = null
     #handlers = {}
     #keyboard = null;
+    #mouse = null;
+    #overlap = null;
     
     constructor (container) {
         this.container = container;
         this.container.registerComponent(this);
         this.#keyboard = new Keyboard();
+        this.#overlap = new ContainerOverlap(container);
+        this.#mouse = new Mouse(this.appId, null, null, (e) => this.onDragEnd(e));
 
         this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id)
 		this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget()
-        this.#handlers['container.edit.pos.drag.end'] = (e) => this.onDragEnd(e)
 
         this.#keyboard.setAction(new Set(['Shift','<']), this, (key) => this.parentUp(), true)
         this.#keyboard.setAction(new Set(['Shift','>']), this, (key) => this.parentDown(), true)
@@ -32,6 +35,7 @@ class ContainerLineage {
     enable () {
         if (!this.#enabled) {
             this.#enabled = true;
+            this.#mouse.enable();
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.addEventListener(key, value)
             }
@@ -42,6 +46,7 @@ class ContainerLineage {
     disable () {
         if (this.#enabled) {false
             this.enabled = false;
+            this.#mouse.disable();
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.removeEventListener(key, value)
             }
@@ -61,58 +66,24 @@ class ContainerLineage {
         this.target = null
     }
 
-    doBoundingBoxOverlap(leftBBox, rightBBox) {
-        return !(
-            leftBBox.right <= rightBBox.left 
-            || leftBBox.left >= rightBBox.right
-            || leftBBox.top >= rightBBox.bottom 
-            || leftBBox.bottom <= rightBBox.top)
-    }
-
-    calculateOverlapBBox(leftBBox, rightBBox) {
-        if (this.doBoundingBoxOverlap(leftBBox, rightBBox)) {
-            return {
-                left:(leftBBox.left < rightBBox.left) ? rightBBox.left : leftBBox.left, 
-                right:(leftBBox.right < rightBBox.right) ? leftBBox.right : rightBBox.right,
-                top:(leftBBox.top < rightBBox.top) ? rightBBox.top : leftBBox.top,
-                bottom:(leftBBox.bottom < rightBBox.bottom) ? leftBBox.bottom : rightBBox.bottom 
-            }
-        }
-        return undefined;
-    }
-
-    calcBBoxArea(bbox) {
-        return Math.abs(bbox.left - bbox.right) * Math.abs(bbox.top - bbox.bottom)
-    }
-
-    calculateOverlap(left, right) {
-        let leftBBox = this.container.getBoundingBox(left)
-        let rightBBox = this.container.getBoundingBox(right)
-
-        let overlapBBox = this.calculateOverlapBBox(leftBBox, rightBBox);
-        if (overlapBBox) {
-            return this.calcBBoxArea(overlapBBox)
-        }
-        return 0;
-    }
-
     findLargestOverlap () {
         //check siblings and decide which one has the largest overlap
         let children = this.target.parentNode.children
-        let largestOverlap = 0;
-        let largestOverlapPeer = null;
-
-        for ( const child of children ) {
-            if (child.id != this.target.id) {
-                let overlap = this.calculateOverlap(this.target, child);
-                if (overlap && overlap >= this.OVERLAP_TRESHOLD && overlap > largestOverlap) {
-                    largestOverlap = overlap;
-                    largestOverlapPeer = child
-                }
+        let largestOverlapPercent = 0;
+        let largestOverlapRec = null;
+        
+        let overlaps = this.#overlap.getOverlappingSiblings(this.target)
+        for ( const overlapRec of overlaps ) {
+            if (largestOverlapPercent < overlapRec.overlapPercent) {
+                largestOverlapPercent = overlapRec.overlapPercent
+                largestOverlapRec = overlapRec;
             }
         }
 
-        return largestOverlapPeer
+        if (largestOverlapRec) {
+            return largestOverlapRec.id;
+        }
+        return null;
     }
 
     changeParent(newParent) {
@@ -141,7 +112,7 @@ class ContainerLineage {
         if (!this.target) {
             return;
         }
-
+        
         this.changeParent(this.getGrandpa(this.target))
     }
 
@@ -149,10 +120,10 @@ class ContainerLineage {
         if (!this.target) {
             return;
         }
-
-        let largestOverlapPeer = this.findLargestOverlap();
-        if (largestOverlapPeer) {
-            this.changeParent(largestOverlapPeer)
+        
+        let largestOverlapPeerId = this.findLargestOverlap();
+        if (largestOverlapPeerId) {
+            this.changeParent(largestOverlapPeerId)
         }
     }
 
@@ -160,11 +131,11 @@ class ContainerLineage {
         let overlap = 0;
         if (this.target.parentNode === this.container.parent) {//to body is acting weird af...
             //all object overlap with the root
-            overlap = this.calcBBoxArea(this.container.getBoundingBox(this.target))
+            overlap = this.#overlap.getOverlapArea(this.container.getBoundingBox(this.target))
         } else {
-            overlap = this.calculateOverlap(this.target, this.target.parentNode);
+            overlap = this.#overlap.getOverlapArea(this.#overlap.getOverlapBBox(this.target, this.target.parentNode));
         }
-        let targetArea = this.calcBBoxArea(this.container.getBoundingBox(this.target))
+        let targetArea = this.#overlap.getOverlapArea(this.container.getBoundingBox(this.target))
         return targetArea - overlap;
     }
 

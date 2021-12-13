@@ -31,7 +31,7 @@ class ContainerCreator {
 		this.#handlers['container.edit.pos.unselected'] = (e) => this.unfocus()
 		this.#handlers['touchstart'] = (e) => this.tapHandler(e)
 
-		this.#interface = this.container.createFromSerializable(null, {
+		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
 			"computedStyle":{
 				"top":"0px",

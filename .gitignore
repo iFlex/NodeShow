@@ -109,3 +109,4 @@ dist
 dist/
 out/
 inspect/
+localconf/

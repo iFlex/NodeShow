@@ -1,18 +1,22 @@
-import {container} from '../../nodeshow.js'
+import { container } from '../../nodeshow.js'
+import { ContainerOverlap } from '../utils/overlap.js'
+import { Mouse } from '../utils/mouse.js'
 
 //BUG: fails to ignore interface
 class ContainerRepeller {
     appId = 'container.format.repell'
 	#container = null;
     target = null;
+    #overlap = null;
+    #mouse = null;
     #enabled = false
     #handlers = {}
 
-    constructor(container) {
+    constructor (container) {
         this.#container = container
         this.#container.registerComponent(this);
-        
-        this.#handlers['container.edit.pos.drag.update'] = (e) => this.onDragUpdate(e.detail)
+        this.#overlap = new ContainerOverlap(container);
+        this.#mouse = new Mouse(this.appId, null, (e) => this.onDragUpdate(e.detail), null);
     }
 
     /*
@@ -29,7 +33,7 @@ class ContainerRepeller {
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.addEventListener(key, value)
             }
-
+            this.#mouse.enable();
             this.#enabled = true
         }
     }  
@@ -39,7 +43,7 @@ class ContainerRepeller {
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.removeEventListener(key, value)
             }
-
+            this.#mouse.disable();
             this.#enabled = false
         }
     }
@@ -47,33 +51,6 @@ class ContainerRepeller {
     isEnabled() {
 		return this.#enabled
 	}
-    //EXTRACT
-    doBoundingBoxOverlap(leftBBox, rightBBox) {
-        return !(
-            leftBBox.right <= rightBBox.left 
-            || leftBBox.left >= rightBBox.right
-            || leftBBox.top >= rightBBox.bottom 
-            || leftBBox.bottom <= rightBBox.top)
-    }
-
-    calculateOverlapBBox(leftBBox, rightBBox) {
-        if (this.doBoundingBoxOverlap(leftBBox, rightBBox)) {
-            return {
-                left:(leftBBox.left < rightBBox.left) ? rightBBox.left : leftBBox.left, 
-                right:(leftBBox.right < rightBBox.right) ? leftBBox.right : rightBBox.right,
-                top:(leftBBox.top < rightBBox.top) ? rightBBox.top : leftBBox.top,
-                bottom:(leftBBox.bottom < rightBBox.bottom) ? leftBBox.bottom : rightBBox.bottom 
-            }
-        }
-        return undefined;
-    }
-    //EXTRACT
-    getOverlapBBox(left, right) {
-        let leftBBox = this.#container.getBoundingBox(left)
-        let rightBBox = this.#container.getBoundingBox(right)
-
-        return this.calculateOverlapBBox(leftBBox, rightBBox);
-    }
 
     sign(val) {
         if (val < 0){
@@ -91,8 +68,9 @@ class ContainerRepeller {
             if (child.id == node.id) {
                 continue;
             }
-
-            let overlap = this.getOverlapBBox(node, child)
+            console.log("REPELL")
+            console.log(child)
+            let overlap = this.#overlap.getOverlapBBox(node, child)
             if (overlap) {
                 console.log(overlap)
                 let moveX = Math.abs(overlap.right - overlap.left)

@@ -106,7 +106,7 @@ class ContainerTextInjector {
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
 
 		//create interface holder
-		this.#interface = this.container.createFromSerializable(null, {
+		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
 			"computedStyle":{
 				"top":"0px",

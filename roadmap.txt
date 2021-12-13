@@ -2,8 +2,8 @@ Client Features:
 1. Create, Delete content containers (via: UI & keyboard)
 2. Move, Size,  [[maybe: Rotate
 3. Text Edit (via: Keyboard & UI)
-- group (drag on screen to create a new parent for the captured elements)
-- change ownership (change parent to grandparent or sibling)
+- group (drag on screen to create a new parent for the captured elements) ::container.grouping
+- change ownership (change parent to grandparent or sibling) ::container.lineage
 - insert conent (img, video, svg, etc)
 - link containers 
 - collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude)
@@ -19,7 +19,9 @@ Current Prios:
  -> activate text editor only after keyboard event?
  -> Bug when text editing nested child sometimes the editor focuses on parent, but text shows on child
 
-- !![must have]!! separate interface from editable containers
+[ISSUE]: application interacting with each other. e.g. grouper & change pos
+[BUG]: some interface content still gets persisted...
+[BUG]: broken repell direction
 - [must have] way to send things to back and bring them forward (context menu)
 - [must have] fix linker 
 - [should have] finish content importer

@@ -22,7 +22,7 @@ class ContainerExtensionsManager {
         this.#handlers[ACTIONS.componentAdded] = (e) => this.onComponentRegistered(e)
         this.#handlers[ACTIONS.componentRemoved] = (e) => this.onComponentUnregistered(e)
     
-        this.#interface = this.#container.createFromSerializable(null, {
+        this.#interface = this.#container.createFromSerializable(document.body, {
 			"nodeName":"div",
 			"computedStyle":{
 				"top":"0px",

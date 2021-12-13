@@ -8,7 +8,14 @@ import "./container.summarize.js";
 import {LiveBridge} from "./LiveBridge.js";
 //import "./container.extensions.js";
 
-let container = new Container(document.body, false);
+let root = document.body
+try {
+ root = document.getElementById('nodeshow-content')
+} catch (e) {
+ console.log("Did not initiate container on nodeshow-content, defaulting to document.body")	
+}
+
+let container = new Container(root, false);
 container.init();
 
 let bridge = new LiveBridge(container, false);
