@@ -6,24 +6,35 @@ export class Keyboard {
     #pressedPrintables = new Set([])
     #pressedNonPrintables = new Set([])
     #keysPreventingPrintable = new Set(['Control'])
+    #container = null
+    #callerId = null;
 
     #actions = {}
+    #actionsUp = {}
     #onPrintable = null
-    printablePreventDefault = true;
+    #onPrintableUp = null
 
-    constructor() {
+    constructor(container, appId) {
+        console.log(`NEW KEYBOARD created by ${appId}`)
+        this.#container = container;
+        this.#callerId = appId;
+
         this.onKeyUp = (e) => this.handleKeyUp(e)
         this.onKeyDown = (e) => this.handleKeydown(e)
     }
     
     enable () {
+        // this.#container.parent.addEventListener("keydown", this.onKeyDown)
+		// this.#container.parent.addEventListener("keyup", this.onKeyUp)
         document.addEventListener("keydown", this.onKeyDown)
-		document.addEventListener("keyup", this.onKeyUp)
+        document.addEventListener("keyup", this.onKeyUp)
     }
 
     disable () {
+        // this.#container.parent.removeEventListener("keydown", this.onKeyDown)
+		// this.#container.parent.removeEventListener("keyup", this.onKeyUp)
         document.removeEventListener("keydown", this.onKeyDown)
-		document.removeEventListener("keyup", this.onKeyUp)
+        document.removeEventListener("keyup", this.onKeyUp)
     }
 
     isPrintable (key) {
@@ -38,10 +49,27 @@ export class Keyboard {
         }
     }
 
-    onPritable(context, handler) {
+    setKeyUpAction(keys, context, handler, preventDefault) {
+        this.#actionsUp[this.setToKey(keys)] = {
+            context: context,
+            handler: handler, 
+            preventDefault: preventDefault
+        }
+    }
+
+    onPritable(context, handler, preventDefault) {
         this.#onPrintable = {
             context: context, 
-            handler: handler
+            handler: handler,
+            preventDefault: preventDefault
+        }
+    }
+
+    onKeyUpPrintable(context, handler, preventDefault) {
+        this.#onPrintableUp = {
+            context: context, 
+            handler: handler,
+            preventDefault: preventDefault
         }
     }
 
@@ -68,49 +96,65 @@ export class Keyboard {
         return true;
     }
 
-    handleKeydown(e) {
-        console.log(`KEY DOWN ${e.key}`)
-        let isPrintable = this.isPrintable(e.key)        
-        if (isPrintable) {
-            this.#pressedPrintables.add(e.key)
-        } else {
-            this.#pressedNonPrintables.add(e.key)
+    shouldPreventDefault(desc) {
+        if (desc && desc.preventDefault) {
+            return desc.preventDefault
         }
-        console.log(this.#pressedPrintables)
-        console.log(this.#pressedNonPrintables)
 
-        let action = this.#actions[this.setToKey(this.#pressedNonPrintables, e.key)]
+        return false;
+    }
+
+    #applyActionAndDefault(e, key, actionSet) {
+        let action = actionSet[key]
         if (action && action.preventDefault) {
-            console.log('KeyDown: Action prevent default')
+            console.log(`Key: Action prevent default by ${this.#callerId}`)
             e.preventDefault();
         }
         
         if (action && action.handler) {
             action.handler.apply(action.context, [e.key])
         }
+    }
 
-        if (isPrintable && this.shouldActOnPrintable() && this.printablePreventDefault) {
-            console.log('KeyDown: Printable prevent default')
+    handleKeydown(e) {
+        let isPrintable = this.isPrintable(e.key)        
+        if (isPrintable) {
+            this.#pressedPrintables.add(e.key)
+        } else {
+            this.#pressedNonPrintables.add(e.key)
+        }
+        
+        let key = this.setToKey(this.#pressedNonPrintables, e.key)
+        this.#applyActionAndDefault(e, key, this.#actions)
+
+        if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintable)) {
+            console.log(`KeyDown: Printable prevent default by ${this.#callerId}`)
             e.preventDefault();
         }
         
         if (isPrintable && this.shouldActOnPrintable() && this.#onPrintable) {
             this.#onPrintable.handler.apply(this.#onPrintable.context, [e.key])
         }
+
+        // console.log(`KEY DOWN ${e.key}`)
+        // console.log(this.#pressedPrintables)
+        // console.log(this.#pressedNonPrintables)
     }
 
     handleKeyUp(e) {
         let isPrintable = this.isPrintable(e.key)
         let action = this.#actions[this.setToKey(this.#pressedNonPrintables, e.key)]
         
-        if (action && action.preventDefault) {
-            console.log('KeyUp: Action prevent default')
-            e.preventDefault(); 
-        }
-            
-        if (isPrintable && this.shouldActOnPrintable() && this.printablePreventDefault) {
-            console.log('KeyUp: Printable prevent default')
+        let key = this.setToKey(this.#pressedNonPrintables, e.key)
+        this.#applyActionAndDefault(e, key, this.#actionsUp)
+        
+        if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintableUp)) {
+            console.log(`KeyUp: Printable prevent default by ${this.#callerId}`)
             e.preventDefault();
+        }
+
+        if (isPrintable && this.shouldActOnPrintable() && this.#onPrintableUp) {
+            this.#onPrintableUp.handler.apply(this.#onPrintableUp.context, [e.key])
         }
 
         if (isPrintable) {
@@ -118,9 +162,10 @@ export class Keyboard {
         } else {
             this.#pressedNonPrintables.delete(e.key)
         }
-        console.log(`KEY UP ${e.key}`)
-        console.log(this.#pressedPrintables)
-        console.log(this.#pressedNonPrintables)
+
+        // console.log(`KEY UP ${e.key}`)
+        // console.log(this.#pressedPrintables)
+        // console.log(this.#pressedNonPrintables)
 	}
 
 }

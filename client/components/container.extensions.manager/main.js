@@ -27,7 +27,7 @@ class ContainerExtensionsManager {
 			"computedStyle":{
 				"top":"0px",
 				"left":"0px",
-				"position":"absolute",
+				"position":"fixed",
                 "width":"48px",
                 "height":"100%"
 			}

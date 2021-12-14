@@ -58,6 +58,7 @@ class ContainerTextInjector {
 		nodeName: "SPAN", 
 		className: "text-document-unit", 
 		permissions:textItemPerms,
+		computedStyle:{},
 		"data":{
 			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}]
 		}
@@ -75,7 +76,11 @@ class ContainerTextInjector {
 		control:false,
 		bold:false,
 		italic:false,
-		underlined: false
+		underlined: false,
+		textColor: "#000000",
+		highlightColor: undefined,
+		fontFam: "default",
+		fontSize: "15px"
 	}
 
 	cursor = null
@@ -96,7 +101,7 @@ class ContainerTextInjector {
 		}
 
 		this.cursor = new Cursor()
-		this.#keyboard = new Keyboard();
+		this.#keyboard = new Keyboard(this.container, this.appId);
 		this.initKeyboard();
 
 		this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id)
@@ -136,7 +141,6 @@ class ContainerTextInjector {
 			for (const [key, value] of Object.entries(this.#handlers)) {
 				document.addEventListener(key, value)
 			}
-			this.#keyboard.enable()
 			this.#enabled = true
 		}	
 	}
@@ -158,7 +162,7 @@ class ContainerTextInjector {
 	}
 
 	initKeyboard () {
-		this.#keyboard.onPritable(this, (key) => this.addPrintable(key))
+		this.#keyboard.onPritable(this, (key) => this.addPrintable(key), true)
 		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true)
 		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true)
 		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true)
@@ -216,7 +220,8 @@ class ContainerTextInjector {
 
 	setTarget(id) {
 		this.unsetTarget();
-		
+		this.#keyboard.enable();
+			
 		console.log(`Setting text edit target to ${id}`)
 		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
 		
@@ -247,10 +252,11 @@ class ContainerTextInjector {
 	}
 
 	unsetTarget() {
+		this.#keyboard.disable()
 		if (this.target) {
 			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 			this.container.removeMetadata(this.target, 'text-editing')
-
+			
 			this.target = null;
 			this.cursor.setTarget(null);
 			this.container.hide(this.#interface, this.appId)
@@ -326,7 +332,10 @@ class ContainerTextInjector {
 	}
 
 	makeNewTextChild (line) {
-		console.log(this.textUnitDescriptor)
+		this.textUnitDescriptor.computedStyle['color'] = this.state.textColor;
+		//this.textUnitDescriptor.computedStyle['background-color'] = this.state.highlightColor;
+		this.textUnitDescriptor.computedStyle['font-size'] = this.state.fontSize;
+
 		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor, null, this.appId)
 		return unit
 	}
@@ -856,7 +865,7 @@ class ContainerTextInjector {
 		return result;
 	}
 
-	changeFontSize(delta) {
+	changeFontSize (delta) {
 		let selection = this.getSelected()
 		if (!selection || selection.units.size == 0) {
 			selection = {units:this.getAllTextUnits()}
@@ -883,6 +892,16 @@ class ContainerTextInjector {
 		this.styleTextUnits({"font-size": fontSize}, selection.units)
 
 		this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	fontUp (e) {
+		e.preventDefault();
+		this.changeFontSize(1)
+	}
+
+	fontDown (e) {
+		e.preventDefault();
+		this.changeFontSize(-1)
 	}
 
 	setFont(fontFam) {
@@ -962,19 +981,30 @@ class ContainerTextInjector {
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
-	textToStyle(text) {
-		let units = text.split(";")
-		let stl = {}
-		for (const unit of units) {
-			let parts = unit.split(":")
-			if(parts.length == 2){
-				stl[parts[0].trim()] = parts[1].trim();
-			}
+	#setColor(clr) {
+		this.state.textColor = clr;
+		let selection = this.getSelected()
+		if (selection && selection.units.size > 0) {
+			this.styleTextUnits({"color": clr}, selection.units)
 		}
+	}
 
-		return stl;
+	setColor(e) {
+		this.#setColor(e.target.value)
+	}
+
+	#setHighlightColor(clr) {
+		this.state.highlightColor = clr;
+		let selection = this.getSelected()
+		if (selection && selection.units.size > 0) {
+			this.styleTextUnits({"background-color": clr}, selection.units)
+		}
+	}
+
+	setHighlightColor(e) {
+		this.#setHighlightColor(e.target.value)
 	}
 }
 
-export let texter = new ContainerTextInjector(container, true);
+export let texter = new ContainerTextInjector(container, false);
 texter.enable()

@@ -61,6 +61,10 @@ export class Container {
 
     constructor(parentDom, debug) {
         console.log("CREATED CONTAINER OBJECT")
+        console.log(`------------------------`)
+        console.log(parentDom)
+        console.log(`------------------------`)
+
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
         this.debug = debug
@@ -115,6 +119,24 @@ export class Container {
         }
 
         return el
+    }
+
+    owns (id) {
+        let node = null
+        try {   
+            node = Container.lookup(id)
+        } catch (e) {
+            return false;
+        }
+
+        while (node) {
+            if (node === this.parent) {
+                return true;
+            }
+            node = node.parentNode
+        }
+
+        return false;
     }
 
     lookup (id) {
@@ -358,7 +380,7 @@ export class Container {
 
     //<size>
     //contextualise width and height based on type of element and wrapping
-	setWidth(id, width, callerId) {
+	setWidth(id, width, callerId, unitOverride) {
         let elem = Container.lookup(id)
         this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
         
@@ -372,7 +394,7 @@ export class Container {
         });
 	}
 
-	setHeight(id, height, callerId) {
+	setHeight(id, height, callerId, unitOverride) {
         let elem = Container.lookup(id);
         this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
         
@@ -651,7 +673,11 @@ export class Container {
     }
 
     setMetadata (id, key, value) {
-        let node = Container.lookup(id)
+        let node = {}
+        if (id) {
+            node = Container.lookup(id)
+        }
+
         if (!(node.id in this.localmetadata)) {
             this.localmetadata[node.id] = {}
         }
@@ -659,14 +685,22 @@ export class Container {
     }
     
     removeMetadata (id, key) {
-        let node = Container.lookup(id)
+        let node = {}
+        if (id) {
+            node = Container.lookup(id)
+        }
+
         if (this.localmetadata[node.id]) {
             delete this.localmetadata[node.id][key]
         }
     }
     
     getMetadata (id, key) {
-        let node = Container.lookup(id)
+        let node = {}
+        if (id) {
+            node = Container.lookup(id)
+        }
+
         if (this.localmetadata[node.id]) {
             if (key) {
                 return this.localmetadata[node.id][key]

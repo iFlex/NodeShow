@@ -3,23 +3,25 @@
 import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { Mouse } from '../utils/mouse.js'
-import { ContainerOverlap } from '../utils/overlap.js'
 import { Keyboard } from '../utils/keyboard.js'
+import { ContainerOverlap } from '../utils/overlap.js'
 
+//[BUG]: selecting inside containers... positioning is bonkers
 class ContainerGrouping {
 	#container = null;
-	appId = "container.grouping"
+	appId = "container.select"
 
 	#enabled = false
 	#mouse = null;
 	#keyboard = null;
 	#overlap = null;
 
-	#canGroup = false;
-	#groupParent = null;
-	#grouper = null;
+	#selection = []
+	#canSelect = false;
+	#selectParent = null;
+	#selector = null;
 	#startPos = null
-	#groupDescriptor = {
+	#selectorDescriptor = {
 		nodeName:"DIV", 
 		computedStyle:{
 			"position":"absolute",
@@ -28,7 +30,10 @@ class ContainerGrouping {
 			"margin":"0px",
 			"border-width":"0px",
 			"padding":"0px",
-			"background-color": "black"
+			"border-color":"black",
+			"border-width":"1px",
+			"background-color": "blue",
+			"opacity": 0.5
 		}
 	}
 
@@ -40,11 +45,11 @@ class ContainerGrouping {
 		this.#mouse = new Mouse(this.appId, (e) => this.handleDragStart(e), (e) => this.handleDragUpdate(e), (e) => this.handleDragEnd(e));
 		
 		this.#keyboard = new Keyboard(this.#container, this.appId);
-		this.#keyboard.setAction(new Set(['Shift']), this, (key) => this.enableGrouping(key), true)
-		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (key) => this.disableGrouping(key), true)
+		this.#keyboard.setAction(new Set(['Shift']), this, (key) => this.enableMultiselect(key), true)
+		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (key) => this.disableMultiselect(key), true)
 	}
 
-	enable() {
+	enable () {
 		if (!this.#enabled) {
 			this.#enabled = true
 			this.#mouse.enable();	
@@ -53,7 +58,7 @@ class ContainerGrouping {
 	}
 
 	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
-	disable() {
+	disable () {
 		if (this.#enabled) {
 			this.#enabled = false
 			this.#mouse.disable();
@@ -61,27 +66,22 @@ class ContainerGrouping {
 		}
 	}
 
-	isEnabled() {
+	isEnabled () {
 		return this.#enabled
 	}
 
-	enableGrouping () {
-		this.#canGroup = true
+	enableMultiselect () {
+		this.#canSelect = true
 	}
 
-	disableGrouping () {
-		this.#canGroup = false
+	disableMultiselect () {
+		this.#canSelect = false
 	}
 
-	handleDragStart(e) {
-		if (!this.#canGroup) {
-			return;
-		}
-
-		//create selection container
-		this.#groupParent = this.#container.parent;
+	handleDragStart (e) {
+		this.#selectParent = this.#container.parent;
 		try {
-			this.#groupParent = this.#container.lookup(e.detail.id)
+			this.#selectParent = this.#container.lookup(e.detail.id)
 		} catch( ex ){
 			//pass
 		}
@@ -90,17 +90,20 @@ class ContainerGrouping {
 			top:e.detail.originalEvent.pageY,
 			left:e.detail.originalEvent.pageX,
 		}
-		this.#grouper = this.#container.createFromSerializable(this.#groupParent, this.#groupDescriptor, null, this.appId)
-		this.#container.setPosition(this.#grouper, this.#startPos, this.appId)
 	}
 
-	handleDragUpdate(e) {
-		if (!this.#grouper){
-			return;
+	handleDragUpdate (e) {
+		if (!this.#startPos) {
+			return
+		}
+
+		if (!this.#selector){
+			this.#selector = this.#container.createFromSerializable(this.#selectParent, this.#selectorDescriptor, null, this.appId)
+			this.#container.setPosition(this.#selector, this.#startPos, this.appId)
 		}
 
 		//update selection container
-		let pos = this.#container.getPosition(this.#grouper);
+		let pos = this.#container.getPosition(this.#selector);
 		
 		let px = e.detail.originalEvent.pageX;
 		let py = e.detail.originalEvent.pageY;
@@ -115,25 +118,38 @@ class ContainerGrouping {
 			pos.top = py;
 		}
 
-		this.#container.setPosition(this.#grouper, pos, this.appId);
-		this.#container.setWidth(this.#grouper, w, this.appId)
-		this.#container.setHeight(this.#grouper, h, this.appId)
+		this.#container.setPosition(this.#selector, pos, this.appId);
+		this.#container.setWidth(this.#selector, w, this.appId)
+		this.#container.setHeight(this.#selector, h, this.appId)
 	}
 
-	handleDragEnd(e) {
+	handleDragEnd (e) {
 		//import children into selection container
-		if (!this.#grouper) {
+		if (!this.#selector) {
 			return;
 		}
-		let overlapped = this.#overlap.getOverlappingSiblings(this.#grouper)
-		for (let entry of overlapped) {
-			let pos = this.#container.getPosition(entry.id)
-			this.#container.setParent(entry.id, this.#grouper, this.appId)
-			this.#container.setPosition(entry.id, pos, this.appId)
-		}
 
-		this.#grouper = null;
+		let overlapped = this.#overlap.getOverlappingSiblings(this.#selector)
+		
+		this.#selection = []
+		for (let entry of overlapped) {
+			this.#selection.push(entry.id)
+		}
+		
+		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
+		this.#container.delete(this.#selector, this.appId)
+		this.#selector = null;
+		this.#startPos = null;
+	}
+
+	getSelection() {
+		return this.#selection
+	}
+
+	clearSelection() {
+		this.#selection = []
 	}
 }
 
-new ContainerGrouping(container)
+let cselect = new ContainerGrouping(container)
+cselect.enable()

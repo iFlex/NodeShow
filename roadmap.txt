@@ -3,8 +3,9 @@ Client Features:
 2. Move, Size,  [[maybe: Rotate
 3. Text Edit (via: Keyboard & UI)
 - group (drag on screen to create a new parent for the captured elements) ::container.grouping
+- select (drag on screen to select containers) ::container.select
 - change ownership (change parent to grandparent or sibling) ::container.lineage
-- insert conent (img, video, svg, etc)
+- insert content (img, video, svg, etc)
 - link containers 
 - collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude)
 - customize container style  (shape, color, border, width, heght nature (e.g. % or px or inherit))
@@ -22,6 +23,7 @@ Current Prios:
 [ISSUE]: application interacting with each other. e.g. grouper & change pos
 [BUG]: some interface content still gets persisted...
 [BUG]: broken repell direction
+- [must have] introduce a focus concept: when you click on a container it is in focus, do something else and you lose focus
 - [must have] way to send things to back and bring them forward (context menu)
 - [must have] fix linker 
 - [should have] finish content importer

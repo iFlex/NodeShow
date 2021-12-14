@@ -62,10 +62,11 @@
 } 
 
 /* Experimental */
-/*.nodeshow-content {
+.nodeshow-content {
   position: absolute;
   left:  0px;
   top:  0px;
-  width:  100%;
-  height:  100%;
-}*/
+  margin: 0px;
+  padding: 0px;
+  border-width: 0px;
+}

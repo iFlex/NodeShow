@@ -21,7 +21,7 @@ class ContainerLineage {
     constructor (container) {
         this.container = container;
         this.container.registerComponent(this);
-        this.#keyboard = new Keyboard();
+        this.#keyboard = new Keyboard(this.container, this.appId);
         this.#overlap = new ContainerOverlap(container);
         this.#mouse = new Mouse(this.appId, null, null, (e) => this.onDragEnd(e));
 
@@ -44,8 +44,8 @@ class ContainerLineage {
     }
 
     disable () {
-        if (this.#enabled) {false
-            this.enabled = false;
+        if (this.#enabled) {
+            this.#enabled = false;
             this.#mouse.disable();
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.removeEventListener(key, value)

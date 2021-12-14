@@ -46,7 +46,7 @@ Container.prototype.getTopCornerMargin = function(element) {
 }
 
 /* 
-Position reference is always absolute, the setPosition makes the translation to relative, percent or other types of positioning
+Position reference is always absolute pixels, the setPosition makes the translation to relative, percent or other types of positioning
 There should be an option to force absolute positioning force:true passed in the position argument
 ToDo: fix bug where absolute % doesn't work - caused by the height % being calculated as a lot lower than it should be
     - seems like the page width and height that % calculations use are based on maybe viewport percentages rather than the actual document.body
@@ -74,8 +74,8 @@ Container.prototype.setPosition = function(id, position, callerId) {
     position.left -= (position.originX || 0) * this.getWidth(elem)
     position.top -= (position.originY || 0) * this.getHeight(elem)
 
-    let xUnit = this.detectUnit(elem.style.left) || this.detectUnit(elem.style.right) || 'px'
-    let yUnit = this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'
+    let xUnit = position.leftUnit || this.detectUnit(elem.style.left) || this.detectUnit(elem.style.right) || 'px'
+    let yUnit = position.topUnit || this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'
     
     if (xUnit == '%') {
         position.left = parseFloat(position.left) / this.getWidth(elem.parentNode || this.parent)*100
@@ -98,7 +98,7 @@ Container.prototype.getPosition = function(id) {
     let node = Container.lookup(id)
     let p = findAbsPos(node)
 
-    let pos = {
+    return {
         top:p[1],
         left:p[0],
         position:node.style.position, 
@@ -108,7 +108,6 @@ Container.prototype.getPosition = function(id) {
             left:node.style.left,
         }
     }
-    return pos;
 }
 
 /* dx and dy are always in pixels */

@@ -7,17 +7,17 @@
         
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.create.changeType","params":[]}}'
+        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.fontUp","params":[]}}'
         >+</div>
 
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.create.changeType","params":[]}}'
+        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text","params":[]}}'
         >16</div>
 
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.create.changeType","params":[]}}'
+        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.fontDown","params":[]}}'
         >-</div>
 
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
@@ -27,24 +27,23 @@
 
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.create.changeType","params":[]}}'>
-          <i data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>I</i>
+        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.italic","params":[]}}'>
+          <i data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+          I</i>
         </div>
 
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.underline","params":[]}}'
+        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.underlined","params":[]}}'
         >U</div>
 
-        <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
+        <input type="color" id="ns-background-color" name="ns-background-color" value="#e66465" 
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.underline","params":[]}}'>
-        A</div>
-
-        <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
+        data-container-actions='{"0":{"trigger":"input","call":"container.edit.text.setColor","params":[]},"1":{"trigger":"change","call":"container.edit.text.setColor","params":[]}}'>
+        |
+        <input type="color" id="ns-background-color" name="ns-background-color" value="#e66465" 
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
-        data-container-actions='{"0":{"trigger":"click","call":"container.edit.text.underline","params":[]}}'>
-        Hc</div>
+        data-container-actions='{"0":{"trigger":"input","call":"container.edit.text.setHighlightColor","params":[]},"1":{"trigger":"change","call":"container.edit.text.setHighlightColor","params":[]}}'>
 
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"
         data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
