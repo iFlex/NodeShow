@@ -42,43 +42,45 @@ outset
 <input type="color" id="ns-border-color" name="ns-background-color" value="#e66465" data-container-actions='{"0":{"trigger":"input","call":"container.edit.style.changeBorderColor","params":[]},"1":{"trigger":"change","call":"container.edit.style.changeBorderColor","params":[]}}'>
 
 <h3> Border Size </h3>
-<input type="text" id="ns-border-size" name="ns-border-size">
-<select id="ns-border-size-unit-picket" name="ns-border-size-unit-picket" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+<input type="text" id="ns-border-size" name="ns-border-size" 
+data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeBorderSize","params":[]}}'>
+<select id="ns-border-size-unit" name="ns-border-size-unit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
 </select>
+
 <h3> Shape </h3>
-<input type="text" id="ns-border-size" name="ns-border-size">
-<select id="ns-border-size-unit-picket" name="ns-border-size-unit-picket" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+<input type="text" id="ns-corner-1" name="ns-corner-1" data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeBorderCorners","params":[]}}'>
+<select id="ns-corner-1-unit" name="ns-corner-1-unit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
 </select>
 <br/>
-<input type="text" id="ns-border-size" name="ns-border-size">
-<select id="ns-border-size-unit-picket" name="ns-border-size-unit-picket" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+<input type="text" id="ns-corner-2" name="ns-corner-2" data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeBorderCorners","params":[]}}'>
+<select id="ns-corner-2-unit" name="ns-corner-2-unit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
 </select>
 <br/>
-<input type="text" id="ns-border-size" name="ns-border-size">
-<select id="ns-border-size-unit-picket" name="ns-border-size-unit-picket" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+<input type="text" id="ns-corner-3" name="ns-corner-3" data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeBorderCorners","params":[]}}'>
+<select id="ns-corner-3-unit" name="ns-corner-3-unit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
 </select>
 <br/>
-<input type="text" id="ns-border-size" name="ns-border-size">
-<select id="ns-border-size-unit-picket" name="ns-border-size-unit-picket" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+<input type="text" id="ns-corner-4" name="ns-corner-4" data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeBorderCorners","params":[]}}'>
+<select id="ns-corner-4-unit" name="ns-corner-4-unit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
-	<option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
 </select>
 
@@ -103,7 +105,31 @@ style="border-radius: 50% 50% 50% 50%; background-color: blue; width:100%; heigh
 data-container-actions='{"0":{"trigger":"click","call":"container.edit.style.changeShape","params":[]}}'> 
 circle </div>
 
-<h3>Width</h3>
+<h3>Margin</h3>
+<input type="text" id="ns-margin" name="ns-padding" data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'>
+<select id="ns-margin-unit" 
+	  name="ns-margin-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'	   
+	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	px</option>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	%</option>
+</select>
+
+<H3>Padding</h3>
+<input type="text" id="ns-padding" name="ns-padding" data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'>
+<select id="ns-padding-unit" 
+	  name="ns-padding-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'	   
+	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	px</option>
+	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	%</option>
+</select>
+
+<h3>Width</h3> Lock/Unlock
 <select id="ns-width-unit" 
 	  name="ns-width-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeWidthUnit","params":[]}}'	   
@@ -114,7 +140,7 @@ circle </div>
 	%</option>
 </select>
 
-<h3>Height<h3>
+<h3>Height<h3> Lock/Unlock
 <select id="ns-height-unit" 
 	  name="ns-height-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeHeightUnit","params":[]}}'
@@ -125,7 +151,7 @@ circle </div>
 	%</option>
 </select>
 
-<h3>Horisontal Position</h3>
+<h3>Horisontal Position</h3> Lock/Unlock
 <select id="ns-pos-y-unit" 
 	  name="ns-pos-y-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePosXUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
@@ -135,7 +161,7 @@ circle </div>
 	%</option>
 </select>
 
-<h3>Vertical Position</h3>
+<h3>Vertical Position</h3> Lock/Unlock
 <select id="ns-pos-x-unit" 
 	  name="ns-pos-x-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePosYUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>

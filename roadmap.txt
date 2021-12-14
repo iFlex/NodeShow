@@ -5,14 +5,19 @@ Client Features:
 - group (drag on screen to create a new parent for the captured elements) ::container.grouping
 - select (drag on screen to select containers) ::container.select
 - change ownership (change parent to grandparent or sibling) ::container.lineage
-- insert content (img, video, svg, etc)
-- link containers 
-- collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude)
-- customize container style  (shape, color, border, width, heght nature (e.g. % or px or inherit))
-- customize container content arrangement
+- insert content (img, video, svg, etc) ::container.content
+- link containers ::container.link [BROKEN]
+- collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude) 
+::builtin core
+- customize container style  (shape, color, border, width, heght nature (e.g. % or px or inherit)) 
+::container.style [CRUDE]
+- customize container content arrangement 
+::container.create [CRUDE]
 --------------------------------------------
 
 Current Prios:
+[BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
+       - Suspicion: it has to do with the fact that mouse allows clicking on parent
 [core]: [must-have] when creating within a parent, or changing parents - have the child conform to parent rules by default 
 (e.g. respect parent stylign suggesionts)
 

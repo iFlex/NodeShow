@@ -1,5 +1,5 @@
 import { container } from '../../nodeshow.js'
-import { Mouse } from '../utils/mouse.js'
+import { getSelection } from '../utils/common.js'
 
 class ContainerStyler {
 	appId = 'container.edit.style'
@@ -7,8 +7,7 @@ class ContainerStyler {
 	#enabled = false
 	#interface = null;
 	#handlers = {}
-	#mouse = null;
-
+	
 	state = {
 		backgroundColor: '#000000',
 		borderType: null,
@@ -22,7 +21,6 @@ class ContainerStyler {
 		this.container = container;
 		container.registerComponent(this);
 		
-		this.#mouse = new Mouse(this.appId);
 		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
 			"computedStyle":{
@@ -67,20 +65,8 @@ class ContainerStyler {
 		return this.#enabled
 	}
 
-	getSelection() {
-		let selectorApp = this.container.getComponent('container.select')
-		let selection = selectorApp.getSelection() || []
-		
-		let focusTarget = this.#mouse.getFocusTarget();
-		if (focusTarget) {
-			selection.push(focusTarget)
-		}
-
-		return selection
-	}
-
 	#applyChange(style) {
-		let selection = this.getSelection();
+		let selection = getSelection();
 		console.log(`${this.appId} got selection:`)
 		console.log(selection)
 		for ( const item of selection) {
@@ -126,13 +112,40 @@ class ContainerStyler {
 		this.#applyChange({'border-color':e.target.value})
 	}
 
+	changeBorderSize (e) {
+		let borderSize = document.getElementById('ns-border-size').value
+		let unit       = document.getElementById('ns-border-size-unit').value
+		let size       = `${borderSize}${unit}`
+
+		this.container.setMetadata(null, 'border-width', size)
+		this.#applyChange({'border-width':size})	
+	}
+
+	changeBorderCorners (e) {
+		let corner_id = 'ns-corner-'
+		let value = ''
+		for (let i = 1; i < 5; ++i) {
+			let corner1     = document.getElementById(`${corner_id}${i}`).value
+			let unit1       = document.getElementById(`${corner_id}${i}-unit`).value
+			let value1       = `${corner1}${unit1}`	
+
+			if (corner1.length > 0) {
+				value += value1 + ' '	
+			}
+		}
+		console.log(`${this.appId} setting border config ${value}`)
+
+		this.container.setMetadata(null, 'border-radius', value)
+		this.#applyChange({'border-radius': value})	
+	}
+
 	changeShape (e) {
 		this.changeBorderType(e);
 	}
 
 	changeWidthUnit (e) {
 		let unit = e.target.value;
-		let selection = this.getSelection();
+		let selection = getSelection();
 		for (const item of selection) {
 			try {
 				let widthPx = this.container.getWidth(item)
@@ -145,7 +158,7 @@ class ContainerStyler {
 
 	changeHeightUnit (e) {
 		let unit = e.target.value;
-		let selection = this.getSelection();
+		let selection = getSelection();
 		for (const item of selection) {
 			try {
 				let widthPx = this.container.getHeight(item)
@@ -158,7 +171,7 @@ class ContainerStyler {
 
 	changePosXUnit (e) {
 		let unit = e.target.value;
-		let selection = this.getSelection();
+		let selection = getSelection();
 		for (const item of selection) {
 			try {
 				let pos = this.container.getPosition(item)
@@ -172,7 +185,7 @@ class ContainerStyler {
 
 	changePosYUnit (e) {
 		let unit = e.target.value;
-		let selection = this.getSelection();
+		let selection = getSelection();
 		for (const item of selection) {
 			try {
 				let pos = this.container.getPosition(item)

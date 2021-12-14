@@ -59,10 +59,14 @@ Container.prototype.saveActions = function(node, actions) {
 }
 
 Container.prototype.lookupMethod = function(method) {
+    console.log(`CORE: lookup method ${method}`)
     let chain = method.split('.')
-    let context = this
+    if (!chain) {
+        throw `CORE: invalid method name ${method}`
+    }
 
-    if (this[chain[0]] && typeof this[chian[0]] === 'function') {
+    let context = this
+    if (this[chain[0]] && typeof this[chain[0]] === 'function') {
         //there's a method available in Container
         return {method:this[chain[0]], context:context}
     } else {
@@ -83,17 +87,18 @@ Container.prototype.lookupMethod = function(method) {
                 if (chain[i] in method) {
                     method = method[chain[i]]
                 } else {
-                    throw `${chain[i]} method not found in component ${name}`
+                    throw `CORE: ${chain[i]} method not found in component ${name}`
                 }
             }
         }
 
         if (typeof method === 'function') {
+            console.log(`CORE: Bound ${method}`)
             return {method:method, context:context}
         }
     }
     
-    throw `Could not find method ${method}`
+    throw `CORE: Could not find method ${method}`
 }
 
 Container.prototype.detachAction = function(node, actionDescriptor) {

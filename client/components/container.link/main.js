@@ -21,8 +21,8 @@ class ContainerLink {
         this.#handlers[ACTIONS.setPosition] = (e) => this.onContainerChange(e)
         this.#handlers["mousemove"] = (e) => this.handleMouseMove(e)
         this.#handlers["keydown"] = (e) => this.cancelLink(e)
-        this.#handlers["container.edit.pos.selected"] = (e) => this.onSelect(e)
-		this.#handlers["container.edit.pos.unselected"] = (e) => this.cancelLink(e)
+        this.#handlers["container.focus"] = (e) => this.onSelect(e)
+		this.#handlers["container.blur"] = (e) => this.cancelLink(e)
     }
 
     makeLinkObject() {

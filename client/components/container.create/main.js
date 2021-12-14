@@ -27,8 +27,8 @@ class ContainerCreator {
 		this.#handlers['keydown'] = (e) => this.keyDown(e)
 		this.#handlers['keyup'] = (e) => this.keyUp(e)
 		this.#handlers['dblclick'] = (e) => this.onClick(e)
-		this.#handlers['container.edit.pos.selected'] = (e) => this.focusOn(e.detail.id)
-		this.#handlers['container.edit.pos.unselected'] = (e) => this.unfocus()
+		this.#handlers['container.focus'] = (e) => this.focusOn(e.detail.id)
+		this.#handlers['container.blur'] = (e) => this.unfocus()
 		this.#handlers['touchstart'] = (e) => this.tapHandler(e)
 
 		this.#interface = this.container.createFromSerializable(document.body, {
@@ -173,12 +173,14 @@ class ContainerCreator {
 	}
 
 	focusOn(id) {
+		console.log(`${this.appId} - focus event`)
 		let node = this.container.lookup(id)
 		this.target = node
 		this.container.show(this.#interface, this.appId)
 	}
 
 	unfocus() {
+		console.log(`${this.appId} - blur event`)
 		this.target = null
 		this.container.hide(this.#interface, this.appId)
 	}

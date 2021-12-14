@@ -139,6 +139,10 @@ class ContainerMover {
 
 	handleDragUpdate(e) {
 		let d = e.detail;
+		if (d.id == this.container.parent.id) {
+			return;
+		}
+		
 		this.modifyContainer(d.id, d.dx, d.dy, 
 			d.originalEvent.pageX, d.originalEvent.pageY,
 			d.targetOx, d.targetOy)

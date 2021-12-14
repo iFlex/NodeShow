@@ -109,18 +109,18 @@ class ContainerLineage {
     }
 
     parentUp() {
-        if (!this.target) {
+        if (!this.target || this.target === this.container.parent) {
             return;
         }
-        
+        console.log(`${this.appId} - parentUp`)
         this.changeParent(this.getGrandpa(this.target))
     }
 
     parentDown() {
-        if (!this.target) {
+        if (!this.target || this.target === this.container.parent) {
             return;
         }
-        
+        console.log(`${this.appId} - parentDown`)
         let largestOverlapPeerId = this.findLargestOverlap();
         if (largestOverlapPeerId) {
             this.changeParent(largestOverlapPeerId)

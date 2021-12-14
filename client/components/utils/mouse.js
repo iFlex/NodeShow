@@ -13,7 +13,7 @@ let lastX = 0;
 let lastY = 0;
 
 function findActionableAnchestor(target) {
-	if (!target || target === container.parent || !container.owns(target)) {
+	if (!target) {
 		return null;
 	}
 	
@@ -33,14 +33,22 @@ function findActionableAnchestor(target) {
 		container.isOperationAllowed(ACTIONS.setPosition, target, appId)
 		return target
 	} catch (e) {
+		if (target === container.parent) {
+			return null;
+		}
 		return findActionableAnchestor(target.parentNode)
 	}
 }
 
 function mouseDown(e) {
+	if (!container.owns(event.target)) {
+		console.log('Mouse click on not owned item')
+		console.log(event)
+		return null;
+	}
+
 	let eventType = event.type;
 	target = findActionableAnchestor(event.target)
-
 	if (target) {
 		
 		targetMetadata['targetOx'] = event.layerX / container.getWidth(target) 
@@ -55,6 +63,7 @@ function mouseDown(e) {
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
 			originalEvent: event});
+		container.emit('container.blur', {});
 		event.preventDefault();
 	}	
 }

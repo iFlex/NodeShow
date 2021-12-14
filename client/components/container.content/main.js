@@ -1,4 +1,5 @@
-import {container} from '../../nodeshow.js'
+import { container } from '../../nodeshow.js'
+import { getSelection } from '../utils/common.js'
 
 class ContainerContent {
     appId = 'container.content'
@@ -10,10 +11,7 @@ class ContainerContent {
     constructor (container) {
 		  this.container = container;
 		  container.registerComponent(this);
-      
-      this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id),
-		  this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget(),
-
+    
       this.loadInterface()  
     }
 
@@ -44,7 +42,7 @@ class ContainerContent {
           document.addEventListener(key, value)
         }	
         this.container.show(this.#interface, this.appId)
-        this.container.bringToFrint(this.#interface)
+        this.container.bringToFront(this.#interface)
       }
     }
 
@@ -61,18 +59,6 @@ class ContainerContent {
 
     isEnabled() {
       return this.#enabled
-    }
-
-    setTarget (id) {
-      try {
-        this.target = this.container.lookup(id);
-      } catch (e) {
-        this.target = this.container.parent
-      }
-    }
-
-    unsetTarget() {
-      this.target = this.container.parent
     }
 
     isLink(data) {
@@ -125,7 +111,7 @@ class ContainerContent {
 		// 		}
 		// 	}
 		// }
-    getStyle() {
+    getStyle(target) {
       let childStyle = {
         'position':'absolute',
         'min-width':'150px',
@@ -136,7 +122,7 @@ class ContainerContent {
         'left':'0px'
       }
 
-      let parentSuggestion = this.target.getAttribute("data-child-style")
+      let parentSuggestion = target.getAttribute("data-child-style")
       if (parentSuggestion) {
         parentSuggestion = JSON.parse(parentSuggestion)
         //apply parent suggestion to child style if there is any
@@ -150,7 +136,7 @@ class ContainerContent {
 
     contentTypeToNodeType(type) {
       console.log(`content type:${type}`)
-      if (type === 'Image') {
+      if (type.toLowerCase().includes('image')) {
         return "img"
       }
       //default to the good ol' div
@@ -158,12 +144,19 @@ class ContainerContent {
     }
 
     createFromData(contentType, data) {
-      console.log(`Creating content on target ${this.target.id}`)
+      let selection = getSelection()
+      let target = this.container.parent
+      if (selection.length > 0) {
+        target = selection[0]
+      }
+
+      console.log(`Creating content on target ${target}`)
+      
       //ToDo consider child styling suggestions on parent
-      return this.container.createFromSerializable(this.target.id, {
+      return this.container.createFromSerializable(target, {
         nodeName: this.contentTypeToNodeType(contentType),
         src: data,
-        computedStyle: this.getStyle()
+        computedStyle: this.getStyle(target)
       },null,this.appId);
     }
 
@@ -176,6 +169,10 @@ class ContainerContent {
         return undefined
       }
       return undefined
+    }
+
+    mimeTypeToContainerType (type) {
+      return "img"
     }
 
     loadFromText() {
@@ -192,6 +189,31 @@ class ContainerContent {
         }
 
         dataNode.value = ""
+      }
+    }
+
+    loadFileContents (type, reader) {
+      //ToDo: figure out what to do about other types
+      this.createFromData(type, reader.result)
+    }
+
+    readFile(file) {
+      console.log(`${this.appId} loading file ${file.name}`)
+    
+      var reader = new FileReader();
+      var mimeType = file.type
+      reader.onload = (e) => {
+        console.log(`${this.appId} raw file content loaded`)
+        this.loadFileContents(mimeType, reader)
+      }
+      //ToDo: based on type of file, decide how to read
+      reader.readAsDataURL(file);
+    }
+
+    loadFromFile(e) {
+      console.log(`${this.appId} Loading from file`)
+      for (const file of e.target.files) {
+        this.readFile(file)
       }
     }
 }
