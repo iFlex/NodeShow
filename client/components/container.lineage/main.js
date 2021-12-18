@@ -1,8 +1,9 @@
 import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
-import { Mouse } from '../utils/mouse.js'
+import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
+//quite problematic currently as it causes disappearings
 class ContainerLineage {
     appId = 'container.lineage'
     container = null
@@ -21,15 +22,15 @@ class ContainerLineage {
     constructor (container) {
         this.container = container;
         this.container.registerComponent(this);
-        this.#keyboard = new Keyboard(this.container, this.appId);
+        this.#keyboard = new Keyboard(this.appId);
         this.#overlap = new ContainerOverlap(container);
-        this.#mouse = new Mouse(this.appId, null, null, (e) => this.onDragEnd(e));
 
-        this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id)
-		this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget()
+        this.#mouse = new Mouse(this.appId);
+        this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.onDragEnd(e))
 
-        this.#keyboard.setAction(new Set(['Shift','<']), this, (key) => this.parentUp(), true)
-        this.#keyboard.setAction(new Set(['Shift','>']), this, (key) => this.parentDown(), true)
+        // //todo update target
+        // this.#keyboard.setAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true)
+        // this.#keyboard.setAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true)
     }
 
     enable () {
@@ -108,20 +109,22 @@ class ContainerLineage {
         return parent.parentNode
     }
 
-    parentUp() {
-        if (!this.target || this.target === this.container.parent) {
+    parentUp(id) {
+        let target = this.container.lookup(id)
+        if (target === this.container.parent) {
             return;
         }
-        console.log(`${this.appId} - parentUp`)
-        this.changeParent(this.getGrandpa(this.target))
+        
+        this.changeParent(this.getGrandpa(target))
     }
 
-    parentDown() {
-        if (!this.target || this.target === this.container.parent) {
+    parentDown(id) {
+        let target = this.container.lookup(id)
+        if (target === this.container.parent) {
             return;
         }
-        console.log(`${this.appId} - parentDown`)
         let largestOverlapPeerId = this.findLargestOverlap();
+        console.log(`${this.appId} - parentDown ${target.id} @ ${target.parentNode.id} -> ${largestOverlapPeerId}`) 
         if (largestOverlapPeerId) {
             this.changeParent(largestOverlapPeerId)
         }
@@ -145,9 +148,9 @@ class ContainerLineage {
             let reverseParentOverlap = this.calculateReverseParentOverlap()
             let overlapRatio = reverseParentOverlap / (this.container.getWidth(this.target) * this.container.getHeight(this.target))
             if ( overlapRatio >= this.REVERSE_PARENT_OVERLAP_TRESHOLD) {
-                this.parentUp();
+                this.parentUp(this.target);
             } else {
-                this.parentDown()
+                this.parentDown(this.target)
             }
             this.unsetTarget()
         }
@@ -155,4 +158,4 @@ class ContainerLineage {
 }
 
 let clinage = new ContainerLineage(container);
-clinage.enable();
+//clinage.enable();

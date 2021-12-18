@@ -164,7 +164,7 @@ function handleRequest(request, response){
       if(request.method.toLowerCase() == "get") {
         //static content server
         wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
-        if (!wasStatic){
+        if (!wasStatic) {
           wasStatic = HttpUtils.handleStaticGet(request, response, STATIC_CONTENT)
         }
         if (!wasStatic) {
@@ -197,6 +197,7 @@ function findUserIdFromRequest(hdr) {
   return cookies['user_id']
 }
 
+//revisit this. It has grown to be overcomplicated.
 io.on('connection', function (socket) {
   console.log("New socket.io connection")
   socket.on('register', function (data) {
@@ -226,7 +227,7 @@ io.on('connection', function (socket) {
     }
   });
 
-  socket.on('update', handleBridgeUpdate);
+  socket.on('update', (data) => handleBridgeUpdate(data, socket));
  
   socket.on("disconnect", (e) => {
     console.log(`Connection closed:${e}`);
@@ -252,12 +253,7 @@ function findUserBySocket(socket, prezzo){
   return null;
 }
 
-function isRobot(socket) {
-  //ToDo: implement
-  return true;
-}
-
-function handleBridgeUpdate(data) {
+function handleBridgeUpdate(data, originSocket) {
   let parsed = JSON.parse(data);
   if(debug_level > 1) {
     console.log(data)
@@ -268,22 +264,21 @@ function handleBridgeUpdate(data) {
   let prezzo = presentations[prezId];
 
   if (prezzo) {
+    //identifying user
     let sessionData = prezzo.sockets[sessionId]
+    let userId = undefined
     if (!sessionData) {
       console.log(`Could not find session data for session ${sessionId} in prezzo: ${prezId}`)
-      return;
+      //return;
+    } else {
+      userId = sessionData.user.id;  
     }
-
-    let originSocket = sessionData.socket;
-    let userId = sessionData.user.id;
-
-    if(originSocket || isRobot(originSocket)) {
-      console.log(`event:${parsed.event} on:${prezId} by: UID(${userId}) SID(${sessionId})`)
-      
-      parsed.userId = userId;
-      parsed = prezzo.presentation.update(parsed);
-      broadcast(sessionId, ['update', JSON.stringify(parsed)], prezzo.sockets);
-    }
+    
+    //broadcasting
+    console.log(`event:${parsed.event} on:${prezId} by: UID(${userId}) SID(${sessionId})`)
+    parsed.userId = userId;
+    parsed = prezzo.presentation.update(parsed);
+    broadcast(sessionId, ['update', JSON.stringify(parsed)], prezzo.sockets);
   }
 }
 

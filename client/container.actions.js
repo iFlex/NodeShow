@@ -8,7 +8,7 @@ import {Container} from "./Container.js"
 */
 
 Container.prototype.initActions = function(node) {
-    let actions = this.loadActions(node)
+    let actions = this.getActions(node)
     if (actions) {
         for(const [key, action] of Object.entries(actions)) {
             this.attachAction(node, action)
@@ -21,7 +21,7 @@ Container.prototype.addAction = function(id, action, callerId) {
     let node = Container.lookup(id)
     this.attachAction(node, action)
     
-    let actions = this.loadActions(node)
+    let actions = this.getActions(node)
     actions[action] = action
     this.saveActions(actions)
     
@@ -38,7 +38,7 @@ Container.prototype.removeAction = function(id, action, callerId) {
     let node = Container.lookup(id)
     this.detachAction(id, action)
 
-    let actions = this.loadActions(node)
+    let actions = this.getActions(node)
     delete actions[action]
     this.saveActions(actions)
 
@@ -49,7 +49,7 @@ Container.prototype.removeAction = function(id, action, callerId) {
     })
 }
 
-Container.prototype.loadActions = function(node) {
+Container.prototype.getActions = function(node) {
     let actions = node.getAttribute("data-container-actions")
     return JSON.parse(actions)
 }
@@ -59,7 +59,6 @@ Container.prototype.saveActions = function(node, actions) {
 }
 
 Container.prototype.lookupMethod = function(method) {
-    console.log(`CORE: lookup method ${method}`)
     let chain = method.split('.')
     if (!chain) {
         throw `CORE: invalid method name ${method}`
@@ -93,7 +92,6 @@ Container.prototype.lookupMethod = function(method) {
         }
 
         if (typeof method === 'function') {
-            console.log(`CORE: Bound ${method}`)
             return {method:method, context:context}
         }
     }

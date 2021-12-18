@@ -2,23 +2,18 @@ import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { Keyboard } from '../utils/keyboard.js'
 
-//BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
-//happens because events stop firing
-//ToDo: fire drag end event
-class ContainerMover {
+class ContainerSizer {
 	container = null;
-	appId = "container.edit.pos"
+	appId = "container.edit.size"
 
 	#enabled = false
 	#mouse = null;
+	#keyboard = null;
 
-	#handlers = {}
-	#editableClass = 'editable:hover'
+	#presenveRatio = false
 	
-	lastX = 0;
-	lastY = 0;
-
 	constructor (ngps) {
 		this.container = ngps;
 		
@@ -29,22 +24,20 @@ class ContainerMover {
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
 
-		this.#handlers['dragStart'] = (e) => e.preventDefault()
-		this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)
+		this.#keyboard = new Keyboard();
+		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
+			this.#presenveRatio = true
+		}, true)
+		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => { 
+			this.#presenveRatio = false
+		}, true)
 	}
 
 	enable() {
 		if (!this.#enabled) {
 			this.#enabled = true
 			this.#mouse.enable();
-
-			//ToDo: forgot what this is for, document plz
-			$('*').on('dragstart', this.#handlers.dragStart);
-
-			//checking shift and ctrl
-			document.addEventListener("keydown", this.#handlers.keyDown)
-			document.addEventListener("keyup", this.#handlers.keyUp)
-			document.addEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])	
+			this.#keyboard.enable();
 		}
 	}
 
@@ -53,13 +46,7 @@ class ContainerMover {
 		if (this.#enabled) {
 			this.#enabled = false
 			this.#mouse.disable();
-			
-			$('*').off('dragstart', this.#handlers.dragStart);
-
-			//checking shift and ctrl
-			document.removeEventListener("keydown", this.#handlers.keyDown)
-			document.removeEventListener("keyup", this.#handlers.keyUp)
-			document.removeEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])
+			this.#keyboard.disable();
 		}
 	}
 
@@ -67,27 +54,47 @@ class ContainerMover {
 		return this.#enabled
 	}
 
-	markEditable(id) {
-		try {
-			let container = this.container.lookup(id)
-			this.container.isOperationAllowed('container.edit', container, this.appId)
-			$(container).addClass(this.#editableClass)
-		} catch (e) {
-			console.error(`${this.appId}: Failed to mark as editable ${id}`)
-			console.error(e)
-		}
+	considerScale(id, dx, dy) {
+
 	}
 
+	//ToDo: consider dragging form all corners
+	keepRatio (id, w, h, dx, dy) {
+		let sign = 1
+		let dist = Math.sqrt((dx*dx) + (dy*dy))
+		let ratio = w/h; 
+		
+		if (Math.abs(dx) > Math.abs(dy)) {
+			if (dx < 0) {
+				sign = -1
+			}
+		} else {
+			if (dy < 0) {
+				sign = -1
+			}
+		}
+		//ToDo: figure out sign	
+		if (dx < 0 && dy < 0) {
+			sign = -1
+		}
+		
+		return {dx:(sign * ratio * dist), dy:(sign * dist)}
+	}
 
 	//ToDo: consider scale for changing size
 	modifyContainer(targetId, dx, dy, x, y, targetOx, targetOy) {
 		let target = this.container.lookup(targetId)
-		this.container.setPosition(target, {
-			top: y,
-			left: x,
-			originX: targetOx,
-			originY: targetOy
-		}, this.appId)
+
+		let w = this.container.getWidth(target.id)
+		let h = this.container.getHeight(target.id)
+		
+		if (this.#presenveRatio) {
+			let change = this.keepRatio(target.id, w, h, dx, dy)
+			dx = change.dx;
+			dy = change.dy;
+		}
+		this.container.setWidth(target, w + dx, this.appId);
+		this.container.setHeight(target, h + dy, this.appId);
 	}
 
 	handleDragStart(e) {
@@ -98,7 +105,7 @@ class ContainerMover {
 		if (!this.target) {
 			return;
 		}
-
+		
 		let d = e.detail;
 		if (d.id == this.container.parent.id) {
 			return;
@@ -114,5 +121,5 @@ class ContainerMover {
 	}
 }
 
-let cmover = new ContainerMover(container);
-cmover.enable()
+let csizer = new ContainerSizer(container);
+csizer.enable()

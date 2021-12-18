@@ -1,15 +1,17 @@
-import {container} from '../../nodeshow.js'
-
-var tapedTwice = false;
+import { container } from '../../nodeshow.js'
+import { Keyboard } from '../utils/keyboard.js'
+import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
+import { EVENTS as TouchEvents, Touch } from '../utils/touch.js' 
 
 class ContainerCreator {
 	appId = 'container.create'
 	container = null;
 	target = null;
 	palette = ["#605B56", "#837A75", "#ACC18A", "#DAFEB7", "#F2FBE0"]
-	#control = false;
+	
+	#keyboard = null;
+	#mouse = null;
 	#interface = null;
-	#handlers = {}
 	#enabled = false
 	#nodeStyleTypeToChildStyle = {
 		"ns-horizontal-list":"ns-horizontal-list-unit ",
@@ -24,12 +26,15 @@ class ContainerCreator {
 		this.container = container;
 		container.registerComponent(this);
 
-		this.#handlers['keydown'] = (e) => this.keyDown(e)
-		this.#handlers['keyup'] = (e) => this.keyUp(e)
-		this.#handlers['dblclick'] = (e) => this.onClick(e)
-		this.#handlers['container.focus'] = (e) => this.focusOn(e.detail.id)
-		this.#handlers['container.blur'] = (e) => this.unfocus()
-		this.#handlers['touchstart'] = (e) => this.tapHandler(e)
+		this.#keyboard = new Keyboard(this.appId)
+		this.#keyboard.setAction(new Set(['Delete']), this, (e) => this.delete(false), false)
+		this.#keyboard.setAction(new Set(['End']), this, (e) => this.delete(true), true)
+		
+		this.#mouse = new Mouse(this.appId)
+		this.#mouse.setAction(MouseEvents.DOUBLE_CLICK, (e) => this.onDoubleClick(e))
+		this.#mouse.setAction(MouseEvents.CLICK, (e) => this.focusOn(e.detail.id))
+	
+		//this.#handlers['touchstart'] = (e) => this.tapHandler(e)
 
 		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
@@ -48,20 +53,17 @@ class ContainerCreator {
 
 	enable() {
 		if (!this.#enabled) {
-			for (const [key, value] of Object.entries(this.#handlers)) {
-				document.addEventListener(key, value)
-			}
 			this.#enabled = true
+			this.#keyboard.enable()
+			this.#mouse.enable()
 		}
 	}
 
 	disable() {
 		if (this.#enabled) {
-			for (const [key, value] of Object.entries(this.#handlers)) {
-				document.removeEventListener(key, value)
-			}
-			this.container.hide(this.#interface, this.appId)
 			this.#enabled = false
+			this.#keyboard.disable()
+			this.#mouse.disable()
 		}
 	}
 
@@ -173,16 +175,12 @@ class ContainerCreator {
 	}
 
 	focusOn(id) {
-		console.log(`${this.appId} - focus event`)
 		let node = this.container.lookup(id)
 		this.target = node
-		this.container.show(this.#interface, this.appId)
 	}
 
 	unfocus() {
-		console.log(`${this.appId} - blur event`)
 		this.target = null
-		this.container.hide(this.#interface, this.appId)
 	}
 
 	pickColor() {
@@ -191,39 +189,10 @@ class ContainerCreator {
 	 	return this.palette[index]
 	}
 
-	onClick(e) {
-		this.create(e.pageX, e.pageY)
-	}
-
-	keyDown(e) {
-		if(e.key == 'Control') {
-			this.#control = true;
-		}
-	}
-
-	keyUp(e) {
-		if(e.key == 'Control') {
-			this.#control = false;
-		}
-		if (e.key == 'Delete') {
-			this.delete(false);
-		}
-		if (e.key == 'End') {
-			this.delete(true);
-		}
-		if (e.key == 'Insert' && this.#control) {
-			this.create();
-		}
-	}
-
-	tapHandler(event) {
-		if(!tapedTwice) {
-			tapedTwice = true;
-			setTimeout( function() { tapedTwice = false; }, 300 );
-			return false;
-		}
-		let touch = event.touches[0]
-		this.create(touch.pageX, touch.pageY)
+	onDoubleClick (e) {
+		let evt = e.detail.originalEvent
+		this.target = this.container.lookup(e.detail.id)
+		this.create(evt.pageX, evt.pageY)
 	}
 }
 

@@ -1,3 +1,21 @@
+.ns-focus {
+  box-shadow:
+    0 0 5px 5px #fff,  /* inner white */
+    0 0 10px 10px #f0f; /* middle magenta */
+  border-width: 3px !important;
+  border-color: black !important;
+  border-style: dotted !important;
+}
+
+.ns-selected {
+  box-shadow:
+    0 0 5px 5px #fff,  /* inner white */
+    0 0 10px 10px #f0f; /* middle magenta */
+  border-width: 3px !important;
+  border-color: black !important;
+  border-style: dotted !important;
+}
+
 /* ContainerMover */
 .editable:hover {
     border-width: 3px !important;

@@ -1,6 +1,6 @@
 import { container } from '../../nodeshow.js'
 import { ContainerOverlap } from '../utils/overlap.js'
-import { Mouse } from '../utils/mouse.js'
+import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
 //BUG: fails to ignore interface
 class ContainerRepeller {
@@ -16,7 +16,9 @@ class ContainerRepeller {
         this.#container = container
         this.#container.registerComponent(this);
         this.#overlap = new ContainerOverlap(container);
-        this.#mouse = new Mouse(this.appId, null, (e) => this.onDragUpdate(e.detail), null);
+        
+        this.#mouse = new Mouse(this.appId);
+        this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.onDragUpdate(e.detail))
     }
 
     /*

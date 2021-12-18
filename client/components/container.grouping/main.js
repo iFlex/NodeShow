@@ -2,9 +2,10 @@
 // This may be unnecessary
 import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
-import { Mouse } from '../utils/mouse.js'
+import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 class ContainerGrouping {
 	#container = null;
@@ -15,7 +16,6 @@ class ContainerGrouping {
 	#keyboard = null;
 	#overlap = null;
 
-	#canGroup = false;
 	#groupParent = null;
 	#grouper = null;
 	#startPos = null
@@ -37,11 +37,15 @@ class ContainerGrouping {
 		container.registerComponent(this);
 		
 		this.#overlap = new ContainerOverlap(container);
-		this.#mouse = new Mouse(this.appId, (e) => this.handleDragStart(e), (e) => this.handleDragUpdate(e), (e) => this.handleDragEnd(e));
+
+		this.#mouse = new Mouse(this.appId);
+		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
 		
-		this.#keyboard = new Keyboard(this.#container, this.appId);
-		this.#keyboard.setAction(new Set(['Shift']), this, (key) => this.enableGrouping(key), true)
-		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (key) => this.disableGrouping(key), true)
+		this.#keyboard = new Keyboard(this.appId);
+		// this.#keyboard.setAction(new Set(['Shift']), this, (key) => this.enableGrouping(key), true)
+		// this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (key) => this.disableGrouping(key), true)
 	}
 
 	enable() {
@@ -65,19 +69,7 @@ class ContainerGrouping {
 		return this.#enabled
 	}
 
-	enableGrouping () {
-		this.#canGroup = true
-	}
-
-	disableGrouping () {
-		this.#canGroup = false
-	}
-
 	handleDragStart(e) {
-		if (!this.#canGroup) {
-			return;
-		}
-
 		//create selection container
 		this.#groupParent = this.#container.parent;
 		try {
@@ -136,4 +128,5 @@ class ContainerGrouping {
 	}
 }
 
-new ContainerGrouping(container)
+let cgrouping = new ContainerGrouping(container)
+cgrouping.enable();

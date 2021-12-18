@@ -1,5 +1,8 @@
 import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
+import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+
 //support only straignt lines for now
 class ContainerLink {
     appId = 'container.link'
@@ -11,6 +14,7 @@ class ContainerLink {
     #rightDot = null;
     #currentLink = null;
     #enabled = false
+    #mouse = null;
     #handlers = {}
     #links = {}
     
@@ -18,16 +22,27 @@ class ContainerLink {
         this.#container = container
         this.#container.registerComponent(this);
 
+        this.#mouse = new Mouse(this.appId)
+        this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.onSelect(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+
         this.#handlers[ACTIONS.setPosition] = (e) => this.onContainerChange(e)
         this.#handlers["mousemove"] = (e) => this.handleMouseMove(e)
-        this.#handlers["keydown"] = (e) => this.cancelLink(e)
-        this.#handlers["container.focus"] = (e) => this.onSelect(e)
-		this.#handlers["container.blur"] = (e) => this.cancelLink(e)
+        //this.#handlers["keydown"] = (e) => this.cancelLink(e)
+        //this.#handlers["container.focus"] = (e) => this.onSelect(e)
+		//this.#handlers["container.blur"] = (e) => this.cancelLink(e)
     }
 
     makeLinkObject() {
         return this.#container.createFromSerializable(null, {
             "nodeName":"div",
+            permissions: {
+                "container.setParent":{
+                    "*":false
+                },
+                "container.create":{ //prevent other apps from adding children to this 
+                    "*":false
+                }
+            },
             computedStyle:{
                 "height":5,
                 "width":10,
@@ -37,7 +52,11 @@ class ContainerLink {
         }, null, this.appId)
     }
 
-    link(left, right, settings) {
+    isLink (data) {
+        return 'node' in data && 'left' in data && 'right' in data && Object.keys(data).length == 3
+    }
+
+    link (left, right, settings) {
         //create the link
         let link = {}
         link['node'] = this.makeLinkObject()
@@ -45,12 +64,13 @@ class ContainerLink {
         link['right'] = right
         
         //keep a record of the link
-        let leftLinks = this.#links[left.target.id] || []
-        let rigthLinks = this.#links[right.target.id] || []
+        let leftLinks = this.#links[left.target] || []
+        let rigthLinks = this.#links[right.target] || []
         leftLinks.push(link)
         rigthLinks.push(link)
-        this.#links[left.target.id] = leftLinks
-        this.#links[right.target.id] = rigthLinks
+
+        this.#links[left.target] = leftLinks
+        this.#links[right.target] = rigthLinks
 
         //draw the link and return it
         this.draw(link)
@@ -78,6 +98,10 @@ class ContainerLink {
     }
 
     draw(link, endX, endY) {
+        if (!this.isLink(link)) {
+            console.log(link)
+            throw `${this.appId} - attempted draw call on non link object`
+        }
         let linkId = link.node.id
         
         let leftPos = this.computeAbsoluteLinkPosition(
@@ -94,10 +118,9 @@ class ContainerLink {
             rightPos.top = endY;
             rightPos.left = endX;
         }
-
-        
-        
+           
         let angle = this.calculateLinkAngle(leftPos, rightPos)
+        
         this.#container.setPosition(linkId, leftPos, this.appId)
         this.#container.setAngle(linkId, angle+"rad", "0%", "0%", this.appId)
         this.#container.setWidth(linkId, this.calculateDistance(leftPos, rightPos), this.appId)
@@ -111,40 +134,43 @@ class ContainerLink {
     enable() {
         if (!this.#enabled) {
             this.#enabled = true
+            this.#mouse.enable();
+
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.addEventListener(key, value)
             }
     
-            let dot = {
-                nodeName:"div",
-                className: "container-linker-dot",
-                permissions: {
-                    "container.setPosition":{
-                        "*":false
-                    }
-                },
-                computedStyle: {
-                    position:"absolute",
-                    top:"0px",
-                    left:"0px"
-                }
-            }
+            // let dot = {
+            //     nodeName:"div",
+            //     className: "container-linker-dot",
+            //     permissions: {
+            //         "container.setPosition":{
+            //             "*":false
+            //         }
+            //     },
+            //     computedStyle: {
+            //         position:"absolute",
+            //         top:"0px",
+            //         left:"0px"
+            //     }
+            // }
     
-            this.#leftDot = this.#container.createFromSerializable(null, dot, null, this.appId)
-            this.#rightDot = this.#container.createFromSerializable(null, dot, null, this.appId)
+            // this.#leftDot = this.#container.createFromSerializable(null, dot, null, this.appId)
+            // this.#rightDot = this.#container.createFromSerializable(null, dot, null, this.appId)
         }
     }
 
     disable () {
         if (this.#enabled) {
             this.#enabled = false
-
+            this.#mouse.disable();
+            
             for (const [key, value] of Object.entries(this.#handlers)) {
                 document.removeEventListener(key, value)
             }
     
-            this.container.delete(this.#leftDot, this.appId)
-            this.container.delete(this.#rightDot, this.appId)
+            this.#container.delete(this.#leftDot, this.appId)
+            this.#container.delete(this.#rightDot, this.appId)
         }
     }
 
@@ -153,23 +179,12 @@ class ContainerLink {
 	}
 
     handleMouseMove(e) {
-        if (this.left && !this.right) {
-            if (!this.#currentLink) {
-                console.log("Drawing new preview link")
-                let link = {}
-                link['node'] = this.makeLinkObject()
-                link['left'] = this.left
-                
-                this.#currentLink = link
-            }
-            //update existing link
+        if (this.left && this.#currentLink) {
             this.draw(this.#currentLink, e.pageX, e.pageY)
         }   
     }
 
-    //ToDo: propagate to children
-    onContainerChange(e) {
-        let targetId = e.detail.id
+    getLinksRelatedTo(targetId) {
         let links = []
         let children = [targetId]
         let i = 0;
@@ -188,68 +203,45 @@ class ContainerLink {
             }
             i++;
         }
-        
+
+        return links;
+    }
+
+    onContainerChange(e) {
+        let links = this.getLinksRelatedTo(e.detail.id)
         for(const link of links) {
             this.draw(link)
         }
     }
 
-    onSelect(event) {
-        
-        let e = event.detail.originalEvent
-        let target = {
-            target: e.target,
-            localX: e.layerX,
-            localY: e.layerY,
-            absX: e.pageX,
-            absY: e.pageY
-        }
-        
-        if (this.left) {
-            this.right = target
-            
-            this.link(this.left, this.right)
-            this.placeDot(target)
-            
-            this.left = null
-            this.right = null
-            //Link preview
-            this.#container.delete(this.#currentLink.node, this.appId)
-            this.#currentLink = null
-        } else {
-            this.left = target
-            this.placeDot(target)
-        }
-        
+    linkStart(target) {
+        this.left = target
+        this.right = null;
+        //this.placeDot(target)
+        //create preview link
+        // console.log("Drawing new preview link")
+        // let link = {}
+        // link['node'] = this.makeLinkObject()
+        // link['left'] = this.left
+                
+        // this.#currentLink = link
     }
 
-    //todo why is absX not the same as calculated below... (could have used the abs positions from the event rather than calc them)
-    placeDot(details) {
-        if (this.left && !this.right) {
-            let pos = this.#container.getPosition(this.left.target)
-            pos.top += details.localY;
-            pos.left += details.localX;
-            pos.originX = 0.5
-            pos.originY = 0.5
-            
-            this.#container.show(this.#leftDot, this.appId)
-            this.#container.hide(this.#rightDot, this.appId)
-            this.#container.setPosition(this.#leftDot, pos, this.appId)
-            this.#container.bringToFront(this.#leftDot, this.appId)
-        } else if (this.left && this.right){
-            let pos = this.#container.getPosition(this.right.target)
-            pos.top += details.localY;
-            pos.left += details.localX;
-            pos.originX = 0.5
-            pos.originY = 0.5
+    linkUpdate() {
 
-            this.#container.show(this.#rightDot, this.appId)
-            this.#container.setPosition(this.#rightDot, pos, this.appId)
-            this.#container.bringToFront(this.#rightDot, this.appId)
-        }
     }
 
-    cancelLink() {
+    linkFinish(target) {
+        this.link(this.left, target)
+        this.left = null
+
+        //this.placeDot(target)
+        // //Link preview
+        // this.#container.delete(this.#currentLink.node, this.appId)
+        // this.#currentLink = null
+    }
+
+    linkCancel() {
         if (this.#currentLink) {
             this.#container.delete(this.#currentLink.node, this.appId)
         }
@@ -260,7 +252,50 @@ class ContainerLink {
         this.#container.hide(this.#leftDot, this.appId)
         this.#container.hide(this.#rightDot, this.appId)
     }
+
+    onSelect(event) {
+        let e = event.detail.originalEvent
+        let target = {
+            target: event.detail.id,
+            localX: e.layerX,
+            localY: e.layerY,
+            absX: e.pageX,
+            absY: e.pageY
+        }
+        console.log(event)
+        if (!this.left) {
+            this.linkStart(target)
+        } else {
+            this.linkFinish(target)
+        }
+    }
+
+    //todo why is absX not the same as calculated below... (could have used the abs positions from the event rather than calc them)
+    placeDot(details) {
+        // if (!this.left) {
+        //     let pos = this.#container.getPosition(this.left.target)
+        //     pos.top += details.localY;
+        //     pos.left += details.localX;
+        //     pos.originX = 0.5
+        //     pos.originY = 0.5
+            
+        //     this.#container.show(this.#leftDot, this.appId)
+        //     this.#container.hide(this.#rightDot, this.appId)
+        //     this.#container.setPosition(this.#leftDot, pos, this.appId)
+        //     this.#container.bringToFront(this.#leftDot, this.appId)
+        // } else {
+        //     let pos = this.#container.getPosition(this.right.target)
+        //     pos.top += details.localY;
+        //     pos.left += details.localX;
+        //     pos.originX = 0.5
+        //     pos.originY = 0.5
+
+        //     this.#container.show(this.#rightDot, this.appId)
+        //     this.#container.setPosition(this.#rightDot, pos, this.appId)
+        //     this.#container.bringToFront(this.#rightDot, this.appId)
+        // }
+    }
 }
 
 const clinker = new ContainerLink(container);
-//clinker.enable();
+clinker.enable();

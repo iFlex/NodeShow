@@ -1,12 +1,12 @@
 //Caution: keyboard will be in incorrect state if window looses focus between keydown and keyup
 //BUG: pressedPrintables is unreliable: shift modifies that character code. need some map based translation.
 // e.g. SHIFT+/ = ? if you then lift shift before ? the next keyUp event will be / instead of ?
+//ToDo: when window loses focus, depress all keys
 export class Keyboard {
     
     #pressedPrintables = new Set([])
     #pressedNonPrintables = new Set([])
     #keysPreventingPrintable = new Set(['Control'])
-    #container = null
     #callerId = null;
 
     #actions = {}
@@ -14,27 +14,29 @@ export class Keyboard {
     #onPrintable = null
     #onPrintableUp = null
 
-    constructor(container, appId) {
+    constructor(appId) {
         console.log(`NEW KEYBOARD created by ${appId}`)
-        this.#container = container;
         this.#callerId = appId;
 
+        window.addEventListener('blur', (e) => this.onBlur(e));
         this.onKeyUp = (e) => this.handleKeyUp(e)
         this.onKeyDown = (e) => this.handleKeydown(e)
     }
     
     enable () {
-        // this.#container.parent.addEventListener("keydown", this.onKeyDown)
-		// this.#container.parent.addEventListener("keyup", this.onKeyUp)
         document.addEventListener("keydown", this.onKeyDown)
         document.addEventListener("keyup", this.onKeyUp)
     }
 
     disable () {
-        // this.#container.parent.removeEventListener("keydown", this.onKeyDown)
-		// this.#container.parent.removeEventListener("keyup", this.onKeyUp)
         document.removeEventListener("keydown", this.onKeyDown)
         document.removeEventListener("keyup", this.onKeyUp)
+    }
+
+    onBlur(e) {
+        console.log(`[KEYBOARD]: onBlur`)
+        this.#pressedPrintables = new Set([])
+        this.#pressedNonPrintables = new Set([])
     }
 
     isPrintable (key) {
@@ -163,7 +165,7 @@ export class Keyboard {
             this.#pressedNonPrintables.delete(e.key)
         }
 
-        // console.log(`KEY UP ${e.key}`)
+        // console.log(`KEY_UP(${this.#callerId}) ${e.key}`)
         // console.log(this.#pressedPrintables)
         // console.log(this.#pressedNonPrintables)
 	}

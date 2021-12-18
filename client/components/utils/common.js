@@ -1,16 +1,39 @@
+import { ACTIONS } from "../../Container.js"
 import { container } from "../../nodeshow.js"
-import { Mouse } from '../utils/mouse.js'
-
-let mouse = new Mouse('core')
 
 export function getSelection() {
 	let selectorApp = container.getComponent('container.select')
 	let selection = selectorApp.getSelection() || []
-	
-	let focusTarget = mouse.getFocusTarget();
-	if (focusTarget) {
-		selection.push(focusTarget)
-	}
 
 	return selection
+}
+
+export function findActionableAnchestor(target, appId) {
+	if (!target) {
+		return null;
+	}
+	
+	try {
+		//ToDo: this shouldn't live here?...
+		container.isOperationAllowed('container.edit', target, appId)
+		container.isOperationAllowed('container.edit.pos', target, appId)
+	} catch(e) {
+		console.log(e)
+		return null;
+	}
+
+	//ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
+	if (container.getMetadata(target, 'text-editing')) {
+		return null;
+	}
+	
+	try {
+		container.isOperationAllowed(ACTIONS.setPosition, target, appId)
+		return target
+	} catch (e) {
+		if (target === container.parent) {
+			return null;
+		}
+		return findActionableAnchestor(target.parentNode)
+	}
 }

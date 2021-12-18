@@ -2,6 +2,7 @@ import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
+import { getSelection } from '../utils/common.js'
 //ToDo:
 //delete via delete doesn't work well
 //font and letter size tracking
@@ -101,11 +102,13 @@ class ContainerTextInjector {
 		}
 
 		this.cursor = new Cursor()
-		this.#keyboard = new Keyboard(this.container, this.appId);
+		this.#keyboard = new Keyboard(this.appId);
 		this.initKeyboard();
 
-		this.#handlers['container.edit.pos.selected'] = (e) => this.setTarget(e.detail.id)
-		this.#handlers['container.edit.pos.unselected'] = (e) => this.unsetTarget()
+		this.#handlers['container.select.selected'] = (e) => {
+			this.stop();
+			this.tryFetchTarget(e.selection)
+		}
 		this.#handlers['paste'] = (event) => this.paste(event)
 		this.#handlers['cut'] = (event) => this.cut(event)
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
@@ -147,7 +150,7 @@ class ContainerTextInjector {
 
 	disable() {
 		if (this.#enabled) {
-			this.unsetTarget();
+			this.stop();
 			for (const [key, value] of Object.entries(this.#handlers)) {
 				document.removeEventListener(key, value)
 			}
@@ -166,7 +169,7 @@ class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true)
 		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true)
 		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true)
-		this.#keyboard.setAction(new Set(['Escape']), this,     (key) => this.unsetTarget(), true)
+		this.#keyboard.setAction(new Set(['Escape']), this,     (key) => this.stop(), true)
 
 		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true)
 		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true)
@@ -194,6 +197,79 @@ class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['Control','v']), this, (key) => {}, false)
 	}
 
+	start (target) {
+		if (!target) {
+			return;
+		}
+
+		console.log(`${this.appId} start text editing ${target}`)
+		this.stop();
+		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(target));
+		console.log(`${this.appId} Set text edit target to ${target.id}`)
+		
+		try {
+			this.container.isOperationAllowed('container.edit', this.target, this.appId)
+		} catch (e) {
+			console.log(`${this.appId} - container does not allow editing at all. Aborting`)
+			this.stop();
+			return;
+		}
+		
+		if (!this.isTargetTextEditable(this.target)) {
+			console.log(`${this.appId} - container not suitable for text editing. Aborting`)
+			this.stop();
+			return;
+		}	
+
+		this.cursor.setTarget(this.target)
+		let pos = this.container.getPosition(this.target)
+		//set interface position
+		pos.originX = 0.0
+		pos.originY = 1.0
+		this.container.setPosition(this.#interface, pos, this.appId)
+		this.#interface.style['min-width'] = this.container.getWidth(this.target)
+		
+		//bring up interface
+		this.container.show(this.#interface, this.appId)
+		this.container.bringToFront(this.#interface)
+		this.container.show(this.#cursorDiv, this.appId)
+		this.container.bringToFront(this.#cursorDiv, this.appId)
+
+		//these need to be ephemeral state, not sent to the server and propagated...
+		this.container.setMetadata(this.target, 'text-editing', true)
+		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
+		
+		this.#keyboard.enable();
+		this.container.componentStartedWork(this.appId, {})
+	}
+
+	stop () {
+		if (this.target) {
+			console.log(`${this.appId} stop text editing`)
+			this.container.componentStoppedWork(this.appId)
+
+			this.#keyboard.disable()
+			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
+			this.container.removeMetadata(this.target, 'text-editing')
+			
+			this.target = null;
+			this.cursor.setTarget(null);
+			this.container.hide(this.#cursorDiv, this.appId)
+			this.container.hide(this.#interface, this.appId)
+		}
+	}
+
+	tryFetchTarget (selection) {
+		if (!this.target) {
+			if (!selection) {
+				selection =  getSelection()
+			}
+			if (selection.length > 0) {
+				this.start(selection[0])
+			}
+		}
+	}
+
 	static isPrintableCharacter(key) {
 		return key.length === 1;
 	}
@@ -210,57 +286,16 @@ class ContainerTextInjector {
 	}
 
 	isTargetTextEditable(target) {
+		if (target === this.container.parent) {
+			return false;
+		}
+
 		for (const child of target.childNodes) {
 			if (!this.isLine(child)) {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	setTarget(id) {
-		this.unsetTarget();
-		this.#keyboard.enable();
-			
-		console.log(`Setting text edit target to ${id}`)
-		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(id));
-		
-		try {
-			this.container.isOperationAllowed('container.edit', this.target, this.appId)
-		} catch (e) {
-			this.unsetTarget();
-			return;
-		}
-		
-		if (!this.isTargetTextEditable(this.target)) {
-			return;
-		}	
-
-		//these need to be ephemeral state, not sent to the server and propagated...
-		this.container.setMetadata(this.target, 'text-editing', true)
-		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-		
-		this.cursor.setTarget(this.target)
-		let pos = this.container.getPosition(this.target)
-		//set interface position
-		pos.originX = 0.0
-		pos.originY = 1.0
-		this.container.setPosition(this.#interface, pos, this.appId)
-		this.#interface.style['min-width'] = this.container.getWidth(this.target)
-		this.container.show(this.#interface, this.appId)
-		this.container.bringToFront(this.#interface)
-	}
-
-	unsetTarget() {
-		this.#keyboard.disable()
-		if (this.target) {
-			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-			this.container.removeMetadata(this.target, 'text-editing')
-			
-			this.target = null;
-			this.cursor.setTarget(null);
-			this.container.hide(this.#interface, this.appId)
-		}
 	}
 
 	//doesn't support rich text yet
@@ -271,6 +306,10 @@ class ContainerTextInjector {
 	}
 
 	cut (event) {
+		if (!this.target) {
+			return;
+		}
+
 		this.deleteSelection();
 		event.preventDefault();
 	}
@@ -298,6 +337,11 @@ class ContainerTextInjector {
 	}
 
 	cursorUp () {
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		let curStat = this.cursor.getPosition()
 		console.log("Cursor Up")
 		console.log(this.cursor.putAt(curStat.lineNumber - 1, curStat.charNumber))
@@ -305,6 +349,11 @@ class ContainerTextInjector {
 	}
 
 	cursorDown () {
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		let curStat = this.cursor.getPosition()
         console.log("Cursor Down")
         console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
@@ -312,12 +361,22 @@ class ContainerTextInjector {
 	}
 
 	cursorLeft () {
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		console.log("Cursor Left")
 		console.log(this.cursor.move(-1))
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	cursorRight () {
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		console.log("Cursor Right")
 		console.log(this.cursor.move(1))
 		this.cursorUpdateVisible(this.#cursorDiv)
@@ -666,6 +725,11 @@ class ContainerTextInjector {
 	}
 
 	addPrintable(text) {
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		this.styleTarget()
 		
 		//if there's a selection delete it first
@@ -696,6 +760,11 @@ class ContainerTextInjector {
 	ToDo: Seems to be working ok
 	*/
 	newLine() {
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		this.clearSelection()
 
 		let moveToNewLine = new Set([])
@@ -721,7 +790,11 @@ class ContainerTextInjector {
 	//BUG: sometimes this doesn't delete anyting... 
 	//BUG: fix forward deletion
 	removePrintable(count) {
-		
+		this.tryFetchTarget()
+		if (!this.target) {
+			return;
+		}
+
 		if (!count) {
 			return;
 		}

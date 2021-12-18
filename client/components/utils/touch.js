@@ -1,161 +1,161 @@
-// touchEvents = ['touchstart','touchend', 'touchcancel', 'touchmove']
+import { container } from "../../nodeshow.js"
+import { ACTIONS } from "../../Container.js"
+import { InputAccessManagerInstance as InputAccessManager} from "./inputAccessManager.js"
+import { InputManager } from "../utils/InputManager.js"
+import { findActionableAnchestor } from "../utils/common.js"
 
-// import { container } from "../../nodeshow.js"
-// import { ACTIONS } from "../../Container.js"
+export const EVENTS = {
+	'DOWN':'mouse.down',
+	'MOVE':'mouse.move',
+	'UP':'mouse.up',
+	'DRAG_START':'drag.start',
+	'DRAG_UPDATE':'drag.update',
+	'DRAG_END':'drag.end',
+	'CLICK': 'container.click',
+	'DOUBLE_CLICK':'container.dblclick',
+	'ZOOM':'',
+	'ROTATE':''
+}
 
-// let appId = 'core-editing' //Temporary, think this up
+let appId = 'core-touch'
+let FOCUS_TRESHOLD = 5
+let focusTarget = null;
+let target = null
+let targetMetadata = {};
 
-// let target = null
-// let targetMetadata = {};
+let moved = 0;
+let lastX = 0;
+let lastY = 0;
 
-// let moved = 0;
-// let lastX = 0;
-// let lastY = 0;
+let dblClickTreshold = 300;
+let lastClickTime = 0;
 
-// function findActionableAnchestor(target) {
-// 	if (!target || target === container.parent) {
-// 		return null;
-// 	}
-	
-// 	try {
-// 		container.isOperationAllowed('container.edit', target, appId)
-// 		container.isOperationAllowed('container.edit.pos', target, appId)
-// 	} catch(e) {
-// 		return null;
-// 	}
+//ignore multitouch for now
+function handleStart(e) {
+	if (!container.owns(e.target)) {
+		console.log('Touch on not owned item')
+		console.log(e)
+		return null;
+	}
 
-// 	//ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
-// 	if (container.getMetadata(target, 'text-editing')) {
-// 		return null;
-// 	}
-	
-// 	try {
-// 		container.isOperationAllowed(ACTIONS.setPosition, target, appId)
-// 		return target
-// 	} catch (e) {
-// 		return findActionableAnchestor(target.parentNode)
-// 	}
-// }
+	let eventType = e.type;
+	let touch = e.touches[0]
 
-// function mouseDown(e) {
-	
-// 	let eventType = event.type;
-// 	target = findActionableAnchestor(event.target)
-// 	if (target) {
+	target = findActionableAnchestor(e.target, appId)
+	if (target) {
+		focusTarget = target
 		
-// 		targetMetadata['targetOx'] = event.layerX / container.getWidth(target) 
-// 		targetMetadata['targetOy'] = event.layerY / container.getHeight(target)
+		targetMetadata['targetOx'] = touch.layerX / container.getWidth(target) 
+		targetMetadata['targetOy'] = touch.layerY / container.getHeight(target)
 
-// 		moved = 0;
-// 		event.preventDefault();
-// 		container.emit('drag.start',{
-// 			id:target.id,
-// 			dx: 0,
-// 			dy: 0,
-// 			moved: 0, 
-// 			targetOx: targetMetadata.targetOx,
-// 			targetOy: targetMetadata.targetOy,
-// 			originalEvent: event});
-// 	}	
-// }
+		moved = 0;
+		container.emit('drag.start',{
+			id:target.id,
+			dx: 0,
+			dy: 0,
+			moved: 0, 
+			targetOx: targetMetadata.targetOx,
+			targetOy: targetMetadata.targetOy,
+			originalEvent: e});
+		container.emit('container.blur', {});
+		e.preventDefault();
+	}
+}
 
-// function mouseMove(e) {
-// 	if (target) {
-// 		let dx = event.screenX - lastX;
-// 		let dy = event.screenY - lastY;
+function handleMove(e) {
+	let touch = e.touches[0]
+	if (target) {
+		let dx = touch.screenX - lastX;
+		let dy = touch.screenY - lastY;
 
-// 		moved += Math.sqrt(Math.pow(Math.abs(dx),2) + Math.pow(Math.abs(dy),2))
+		moved += Math.sqrt(Math.pow(Math.abs(dx),2) + Math.pow(Math.abs(dy),2))
 		
-// 		event.preventDefault();
+		container.emit('drag.update',{
+			id:target.id,
+			dx:dx,
+			dy:dy,
+			moved: moved, 
+			targetOx: targetMetadata.targetOx,
+			targetOy: targetMetadata.targetOy,
+			originalEvent: e
+		});
 
-// 		container.emit('drag.update',{
-// 			id:target.id,
-// 			dx:dx,
-// 			dy:dy,
-// 			moved: moved, 
-// 			targetOx: targetMetadata.targetOx,
-// 			targetOy: targetMetadata.targetOy,
-// 			originalEvent: event
-// 		});
-// 	}
+		container.emit('container.blur', {});
+		e.preventDefault();
+	}
 
-// 	lastX = event.screenX;
-// 	lastY = event.screenY;
-// }
+	lastX = touch.screenX;
+	lastY = touch.screenY;
+}
 
-// //ToDo: deprecate and move to Touch.js
-// 	handleTouchEvent(event) {
-// 		if (event.type in ['touchend', 'touchcancel']) {
-// 			this.handleMouseEvent(event)
-// 		} else {
-// 			let touch = event.touches[0]
-// 			let evt = {
-// 				type: event.type,
-// 				pageX: touch.pageX,
-// 				pageY: touch.pageY,
-// 				originalEvent: {
-// 					screenX: touch.screenX,
-// 					screenY: touch.screenY
-// 				},
-// 				target: event.target
-// 			}
+function handleCancel(e) {
+	handleEnd(e);
+}
 
-// 			this.handleMouseEvent(evt)
-// 		}
-// 	}
+function handleEnd(e) {
+	let touch = e.touches[0]
+	if (target) {
+		container.emit('drag.end',{
+			id:target.id,
+			dx: 0, //ToDo: incorrect
+			dy: 0,
+			moved: moved,
+			targetOx: targetMetadata.targetOx,
+			targetOy: targetMetadata.targetOy, 
+			originalEvent: e
+		});
 
-// function mouseUp(e) {
-	
-// 	if (target) {
-// 		container.emit('drag.end',{
-// 			id:target.id,
-// 			dx: 0, //ToDo: incorrect
-// 			dy: 0,
-// 			moved: moved,
-// 			targetOx: targetMetadata.targetOx,
-// 			targetOy: targetMetadata.targetOy, 
-// 			originalEvent: event
-// 		});
-		
-		
-// 		target = null;
-// 		event.preventDefault();
-// 	}
-// }
+		if (moved <= FOCUS_TRESHOLD) {
+			container.emit('container.focus', {id:target.id})
+			container.emit('container.click', {id:target.id, originalEvent:e})
+			//was click
+			let dnow = Date.now()
+			if (dnow - lastClickTime <= dblClickTreshold) {
+				container.emit('container.dblclick', {id:target.id, originalEvent:e})
+			}
+			lastClickTime = dnow
+		}
 
-// document.addEventListener('mouseup', mouseUp)
-// document.addEventListener('mousemove', mouseMove)
-// document.addEventListener('mousedown', mouseDown)
+		target = null;
+		e.preventDefault();
+	}
+}
 
-// export class Mouse {
-// 	#appId = null
-// 	#handlers = {}
+document.addEventListener("touchstart", handleStart, false);
+document.addEventListener("touchend", handleEnd, false);
+document.addEventListener("touchcancel", handleCancel, false);
+document.addEventListener("touchmove", handleMove, false);
 
-// 	constructor(appId, start, update, end) {
-// 		console.log(`Mouse dragger instance created for ${appId}`)
-// 		this.#appId = appId
-// 		if (start) {
-// 			this.#handlers['drag.start'] = start;	
-// 		}
+let TouchManager = new InputManager(InputAccessManager, EVENTS);
 
-// 		if (update) {
-// 			this.#handlers['drag.update'] = update;
-// 		}
+export class Touch {
+	#appId = null
+	#handlers = {}
 
-// 		if(end) {
-// 			this.#handlers['drag.end'] = end;
-// 		}
-// 	}
+	constructor(appId) {
+		console.log(`NEW Touch manager instance created for ${appId}`)
+		this.#appId = appId
+	}
 
-// 	enable() {
-// 		for (const [event, callback] of Object.entries(this.#handlers)) {
-// 			document.addEventListener(event, callback)
-// 		}
-// 	}
+	enable() {
+		for (const [event, callback] of Object.entries(this.#handlers)) {
+			document.addEventListener(event, callback)
+		}
+	}
 
-// 	disabled() {
-// 		for (const [event, callback] of Object.entries(this.#handlers)) {
-// 			document.removeEventListener(event, callback)
-// 		}
-// 	}
-// }
+	disable() {
+		for (const [event, callback] of Object.entries(this.#handlers)) {
+			document.removeEventListener(event, callback)
+		}
+	}
+
+	setAction(event, callback) {
+		this.#handlers[event] = callback;
+	}
+
+	getFocusTarget() {
+		return focusTarget
+	}
+}
+
+export { TouchManager as TouchManager }

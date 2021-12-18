@@ -72,6 +72,9 @@ export class Container {
 
     //<utils>
     static clone(obj) {
+        if (!obj) {
+            return null;
+        }
         return JSON.parse(JSON.stringify(obj))
     }
 
@@ -293,7 +296,10 @@ export class Container {
             throw `${name} component is already registered`
         }
 
-        this.components[name] = pointer;
+        this.components[name] = {
+            pointer:pointer
+        }
+
         console.log(`Registered ${name}`);
         this.emit(ACTIONS.componentAdded, {
             name: name
@@ -317,9 +323,9 @@ export class Container {
     }
 
     getComponent(appName) {
-        for (const [name, pointer] of Object.entries(this.components)) {
+        for (const [name, componentData] of Object.entries(this.components)) {
             if (appName == name) {
-                return pointer
+                return componentData.pointer
             }
         }
 
@@ -328,6 +334,34 @@ export class Container {
 
     listComponents() {
         return Object.keys(this.components)
+    }
+
+    componentStartedWork(appId, settings) {
+        if (!(appId in this.components)) {
+            return;
+        }
+
+        //make it mutually exclusive for now. Any existing work sessions will be stopped when a new one starts.
+        for (const [id, compData] of Object.entries(this.components)) {
+            if ('workSession' in compData) {
+                try {
+                    compData.pointer.stop();    
+                } catch (e) {
+                    console.log(`[CORE]: failed to stop existing work session on ${id}`)
+                }
+                this.componentStoppedWork(id)
+            }
+        }
+
+        this.components[appId]['workSession'] = settings
+    }
+
+    componentStoppedWork(appId) {
+        if (!(appId in this.components)) {
+            return;
+        }
+
+        delete this.components[appId]['workSession']
     }
     //</extensions subsystem>
     

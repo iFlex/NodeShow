@@ -1,4 +1,7 @@
 Client Features:
+
+* Stop using focus and blur, use container select
+
 1. Create, Delete content containers (via: UI & keyboard)
 2. Move, Size,  [[maybe: Rotate
 3. Text Edit (via: Keyboard & UI)
@@ -13,9 +16,16 @@ Client Features:
 ::container.style [CRUDE]
 - customize container content arrangement 
 ::container.create [CRUDE]
+- container change display order
+- copy paste within presentation and accross presentations
 --------------------------------------------
 
 Current Prios:
+[MUST-HAVE]: Standardize core. have it documented. Add tests
+[MUST-HAVE]: standardize all apps to use utils for mouse and keyboard events.
+[TODO]: socker.io won't fire items with large payloads in them. Find a solution for large payloads
+[TODO]: split container.create to not have the inner organisation interface and create new app container.content.arrange
+
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
 [core]: [must-have] when creating within a parent, or changing parents - have the child conform to parent rules by default 
@@ -66,7 +76,12 @@ ContentConfig (choose things like position: relative, etc, wrapping)
 - container actions: name an event that would trigger a function
 e.g. data-action:{event:"onClick",action:"container.setPosition",params:[10,10]}
 
-Server
+SERVER
+! properly integrate user authentication & authorization
+! add roles and integrate robot (for mfs-news-stand)
+! have a landing page showing all presentations (paged maybe?)
+ -> ! separate per user
+
 0. Ability to upload HTML and PDF files to the Server 
    - PDF files will be converted to HTML by the Server
    - then sanitized to remove all script forms
@@ -105,3 +120,19 @@ HTTP Server -------- Users
                                                 - etc
 
                             permissions   ---- Authorization Engine
+
+
+
+
+From making Don's christmas card:
+* change ownership of elements
+* change container actions per element
+* find out containerIDs
+* change permissions on container
+* !change draw order of containers!
+
+Most annoying:
+containers kept disappearing randomly - setting me back
+server persist failed without feedback on screen. e.g. couldn't import beteala.png at all - setting me back
+couldn't change display order (had to edit json) - setting me back
+couldn't change actions (had to edit json) - setting me back

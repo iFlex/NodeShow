@@ -1,7 +1,11 @@
 import { container } from "../../nodeshow.js"
 import { ACTIONS } from "../../Container.js"
+import { InputAccessManagerInstance as InputAccessManager, ACCESS_REQUIREMENT } from "./inputAccessManager.js"
+import { InputManager } from "../utils/InputManager.js"
+import { findActionableAnchestor } from "../utils/common.js"
 
-let appId = 'core-editing' //Temporary, think this up
+//ToDo: ensure click and double click events take distance from origin point into account
+let appId = 'core-mouse' //Temporary, think this up
 
 let FOCUS_TRESHOLD = 5
 let focusTarget = null;
@@ -12,47 +16,35 @@ let moved = 0;
 let lastX = 0;
 let lastY = 0;
 
-function findActionableAnchestor(target) {
-	if (!target) {
-		return null;
-	}
-	
-	try {
-		container.isOperationAllowed('container.edit', target, appId)
-		container.isOperationAllowed('container.edit.pos', target, appId)
-	} catch(e) {
-		return null;
-	}
+let dblClickTreshold = 300;
+let lastClickTime = 0;
 
-	//ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
-	if (container.getMetadata(target, 'text-editing')) {
-		return null;
-	}
-	
-	try {
-		container.isOperationAllowed(ACTIONS.setPosition, target, appId)
-		return target
-	} catch (e) {
-		if (target === container.parent) {
-			return null;
-		}
-		return findActionableAnchestor(target.parentNode)
-	}
+export const EVENTS = {
+	'DOWN':'mouse.down',
+	'MOVE':'mouse.move',
+	'UP':'mouse.up',
+	'DRAG_START':'drag.start',
+	'DRAG_UPDATE':'drag.update',
+	'DRAG_END':'drag.end',
+	'CLICK': 'container.click',
+	'DOUBLE_CLICK':'container.dblclick'
 }
 
 function mouseDown(e) {
-	if (!container.owns(event.target)) {
+	if (!container.owns(e.target)) {
 		console.log('Mouse click on not owned item')
-		console.log(event)
+		console.log(e)
 		return null;
 	}
 
-	let eventType = event.type;
-	target = findActionableAnchestor(event.target)
-	if (target) {
+	let eventType = e.type;
 		
-		targetMetadata['targetOx'] = event.layerX / container.getWidth(target) 
-		targetMetadata['targetOy'] = event.layerY / container.getHeight(target)
+	target = findActionableAnchestor(e.target, appId)
+	if (target) {
+		focusTarget = target
+		
+		targetMetadata['targetOx'] = e.layerX / container.getWidth(target) 
+		targetMetadata['targetOy'] = e.layerY / container.getHeight(target)
 
 		moved = 0;
 		container.emit('drag.start',{
@@ -62,19 +54,18 @@ function mouseDown(e) {
 			moved: 0, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
-			originalEvent: event});
+			originalEvent: e});
 		container.emit('container.blur', {});
-		event.preventDefault();
+		e.preventDefault();
 	}	
 }
 
 function mouseMove(e) {
 	if (target) {
-		let dx = event.screenX - lastX;
-		let dy = event.screenY - lastY;
+		let dx = e.screenX - lastX;
+		let dy = e.screenY - lastY;
 
 		moved += Math.sqrt(Math.pow(Math.abs(dx),2) + Math.pow(Math.abs(dy),2))
-		
 		
 		container.emit('drag.update',{
 			id:target.id,
@@ -83,16 +74,15 @@ function mouseMove(e) {
 			moved: moved, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
-			originalEvent: event
+			originalEvent: e
 		});
 
 		container.emit('container.blur', {});
-		focusTarget = null;
-		event.preventDefault();
+		e.preventDefault();
 	}
 
-	lastX = event.screenX;
-	lastY = event.screenY;
+	lastX = e.screenX;
+	lastY = e.screenY;
 }
 
 function mouseUp(e) {	
@@ -104,16 +94,22 @@ function mouseUp(e) {
 			moved: moved,
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy, 
-			originalEvent: event
+			originalEvent: e
 		});
 
 		if (moved <= FOCUS_TRESHOLD) {
 			container.emit('container.focus', {id:target.id})
-			focusTarget = target
+			container.emit('container.click', {id:target.id, originalEvent:e})
+			//was click
+			let dnow = Date.now()
+			if (dnow - lastClickTime <= dblClickTreshold) {
+				container.emit('container.dblclick', {id:target.id, originalEvent:e})
+			}
+			lastClickTime = dnow
 		}
 
 		target = null;
-		event.preventDefault();
+		e.preventDefault();
 	}
 }
 
@@ -124,44 +120,43 @@ function mouseUp(e) {
 document.addEventListener('mouseup', mouseUp)
 document.addEventListener('mousemove', mouseMove)
 document.addEventListener('mousedown', mouseDown)
+ 
+let MManager = new InputManager(InputAccessManager, EVENTS);
 
 export class Mouse {
 	#appId = null
 	#handlers = {}
+	#mmanager = MManager
 
-	constructor(appId, start, update, end, focus, blur) {
-		console.log(`NEW MOUSE dragger instance created for ${appId}`)
+	constructor(appId) {
+		console.log(`NEW MOUSE handler instance created for ${appId}`)
 		this.#appId = appId
-		if (start) {
-			this.#handlers['drag.start'] = start;	
-		}
+	}
 
-		if (update) {
-			this.#handlers['drag.update'] = update;
-		}
+	getId() {
+		return this.#appId
+	}
 
-		if (end) {
-			this.#handlers['drag.end'] = end;
+	getEvents() {
+		let result = {}
+		for ( const [key, value] of Object.entries(this.#handlers) ) {
+			result[key] = value
 		}
-
-		if (focus) {
-			this.#handlers['container.focus'] = focus;
-		}
-
-		if (blur) {
-			this.#handlers['container.blur'] = blur;
-		}
+		return result
 	}
 
 	enable() {
-		for (const [event, callback] of Object.entries(this.#handlers)) {
-			document.addEventListener(event, callback)
-		}
+		this.#mmanager.register(this)
 	}
 
 	disable() {
-		for (const [event, callback] of Object.entries(this.#handlers)) {
-			document.removeEventListener(event, callback)
+		this.#mmanager.unregister(this)
+	}
+
+	setAction(event, callback, accessReq) {
+		this.#handlers[event] = {
+			callback:callback,
+			access: accessReq
 		}
 	}
 
@@ -169,3 +164,5 @@ export class Mouse {
 		return focusTarget
 	}
 }
+
+export { MManager as MiceManager }

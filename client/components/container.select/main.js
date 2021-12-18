@@ -2,11 +2,13 @@
 // This may be unnecessary
 import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
-import { Mouse } from '../utils/mouse.js'
+import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //[BUG]: selecting inside containers... positioning is bonkers
+//[BUG]: selecting via drag selects root container as well
 class ContainerGrouping {
 	#container = null;
 	appId = "container.select"
@@ -42,11 +44,14 @@ class ContainerGrouping {
 		container.registerComponent(this);
 		
 		this.#overlap = new ContainerOverlap(container);
-		this.#mouse = new Mouse(this.appId, (e) => this.handleDragStart(e), (e) => this.handleDragUpdate(e), (e) => this.handleDragEnd(e));
 		
-		this.#keyboard = new Keyboard(this.#container, this.appId);
-		this.#keyboard.setAction(new Set(['Shift']), this, (key) => this.enableMultiselect(key), true)
-		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (key) => this.disableMultiselect(key), true)
+		this.#mouse = new Mouse(this.appId);
+		this.#mouse.setAction(MouseEvents.CLICK, (e) => this.singleSelect(e.detail.id))
+		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
+		
+		this.#keyboard = new Keyboard(this.appId);
 	}
 
 	enable () {
@@ -70,26 +75,22 @@ class ContainerGrouping {
 		return this.#enabled
 	}
 
-	enableMultiselect () {
-		this.#canSelect = true
-	}
+	start () {
+		this.#container.componentStartedWork(this.appId, {})
+	} 
 
-	disableMultiselect () {
-		this.#canSelect = false
+	stop () {
+		this.#container.componentStoppedWork(this.appId)
+		//ToDo: actually end the selection process
 	}
 
 	handleDragStart (e) {
-		this.#selectParent = this.#container.parent;
-		try {
-			this.#selectParent = this.#container.lookup(e.detail.id)
-		} catch( ex ){
-			//pass
-		}
-		
+		this.#selectParent = this.#container.lookup(e.detail.id)
 		this.#startPos = {
 			top:e.detail.originalEvent.pageY,
 			left:e.detail.originalEvent.pageX,
 		}
+		this.start();
 	}
 
 	handleDragUpdate (e) {
@@ -97,7 +98,7 @@ class ContainerGrouping {
 			return
 		}
 
-		if (!this.#selector){
+		if (!this.#selector) {
 			this.#selector = this.#container.createFromSerializable(this.#selectParent, this.#selectorDescriptor, null, this.appId)
 			this.#container.setPosition(this.#selector, this.#startPos, this.appId)
 		}
@@ -124,6 +125,7 @@ class ContainerGrouping {
 	}
 
 	handleDragEnd (e) {
+		this.stop();
 		//import children into selection container
 		if (!this.#selector) {
 			return;
@@ -131,9 +133,10 @@ class ContainerGrouping {
 
 		let overlapped = this.#overlap.getOverlappingSiblings(this.#selector)
 		
-		this.#selection = []
+		this.clearSelection();
 		for (let entry of overlapped) {
 			this.#selection.push(entry.id)
+			$(this.#container.lookup(entry.id)).addClass('ns-selected')
 		}
 		
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
@@ -142,11 +145,23 @@ class ContainerGrouping {
 		this.#startPos = null;
 	}
 
+	singleSelect (id) {
+		this.clearSelection();
+		let target = this.#container.lookup(id)
+		$(target).addClass('ns-selected')
+		this.#selection = [target]
+		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
+	}
+
 	getSelection() {
-		return this.#selection
+		return this.#selection.slice();
 	}
 
 	clearSelection() {
+		for ( const item of this.#selection ) {
+			$(item).removeClass('ns-selected');
+		}
+
 		this.#selection = []
 	}
 }
