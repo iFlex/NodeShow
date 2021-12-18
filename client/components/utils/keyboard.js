@@ -165,9 +165,9 @@ export class Keyboard {
             this.#pressedNonPrintables.delete(e.key)
         }
 
-        // console.log(`KEY_UP(${this.#callerId}) ${e.key}`)
-        // console.log(this.#pressedPrintables)
-        // console.log(this.#pressedNonPrintables)
+        console.log(`KEY_UP(${this.#callerId}) ${e.key}`)
+        console.log(this.#pressedPrintables)
+        console.log(this.#pressedNonPrintables)
 	}
 
 }

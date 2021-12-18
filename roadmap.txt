@@ -29,7 +29,7 @@ Current Prios:
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
 [core]: [must-have] when creating within a parent, or changing parents - have the child conform to parent rules by default 
-(e.g. respect parent stylign suggesionts)
+(e.g. respect parent stylign suggestionts)
 
 [text-editor]: BUG: fix forward deletion
  -> activate text editor only after keyboard event?
@@ -37,17 +37,16 @@ Current Prios:
 
 [ISSUE]: application interacting with each other. e.g. grouper & change pos
 [BUG]: some interface content still gets persisted...
-[BUG]: broken repell direction
-- [must have] introduce a focus concept: when you click on a container it is in focus, do something else and you lose focus
+- [must have] introduce a focus concept: when you click on a container it is in focus, do something else and you lose focus. ::Done by container.select app
 - [must have] way to send things to back and bring them forward (context menu)
 - [must have] fix linker 
-- [should have] finish content importer
+- [should have] polish content importer
 - [nice to have] create aligner
 - [nice to have] drag on screen to select
 - [nice to have] minimap
 - [nice to have] collaborators & follow
 - [should have] Authentication
-- [should consider] Cnosider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
+- [should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 
 Current purpose:
 Serve as a view controller for my newsstand application. 

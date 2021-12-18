@@ -67,13 +67,13 @@ class ContainerLineage {
         this.target = null
     }
 
-    findLargestOverlap () {
+    findLargestOverlap (target) {
         //check siblings and decide which one has the largest overlap
-        let children = this.target.parentNode.children
+        let children = target.parentNode.children
         let largestOverlapPercent = 0;
         let largestOverlapRec = null;
         
-        let overlaps = this.#overlap.getOverlappingSiblings(this.target)
+        let overlaps = this.#overlap.getOverlappingSiblings(target)
         for ( const overlapRec of overlaps ) {
             if (largestOverlapPercent < overlapRec.overlapPercent) {
                 largestOverlapPercent = overlapRec.overlapPercent
@@ -110,21 +110,21 @@ class ContainerLineage {
     }
 
     parentUp(id) {
-        let target = this.container.lookup(id)
-        if (target === this.container.parent) {
+        this.setTarget(id)
+        if (this.target === this.container.parent) {
             return;
         }
-        
-        this.changeParent(this.getGrandpa(target))
+            
+        this.changeParent(this.getGrandpa(this.target))
     }
 
     parentDown(id) {
-        let target = this.container.lookup(id)
-        if (target === this.container.parent) {
+        this.setTarget(id)
+        if (this.target === this.container.parent) {
             return;
         }
-        let largestOverlapPeerId = this.findLargestOverlap();
-        console.log(`${this.appId} - parentDown ${target.id} @ ${target.parentNode.id} -> ${largestOverlapPeerId}`) 
+        let largestOverlapPeerId = this.findLargestOverlap(this.target);
+        console.log(`${this.appId} - parentDown ${this.target.id} @ ${this.target.parentNode.id} -> ${largestOverlapPeerId}`) 
         if (largestOverlapPeerId) {
             this.changeParent(largestOverlapPeerId)
         }

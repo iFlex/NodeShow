@@ -291,11 +291,16 @@ class ContainerTextInjector {
 		}
 
 		for (const child of target.childNodes) {
-			if (!this.isLine(child)) {
-				return false;
+			if (this.isLine(child)) {
+				return true;
 			}
 		}
-		return true;
+
+		if (!target.childNodes || target.childNodes.length == 0) {
+			return true;
+		}
+		
+		return false;
 	}
 
 	//doesn't support rich text yet

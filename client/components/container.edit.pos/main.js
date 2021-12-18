@@ -1,6 +1,7 @@
 import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
+import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
@@ -11,7 +12,8 @@ class ContainerMover {
 	appId = "container.edit.pos"
 
 	#enabled = false
-	#mouse = null;
+	#mouse = null
+	#touch = null
 
 	#handlers = {}
 	#editableClass = 'editable:hover'
@@ -28,6 +30,11 @@ class ContainerMover {
 		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
+
+		this.#touch = new Touch(this.appId);
+		this.#touch.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#touch.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#touch.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#handlers['dragStart'] = (e) => e.preventDefault()
 		this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)

@@ -3,6 +3,7 @@ import { MiceManager } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ACCESS_REQUIREMENT, InputAccessManagerInstance } from '../utils/inputAccessManager.js'
 
+//ToDo: trigger text editor when a key is pressed on an empty focused container.
 class ContainerEditOrchestrator {
 	appId = "container.edit.orchestrator"
 	#container = null;

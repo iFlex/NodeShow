@@ -22,7 +22,7 @@ class ContainerContent {
         "computedStyle":{
           "top":"0px",
           "left":"0px",
-          "position":"absolute"
+          "position":"fixed"
         },
         "permissions":{"container.broadcast":{"*":false}}
       },
