@@ -27,14 +27,14 @@ class ContainerMover {
 		ngps.registerComponent(this);
 
 		this.#mouse = new Mouse(this.appId);
-		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
-		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#touch = new Touch(this.appId);
-		this.#touch.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#touch.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#touch.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
-		this.#touch.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#touch.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#handlers['dragStart'] = (e) => e.preventDefault()
 		this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)
@@ -97,8 +97,9 @@ class ContainerMover {
 		}, this.appId)
 	}
 
-	handleDragStart(e) {
-		this.target = this.container.lookup(e.detail.id)
+	start(id) {
+		this.target = this.container.lookup(id)
+		this.container.componentStartedWork(this.appId, {})
 	}
 
 	handleDragUpdate(e) {
@@ -116,8 +117,9 @@ class ContainerMover {
 			d.targetOx, d.targetOy)
 	}
 
-	handleDragEnd(e) {
+	stop() {
 		this.target = null;
+		this.container.componentStoppedWork(this.appId)
 	}
 }
 

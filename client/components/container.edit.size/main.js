@@ -20,9 +20,9 @@ class ContainerSizer {
 		ngps.registerComponent(this);
 
 		this.#mouse = new Mouse(this.appId);
-		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
-		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#keyboard = new Keyboard();
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
@@ -41,7 +41,6 @@ class ContainerSizer {
 		}
 	}
 
-	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
 		if (this.#enabled) {
 			this.#enabled = false
@@ -73,7 +72,7 @@ class ContainerSizer {
 				sign = -1
 			}
 		}
-		//ToDo: figure out sign	
+
 		if (dx < 0 && dy < 0) {
 			sign = -1
 		}
@@ -85,11 +84,12 @@ class ContainerSizer {
 	modifyContainer(targetId, dx, dy, x, y, targetOx, targetOy) {
 		let target = this.container.lookup(targetId)
 
-		let w = this.container.getWidth(target.id)
-		let h = this.container.getHeight(target.id)
+		let w = this.container.getWidth(target)
+		let h = this.container.getHeight(target)
+		console.log(`${this.appId} -> (${dx} + ${w}) (${dy} + ${h}) ${x} ${y}`)
 		
 		if (this.#presenveRatio) {
-			let change = this.keepRatio(target.id, w, h, dx, dy)
+			let change = this.keepRatio(target, w, h, dx, dy)
 			dx = change.dx;
 			dy = change.dy;
 		}
@@ -97,8 +97,9 @@ class ContainerSizer {
 		this.container.setHeight(target, h + dy, this.appId);
 	}
 
-	handleDragStart(e) {
-		this.target = this.container.lookup(e.detail.id)
+	start(id) {
+		this.target = this.container.lookup(id)
+		this.container.componentStartedWork(this.appId, {})
 	}
 
 	handleDragUpdate(e) {
@@ -116,8 +117,9 @@ class ContainerSizer {
 			d.targetOx, d.targetOy)
 	}
 
-	handleDragEnd(e) {
+	stop() {
 		this.target = null;
+		this.container.componentStoppedWork(this.appId, {})
 	}
 }
 

@@ -1,7 +1,3 @@
-//ToDo
-//fetch component interfaces and styles from server
-//load them into DOM
-
 //Node data attributes are strings
 //ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
 export const ACTIONS = {
@@ -419,7 +415,7 @@ export class Container {
         this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
         
         let prevWidth = this.getWidth(id);
-        jQuery(elem).css({width: width});
+        jQuery(elem).css({width: `${width}px`});
         this.emit(ACTIONS.setWidth, {
             id: elem.id, 
             width: width, 
@@ -433,7 +429,7 @@ export class Container {
         this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
         
         let prevHeight = this.getHeight(elem);
-        jQuery(elem).css({height: height});
+        jQuery(elem).css({height: `${height}px`});
         this.emit(ACTIONS.setHeight, {
             id: elem.id, 
             height: height, 
@@ -443,11 +439,11 @@ export class Container {
     }
     
     getWidth(id) {
-        return jQuery(Container.lookup(id)).width()
+        return jQuery(Container.lookup(id)).outerWidth()
 	}
 
 	getHeight(id) {
-        return jQuery(Container.lookup(id)).height()
+        return jQuery(Container.lookup(id)).outerHeight()
 	}
 
     getContentHeight (id) {

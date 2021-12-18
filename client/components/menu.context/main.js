@@ -10,15 +10,15 @@ class ContextMenu {
 
 	#defaultActions = [
 		{name: "X", action: "menu.context.stop"},
-		{name: "Delete", action: "delete"},
+		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "DeleteSparingChildren", action: ""},
 		{name: "Text", action: "container.edit.text.start"},
 		{name: "ParentDown", action: "container.lineage.parentDown"},
 		{name: "ParentUp", action: "container.lineage.parentUp"},
 		{name: "Collapse", action: ""},
 		{name: "Arrange", action: ""},
-		{name: "Copy", action: ""},
-		{name: "Paste", action: ""},
+		{name: "Copy", action: "", icon:"ns-copy-icon"},
+		{name: "Paste", action: "", icon:"ns-paste-icon"},
 		{name: "BringToFront", action: "bringToFront"},
 		{name: "SendToBack", action: "sendToBottom"}
 	]
@@ -107,14 +107,38 @@ class ContextMenu {
 		this.buildMenu();
 	}
 
+	makeItem(node, details) {
+		console.log(node)
+		let button = node.children[0]
+		
+		button.innerHTML = '';
+
+		if (details.icon) {
+			try {
+				let icon = document.getElementById(details.icon)
+				icon.style.display = "block"
+				button.appendChild(icon.cloneNode(true))	
+			} catch (e) {
+				console.log(`${this.appId} failed to lookup icon ${details.icon}`)
+				console.error(e)
+			}
+			
+		}
+		button.innerHTML += `<span>${details.name}</span>`
+		if (details.shortcut) {
+			button.innerHTML += `<span>${details.shortcut}</span>`
+		}
+
+		button.addEventListener('click', (e) => this.callAction(e, details.action))	
+	}
+
 	buildMenu() {
 		let root = document.getElementById('ns-context-menu')
 		root.innerHTML = ''
 
 		for ( const item of this.#actions ) {
 			let node = this.#buttonTemplate.cloneNode(true)
-			node.innerHTML = item.name
-			node.addEventListener('click', (e) => this.callAction(e, item.action))
+			this.makeItem(node, item)
 			root.appendChild(node)
 		}
 	}
