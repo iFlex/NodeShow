@@ -171,8 +171,8 @@ class ContainerLink {
                 document.removeEventListener(key, value)
             }
     
-            this.#container.delete(this.#leftDot, this.appId)
-            this.#container.delete(this.#rightDot, this.appId)
+            //this.#container.delete(this.#leftDot, this.appId)
+            //this.#container.delete(this.#rightDot, this.appId)
         }
     }
 

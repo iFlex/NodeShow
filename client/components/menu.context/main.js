@@ -10,16 +10,16 @@ class ContextMenu {
 	#interface = null
 
 	#defaultActions = [
-		{name: "X", action: "menu.context.stop"},
+		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click', icon:'ns-new-icon'},
 		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "deleteSparingChildren", shortcut:'End', icon:'ns-delete-icon'},
 		{name: "Text", action: "container.edit.text.start"},
 		{name: "ParentDown", action: "container.lineage.parentDown", shortcut:'Shift+<'},
 		{name: "ParentUp", action: "container.lineage.parentUp", shortcut:'Shift+>'},
 		{name: "Collapse", action: "collapse", shortcut: 'Ctrl+Down'},
-		{name: "Arrange", action: ""},
-		{name: "Copy", action: "", icon:"ns-copy-icon", shortcut:'Ctrl+C'},
-		{name: "Paste", action: "", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
+		{name: "Arrange[X]", action: ""},
+		{name: "Copy[X]", action: "", icon:"ns-copy-icon", shortcut:'Ctrl+C'},
+		{name: "Paste[X]", action: "", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
 		{name: "Send To Front", action: "bringToFront", shortcut:'Ctrl+}'},
 		{name: "Send To Back", action: "sendToBottom", shortcut:'Ctrl+{'}
 	]
@@ -163,6 +163,10 @@ class ContextMenu {
 	    }
 
 	    this.stop();
+	}
+
+	createContainerWrapper(e) {
+		
 	}
 }
 

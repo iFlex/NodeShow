@@ -1,23 +1,27 @@
 Client Features:
-1. Create, Delete content containers (via: UI & keyboard)
-2. Move, Size,  [[maybe: Rotate
-3. Text Edit (via: Keyboard & UI)
-- group (drag on screen to create a new parent for the captured elements) ::container.grouping
-- select (drag on screen to select containers) ::container.select
-- change ownership (change parent to grandparent or sibling) ::container.lineage
-- insert content (img, video, svg, etc) ::container.content
-- link containers ::container.link [BROKEN]
-- collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude) 
-::builtin core
-- customize container style  (shape, color, border, width, heght nature (e.g. % or px or inherit)) 
+1.  Create, Delete content containers (via: UI & keyboard)
+2.  Move, Size,  [[maybe: Rotate
+3.  Text Edit (via: Keyboard & UI)
+4.  Group (drag on screen to create a new parent for the captured elements) ::container.grouping
+5.  Select (drag on screen to select containers) ::container.select
+6.  Change Ownership (change parent to grandparent or sibling) ::container.lineage
+7.  Style Container  (shape, color, border, etc) 
 ::container.style [CRUDE]
-- customize container content arrangement 
-::container.create [CRUDE]
-- container change display order
-- copy paste within presentation and accross presentations
+8   Copy/Paste within presentation and accross presentations ::container.clipboard
+------------------------------------------------------------------------------
+9  !Link Containers ::container.link [BROKEN & NEEDS PERSISTING MECHANISM]
+10 !Collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, crude) 
+::builtin core - Experiental
+11 !Display Order Change & ensure persist respects it
+
+12 !Content Insertion (img, video, svg, etc) ::container.content
+  => Needs server & client modification to support uploading heavy content straight to server
+13  Configure Container: (order, child style, positioning, etc) 
 --------------------------------------------
 
 Current Prios:
+[BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
+[BUG]: container.action fix remove action
 [BUG][MUST-FIX]: Keyaboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed
 [MUST-HAVE]: Standardize core. have it documented. Add tests
 [MUST-HAVE]: standardize all apps to use utils for mouse and keyboard events.
@@ -31,49 +35,29 @@ Current Prios:
 
 [SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
  -> activate text editor only after keyboard event?
-
-[BUG]: some interface content still gets persisted...
-:: might have been fixed with permission: container.bridge denied on interface & data-ignore for indexing
-
-- [must have] introduce a focus concept: when you click on a container it is in focus, do something else and you lose focus. ::Done by container.select app
-- [must have] way to send things to back and bring them forward (context menu)
-- [must have] fix linker 
-- [should have] polish content importer. Send large files directly to server and import via link
-- [nice to have] create aligner
-- [nice to have] minimap
-- [nice to have] collaborators & follow
-- [should have] Authentication
+ 
+- [nice to have] Create Aligner
+- [nice to have] Minimap
+- [nice to have] Collaborators & Follow
+- [should have]  Authentication
 - [should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 - [nice to have] should be allowed to add container actions that trigger only in presentation mode or on preview.
 
 Current purpose:
-Serve as a view controller for my newsstand application. 
-It will receive updates in the form of HTML news bits which will get displayed on screen
+[OK] Serve as a view controller for my newsstand application. It receives updates in the form of HTML news bits which will get displayed on screen & presisted for later view.
+[MEH] Create interactive cards (christmas, new year, birthday, etc)
 
 Next Purpose:
-Grow into a diagraming tool to represent systems
+Create Spatial documents / diagrams. E.g. Take DnD notes. Diagram a System
 
 Stretch purpose:
-Create 'living' diagrams (that can update themselves with status information) 
-or even intaractive dashboards
+Create 'living' diagrams (that can update themselves with status information)
+or even intaractive dashboards?
 Don't know for sure yet if this is feasable... (there are existing tools for such things already)
 
-Client
--------------------------
-* ContainerCollapser - a way to collapse containers in a smart way in order to enable a big picture & detailed picture view of the document
-Nice to have, maybe in the future whenever i have time:
-TextInjector - [status: Partial implementation]
-- Event System Wrapper (integrated with socket)
-ContainerMove
-ContainerSize - no mobile
-ContainerStyle (css tags)
-ContentConfig (choose things like position: relative, etc, wrapping)
-[core] AppManager (Load/Unload Start/Stop)
-- download app interfaces from Server (html, css)
-- container actions: name an event that would trigger a function
-e.g. data-action:{event:"onClick",action:"container.setPosition",params:[10,10]}
 
 SERVER
+----------------------------------------
 ! properly integrate user authentication & authorization
 ! add roles and integrate robot (for mfs-news-stand)
 ! have a landing page showing all presentations (paged maybe?)

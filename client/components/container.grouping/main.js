@@ -57,12 +57,12 @@ class ContainerGrouping {
 		}
 	}
 
-	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
 		if (this.#enabled) {
 			this.#enabled = false
 			this.#mouse.disable();
 			this.#keyboard.disable();
+			this.stop();
 		}
 	}
 
@@ -82,6 +82,8 @@ class ContainerGrouping {
 		this.#startPos = {
 			top:e.detail.originalEvent.pageY,
 			left:e.detail.originalEvent.pageX,
+			sy: e.detail.originalEvent.screenY,
+			sx: e.detail.originalEvent.screenX
 		}
 		this.#grouper = this.#container.createFromSerializable(this.#groupParent, this.#groupDescriptor, null, this.appId)
 		this.#container.setPosition(this.#grouper, this.#startPos, this.appId)
@@ -97,8 +99,8 @@ class ContainerGrouping {
 		
 		let px = e.detail.originalEvent.pageX;
 		let py = e.detail.originalEvent.pageY;
-		let w = Math.abs(this.#startPos.left - px);
-		let h = Math.abs(this.#startPos.top - py);
+		let w = Math.abs(this.#startPos.sx - e.detail.originalEvent.screenX);
+		let h = Math.abs(this.#startPos.sy - e.detail.originalEvent.screenY);
 		
 		if ( px < pos.left ) {
 			pos.left = px;

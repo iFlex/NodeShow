@@ -1,7 +1,7 @@
 import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
 
-//[BUG]: actions aren't saved...
+//[BUG]: unsetting actions and permissions dones't work
 class ContainerJsonEdit {
 	appId = 'container.edit.json'
 	container = null;

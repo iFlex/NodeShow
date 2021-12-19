@@ -7,9 +7,12 @@ import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
-//[BUG]: selecting inside containers... positioning is bonkers
+//[BUG]: selecting upward and left inside containers... positioning is bonkers. 
+//Had to use screenX and screenY for width computation
+//read up on pageX and pageY - it has to do with this bug
+
 //[BUG]: selecting via drag selects root container as well
-class ContainerGrouping {
+class ContainerSelect {
 	#container = null;
 	appId = "container.select"
 	displayName = "Select"
@@ -53,6 +56,8 @@ class ContainerGrouping {
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
 		
 		this.#keyboard = new Keyboard(this.appId);
+		//This conflicts with text editor 'Escape'
+		//this.#keyboard.setAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
 	}
 
 	enable () {
@@ -69,6 +74,9 @@ class ContainerGrouping {
 			this.#enabled = false
 			this.#mouse.disable();
 			this.#keyboard.disable();
+			
+			this.clearSelection();
+			this.stop();
 		}
 	}
 
@@ -81,18 +89,21 @@ class ContainerGrouping {
 	} 
 
 	stop () {
-		this.#container.componentStoppedWork(this.appId)
 		this.#container.delete(this.#selector, this.appId)
 		this.#selector = null;
+		this.#container.componentStoppedWork(this.appId)
 	}
 
 	handleDragStart (e) {
 		this.start();
 		this.#selectParent = this.#container.lookup(e.detail.id)
 		this.#startPos = {
-			top:e.detail.originalEvent.pageY,
-			left:e.detail.originalEvent.pageX,
+			top: e.detail.originalEvent.pageY,
+			left: e.detail.originalEvent.pageX,
+			sy: e.detail.originalEvent.screenY,
+			sx: e.detail.originalEvent.screenX
 		}
+		console.log(this.#startPos)
 	}
 
 	handleDragUpdate (e) {
@@ -110,8 +121,8 @@ class ContainerGrouping {
 		
 		let px = e.detail.originalEvent.pageX;
 		let py = e.detail.originalEvent.pageY;
-		let w = Math.abs(this.#startPos.left - px);
-		let h = Math.abs(this.#startPos.top - py);
+		let w = Math.abs(this.#startPos.sx - e.detail.originalEvent.screenX);
+		let h = Math.abs(this.#startPos.sy - e.detail.originalEvent.screenY);
 		
 		if ( px < pos.left ) {
 			pos.left = px;
@@ -137,16 +148,18 @@ class ContainerGrouping {
 		this.clearSelection();
 		for (let entry of overlapped) {
 			this.#selection.push(entry.id)
-			$(this.#container.lookup(entry.id)).addClass('ns-selected')
+			let node = this.#container.lookup(entry.id)
+			$(node).addClass('ns-selected')
 		}
 		
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
-		this.stop();
+		this.stop()
 		this.#startPos = null;
 	}
 
 	singleSelect (id) {
 		this.clearSelection();
+
 		let target = this.#container.lookup(id)
 		$(target).addClass('ns-selected')
 		this.#selection = [target]
@@ -159,12 +172,13 @@ class ContainerGrouping {
 
 	clearSelection() {
 		for ( const item of this.#selection ) {
-			$(item).removeClass('ns-selected');
+			let node = this.#container.lookup(item)
+			$(node).removeClass('ns-selected');
 		}
 
 		this.#selection = []
 	}
 }
 
-let cselect = new ContainerGrouping(container)
+let cselect = new ContainerSelect(container)
 cselect.enable()

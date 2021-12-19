@@ -216,7 +216,6 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
     actions
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit){
-    console.log(rawDescriptor)
     let child = Container.lookup(childId)
     //bulindly applying all properties received
     for (const [tag, value] of Object.entries(rawDescriptor)) {

@@ -171,7 +171,7 @@ class ContainerEditOrchestrator {
 				{
 					name: comp.displayName || item, 
 					action: "container.edit.orchestrator.switchRoute", 
-					shortcut:  `${this.getShortcuts(item)}/Ctrl + ${i}`, 
+					shortcut:  `${this.getShortcuts(item)} / Ctrl + ${i}`, 
 					icon: this.getIconId(item),
 					params:[event, item, triggerNode]
 				})
