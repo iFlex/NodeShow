@@ -4,7 +4,10 @@ import { ACTIONS } from '../../Container.js'
 //ToDo: make it toggle extensions on and off as well as register and deregister
 class ContainerExtensionsManager {
     appId = 'container.extensions.manager'
-	#container = null;
+	transactional = true
+    displayName = "Apps"
+
+    #container = null;
     #interface = null;
     #componentModelDom = null
     #enabled = false
@@ -26,11 +29,17 @@ class ContainerExtensionsManager {
 			"nodeName":"div",
 			"computedStyle":{
 				"top":"0px",
-				"left":"0px",
+				"left":"250px",
 				"position":"fixed",
                 "width":"48px",
                 "height":"100%"
-			}
+			},
+            "data":{
+                "ignore":true
+            },
+            "permissions":{
+                "container.bridge":{"*":false}
+            }
 		},
 		null,
 		this.appId)
@@ -43,6 +52,7 @@ class ContainerExtensionsManager {
                 this.loadExistingComponents()
             }
         )
+        this.#container.hide(this.#interface, this.appId)
     }
 
     enable() {
@@ -147,4 +157,4 @@ class ContainerExtensionsManager {
 }
 
 let cext = new ContainerExtensionsManager(container, true);
-cext.enable()
+//cext.enable()

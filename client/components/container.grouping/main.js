@@ -10,6 +10,7 @@ import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 class ContainerGrouping {
 	#container = null;
 	appId = "container.grouping"
+	displayName = 'Group'
 
 	#enabled = false
 	#mouse = null;

@@ -6,6 +6,8 @@ import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 //support only straignt lines for now
 class ContainerLink {
     appId = 'container.link'
+    displayName = 'Link'
+    
 	#container = null;
     
     left = null;

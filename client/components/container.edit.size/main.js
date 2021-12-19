@@ -7,6 +7,7 @@ import { Keyboard } from '../utils/keyboard.js'
 class ContainerSizer {
 	container = null;
 	appId = "container.edit.size"
+	displayName = "Resize"
 
 	#enabled = false
 	#mouse = null;
@@ -24,7 +25,7 @@ class ContainerSizer {
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
-		this.#keyboard = new Keyboard();
+		this.#keyboard = new Keyboard(this.appId);
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
 			this.#presenveRatio = true
 		}, true)

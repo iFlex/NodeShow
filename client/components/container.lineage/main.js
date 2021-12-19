@@ -6,6 +6,9 @@ import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 //quite problematic currently as it causes disappearings
 class ContainerLineage {
     appId = 'container.lineage'
+    displayName = 'Lineage'
+    transactional = true
+    
     container = null
     target = null
     actOnDragEnd = true;

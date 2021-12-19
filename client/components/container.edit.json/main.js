@@ -1,10 +1,13 @@
 import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
 
+//[BUG]: actions aren't saved...
 class ContainerJsonEdit {
 	appId = 'container.edit.json'
 	container = null;
 	selection = null;
+	transactional = true
+    displayName = "JEdit"
 
 	#containerId = 'ns-container-id'
 	#actionsInput = 'ns-container-actions';
@@ -19,7 +22,7 @@ class ContainerJsonEdit {
 		this.container = container;
 		container.registerComponent(this);
 		
-		this.#handlers['container.select.selected'] = (e) => this.onFocus(e)
+		this.#handlers['container.select.selected'] = (e) => this.onFocus(e.detail.id)
 		this.#handlers['container.blur'] = (e) => this.onUnfocus(e)
 
 		this.#interface = this.container.createFromSerializable(document.body, {
@@ -27,9 +30,15 @@ class ContainerJsonEdit {
 			"computedStyle":{
 				"top":"0px",
 				"left":"128px",
-				"position":"absolute"
+				"position":"fixed"
 			},
-			"permissions":{"container.broadcast":{"*":false}}
+			"data":{
+		    	"ignore":true
+		    },
+			"permissions":{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		},
 		null,
 		this.appId)
@@ -47,6 +56,7 @@ class ContainerJsonEdit {
 
 			this.container.show(this.#interface, this.appId)
 			this.container.bringToFront(this.#interface, this.appId)
+			this.onFocus()
 		}
 	}
 
@@ -66,14 +76,14 @@ class ContainerJsonEdit {
 		return this.#enabled
 	}
 
-	onFocus() {
+	onFocus(id) {
 		this.selection = getSelection();
 		
 		if (this.selection.length > 0) {
 			console.log(`${this.appId} - onFocus() loading up actions and premissions for`)
 			console.log(this.selection)
 
-			let target = id//this.selection[0]
+			let target = this.selection[0]
 			let perms = this.container.getPermission(target) || {};
 			let actns = this.container.getActions(target) || {};
 
@@ -112,12 +122,22 @@ class ContainerJsonEdit {
 		}
 
 		for (const item of this.selection) {
-			for (const [key, value] of Object.entries(actions)) {
-				this.container.setAction(item, values, this.appId);
+			for (const action of actions) {
+				try {
+					console.log(`${this.appId} saving action on container`)
+					console.log(action)
+					this.container.addAction(item, action, this.appId);
+				} catch ( e ) {
+					console.log(`${this.appId} failed to save action on container`)
+					console.error(e)
+					//ToDo: notify user
+				}
 			}
 
-			for (const [key, value] of Object.entries(perms)) {
-				this.container.setPermission(item, key, value, null,this.appId)
+			for (const [permission, acl] of Object.entries(perms)) {
+				for (const [caller, allowed] of Object.entries(acl)) {
+					this.container.setPermission(item, permission, caller, allowed, this.appId)
+				}
 			}
 		}
 	}

@@ -1,7 +1,4 @@
 Client Features:
-
-* Stop using focus and blur, use container select
-
 1. Create, Delete content containers (via: UI & keyboard)
 2. Move, Size,  [[maybe: Rotate
 3. Text Edit (via: Keyboard & UI)
@@ -21,32 +18,33 @@ Client Features:
 --------------------------------------------
 
 Current Prios:
+[BUG][MUST-FIX]: Keyaboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed
 [MUST-HAVE]: Standardize core. have it documented. Add tests
 [MUST-HAVE]: standardize all apps to use utils for mouse and keyboard events.
 [TODO]: socker.io won't fire items with large payloads in them. Find a solution for large payloads
 [TODO]: split container.create to not have the inner organisation interface and create new app container.content.arrange
-
+[BUG]: Lineage component is a bit buggy and can even cause disappearences
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
-[core]: [must-have] when creating within a parent, or changing parents - have the child conform to parent rules by default 
+[SHOULD-HAVE][CORE] when creating within a parent, or changing parents - have the child conform to parent rules by default 
 (e.g. respect parent stylign suggestionts)
 
-[text-editor]: BUG: fix forward deletion
+[SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
  -> activate text editor only after keyboard event?
- -> Bug when text editing nested child sometimes the editor focuses on parent, but text shows on child
 
-[ISSUE]: application interacting with each other. e.g. grouper & change pos
 [BUG]: some interface content still gets persisted...
+:: might have been fixed with permission: container.bridge denied on interface & data-ignore for indexing
+
 - [must have] introduce a focus concept: when you click on a container it is in focus, do something else and you lose focus. ::Done by container.select app
 - [must have] way to send things to back and bring them forward (context menu)
 - [must have] fix linker 
-- [should have] polish content importer
+- [should have] polish content importer. Send large files directly to server and import via link
 - [nice to have] create aligner
-- [nice to have] drag on screen to select
 - [nice to have] minimap
 - [nice to have] collaborators & follow
 - [should have] Authentication
 - [should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
+- [nice to have] should be allowed to add container actions that trigger only in presentation mode or on preview.
 
 Current purpose:
 Serve as a view controller for my newsstand application. 

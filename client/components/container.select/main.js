@@ -12,6 +12,7 @@ import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 class ContainerGrouping {
 	#container = null;
 	appId = "container.select"
+	displayName = "Select"
 
 	#enabled = false
 	#mouse = null;
@@ -81,16 +82,17 @@ class ContainerGrouping {
 
 	stop () {
 		this.#container.componentStoppedWork(this.appId)
-		//ToDo: actually end the selection process
+		this.#container.delete(this.#selector, this.appId)
+		this.#selector = null;
 	}
 
 	handleDragStart (e) {
+		this.start();
 		this.#selectParent = this.#container.lookup(e.detail.id)
 		this.#startPos = {
 			top:e.detail.originalEvent.pageY,
 			left:e.detail.originalEvent.pageX,
 		}
-		this.start();
 	}
 
 	handleDragUpdate (e) {
@@ -125,7 +127,6 @@ class ContainerGrouping {
 	}
 
 	handleDragEnd (e) {
-		this.stop();
 		//import children into selection container
 		if (!this.#selector) {
 			return;
@@ -140,8 +141,7 @@ class ContainerGrouping {
 		}
 		
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
-		this.#container.delete(this.#selector, this.appId)
-		this.#selector = null;
+		this.stop();
 		this.#startPos = null;
 	}
 

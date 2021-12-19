@@ -6,6 +6,7 @@ export const ACTIONS = {
     deleteSparingChildren: 'container.delete.sparingChildren',
     setParent: 'container.set.parent',
     update: 'container.update',
+    bridge: 'container.bridge',
     
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',
@@ -17,7 +18,7 @@ export const ACTIONS = {
     componentAdded: 'container.component.added',
     componentRemoved: 'container.component.removed'
 }
-
+//Doc: setting data-ignore on container should cause the system to not index anything under it
 //events that can automatically triger other events.
 //WARNING: the related events will only receive id and callerId as details as well as the original_event data.
 let ACTIONS_CHAIN = {}
@@ -146,8 +147,15 @@ export class Container {
 		let queue = [root || this.parent]
 		var index = 0
 		var labeledCount = 0;
+
+        //allows indexing without emitting events in the case of interfaces
+        if (queue[0].getAttribute('data-ignore')) {
+            emit = false
+        }
+
 		do {
 			let item = queue[index]
+            
             if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
                 this.CONTAINER_COUNT++;
@@ -494,7 +502,6 @@ export class Container {
     }
 
     show(id, callerId) {
-        console.log(`CORE: show`)
         let elem = Container.lookup(id);
         this.isOperationAllowed(ACTIONS.show, elem, callerId);
         

@@ -4,20 +4,28 @@
     <script src="libs/socket-io.js"></script>
     <script src="libs/jquery.js"></script>
     <link rel="stylesheet" href="style.css">
-    <title>Node Show</title>
+    <title>Node Show Edit</title>
   </head>
   <body style="height: auto; width: auto;">
+    <div id="nodeshow-content" class="nodeshow-content"></div>
   </body>
   <!-- CORE -->
   <script type="module" src="nodeshow.js"></script>
+  
   <!-- Extensions -->
-  <script type="module" src="components/container.edit.pos/main.js"></script>
-  <script type="module" src="components/container.edit.text/main.js"></script>  
   <script type="module" src="components/container.create/main.js"></script>
+  <script type="module" src="components/container.select/main.js"></script>
+  <script type="module" src="components/container.edit.pos/main.js"></script>
+  <script type="module" src="components/container.edit.size/main.js"></script>
+  <script type="module" src="components/container.edit.text/main.js"></script>
+  <script type="module" src="components/container.edit.style/main.js"></script>
   <script type="module" src="components/container.content/main.js"></script>
   <script type="module" src="components/container.interact.collapse/main.js"></script>
   <script type="module" src="components/container.link/main.js"></script>
   <script type="module" src="components/container.lineage/main.js"></script>
   <script type="module" src="components/container.repell/main.js"></script>
+  <script type="module" src="components/container.grouping/main.js"></script>
+  <script type="module" src="components/container.edit.orchestrator/main.js"></script>
+  <script type="module" src="components/menu.context/main.js"></script>
   <script type="module" src="components/container.extensions.manager/main.js"></script>
 </html>

@@ -3,6 +3,9 @@ import { container } from '../../nodeshow.js'
 class ContainerHax0r {
 	appId = 'container.hax0r'
 	container = null;
+	transactional = true
+    displayName = "Hax0r"
+
 	#enabled = false;
 	#interface = null;
 	
@@ -15,9 +18,15 @@ class ContainerHax0r {
 			"computedStyle":{
 				"top":"0px",
 				"left":"128px",
-				"position":"absolute"
+				"position":"fixed"
 			},
-			"permissions":{"container.broadcast":{"*":false}}
+			"data":{
+		    	"ignore":true
+		    },
+			"permissions":{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		},
 		null,
 		this.appId)

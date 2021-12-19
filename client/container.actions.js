@@ -9,10 +9,8 @@ import {Container} from "./Container.js"
 
 Container.prototype.initActions = function(node) {
     let actions = this.getActions(node)
-    if (actions) {
-        for(const [key, action] of Object.entries(actions)) {
-            this.attachAction(node, action)
-        }
+    for(const k in actions) {
+        this.attachAction(node, actions[k])
     }   
 }
 
@@ -22,8 +20,8 @@ Container.prototype.addAction = function(id, action, callerId) {
     this.attachAction(node, action)
     
     let actions = this.getActions(node)
-    actions[action] = action
-    this.saveActions(actions)
+    actions.push(action)
+    this.saveActions(node, actions)
     
     this.emit('container.actions.add', {
         id: node.id,
@@ -32,7 +30,7 @@ Container.prototype.addAction = function(id, action, callerId) {
     })
 }
 
-
+//TODO: fix this. currently not working
 Container.prototype.removeAction = function(id, action, callerId) {
     this.isOperationAllowed('container.actions.remove', id, callerId);
     let node = Container.lookup(id)
@@ -40,7 +38,7 @@ Container.prototype.removeAction = function(id, action, callerId) {
 
     let actions = this.getActions(node)
     delete actions[action]
-    this.saveActions(actions)
+    this.saveActions(node, actions)
 
     this.emit('container.actions.remove', {
         id: node.id,
@@ -50,12 +48,20 @@ Container.prototype.removeAction = function(id, action, callerId) {
 }
 
 Container.prototype.getActions = function(node) {
+    let result = []
     let actions = node.getAttribute("data-container-actions")
-    return JSON.parse(actions)
+    if (actions) {
+        actions = JSON.parse(actions)
+        for (const k in actions) {
+            result.push(actions[k])
+        }
+    }
+
+    return result
 }
 
 Container.prototype.saveActions = function(node, actions) {
-    node.setAttribute("data-container-actions",JSON.stringify(actions))
+    node.setAttribute("data-container-actions", JSON.stringify(actions))
 }
 
 Container.prototype.lookupMethod = function(method) {

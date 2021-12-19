@@ -60,9 +60,9 @@ export class LiveBridge {
         let eventType = e.detail.type
         let parentId = e.detail.parentId
         let raw = null
-
         if (eventType != 'container.delete') {
             raw = this.container.toSerializable(targetId);
+            this.container.isOperationAllowed(ACTIONS.bridge, this.container.lookup(targetId), e.detail.callerId)
 
             let pid = Container.lookup(targetId).parentNode.id
             if (pid && pid != parentId) {

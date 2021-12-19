@@ -1,6 +1,7 @@
 import { container } from '../../nodeshow.js'
 
-//ToDo: make the callback work
+//ToDo: state based button text and action
+//ToDo: implement key bindings
 class ContextMenu {
 	appId = "menu.context"
 	#container = null;
@@ -11,16 +12,16 @@ class ContextMenu {
 	#defaultActions = [
 		{name: "X", action: "menu.context.stop"},
 		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
-		{name: "DeleteSparingChildren", action: ""},
+		{name: "Delete Sparing", action: "deleteSparingChildren", shortcut:'End', icon:'ns-delete-icon'},
 		{name: "Text", action: "container.edit.text.start"},
-		{name: "ParentDown", action: "container.lineage.parentDown"},
-		{name: "ParentUp", action: "container.lineage.parentUp"},
-		{name: "Collapse", action: ""},
+		{name: "ParentDown", action: "container.lineage.parentDown", shortcut:'Shift+<'},
+		{name: "ParentUp", action: "container.lineage.parentUp", shortcut:'Shift+>'},
+		{name: "Collapse", action: "collapse", shortcut: 'Ctrl+Down'},
 		{name: "Arrange", action: ""},
-		{name: "Copy", action: "", icon:"ns-copy-icon"},
-		{name: "Paste", action: "", icon:"ns-paste-icon"},
-		{name: "BringToFront", action: "bringToFront"},
-		{name: "SendToBack", action: "sendToBottom"}
+		{name: "Copy", action: "", icon:"ns-copy-icon", shortcut:'Ctrl+C'},
+		{name: "Paste", action: "", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
+		{name: "Send To Front", action: "bringToFront", shortcut:'Ctrl+}'},
+		{name: "Send To Back", action: "sendToBottom", shortcut:'Ctrl+{'}
 	]
   
 	#actions = []
@@ -40,7 +41,13 @@ class ContextMenu {
 				"left":"0px",
 				"position":"absolute"
 			},
-			"permissions":{"container.broadcast":{"*":false}}
+			"data":{
+				"ignore":true
+			},
+			"permissions":{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		},
 		null,
 		this.appId)
@@ -79,8 +86,8 @@ class ContextMenu {
 	}
 
 	start (e) {
+		this.#container.componentStartedWork(this.appId, {})
 		e.preventDefault()
-
 		this.#target = e.target
 		this.#container.setPosition(this.#interface, {
 			top: e.pageY,
@@ -89,10 +96,10 @@ class ContextMenu {
 		this.appId)
 		this.#container.show(this.#interface, this.appId)
 		this.#container.bringToFront(this.#interface, this.appId)
-		this.#container.componentStartedWork(this.appId, {})
 	}
 
 	stop () {
+		this.unsetMenuActions();
 		this.#container.hide(this.#interface, this.appId)
 		this.#container.componentStoppedWork(this.appId)
 	}
@@ -108,7 +115,6 @@ class ContextMenu {
 	}
 
 	makeItem(node, details) {
-		console.log(node)
 		let button = node.children[0]
 		
 		button.innerHTML = '';
@@ -129,7 +135,7 @@ class ContextMenu {
 			button.innerHTML += `<span>${details.shortcut}</span>`
 		}
 
-		button.addEventListener('click', (e) => this.callAction(e, details.action))	
+		button.addEventListener('click', (e) => this.callAction(e, details))	
 	}
 
 	buildMenu() {
@@ -143,10 +149,14 @@ class ContextMenu {
 		}
 	}
 
-	callAction(e, call) {
-		let toCall = this.#container.lookupMethod(call)
+	callAction(e, details) {
+		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
-            let params = [this.#target, this.appId]//(actionDescriptor.params || []).concat([e])
+            let params = [this.#target, this.appId]
+            if (details.params) {
+            	params = details.params
+            }
+
             toCall.method.apply(toCall.context, params)
 	    } else {
 	        throw `Could not find method ${call} to attach action`

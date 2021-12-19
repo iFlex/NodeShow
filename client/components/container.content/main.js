@@ -3,6 +3,9 @@ import { getSelection } from '../utils/common.js'
 
 class ContainerContent {
     appId = 'container.content'
+    displayName = 'Content'
+    transactional = true
+
     #interface = null
     #handlers = {}
     #enabled = false
@@ -24,7 +27,13 @@ class ContainerContent {
           "left":"0px",
           "position":"fixed"
         },
-        "permissions":{"container.broadcast":{"*":false}}
+        "data":{
+          "ignore":true
+        },
+        "permissions":{
+          "container.broadcast":{"*":false},
+          "container.bridge":{"*":false}
+        }
       },
       null,
       this.appId)
@@ -151,6 +160,7 @@ class ContainerContent {
       }
 
       console.log(`Creating content on target ${target}`)
+      target = this.container.lookup(target)
       
       //ToDo consider child styling suggestions on parent
       return this.container.createFromSerializable(target, {

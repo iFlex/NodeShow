@@ -10,6 +10,7 @@ import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
+	displayName = "Move"
 
 	#enabled = false
 	#mouse = null
@@ -37,7 +38,7 @@ class ContainerMover {
 		this.#touch.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#handlers['dragStart'] = (e) => e.preventDefault()
-		this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)
+		//this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)
 	}
 
 	enable() {

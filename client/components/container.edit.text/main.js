@@ -25,8 +25,7 @@ const textItemPerms = {}//, "container.edit":{"*":false}}
 textItemPerms[ACTIONS.setPosition] = {"*":false}
 //textItemPerms[ACTIONS.create] = {"*":false}
 
-//BUG: deselecting current text edited container sometimes deletes the newly selected...
-//or completely changes its position... wtf...
+//[BUG]: clicking on a text unit doesn't pop up the editor anymore. :D fix plz
 class ContainerTextInjector {
 	appId = "container.edit.text"
 
@@ -46,13 +45,20 @@ class ContainerTextInjector {
 		nodeName:"DIV", 
 		className: "text-document-cursor", 
 		computedStyle:{"position":"absolute"},
-		permissions:{"container.broadcast":{"*":false}}
+		data:{ignore:true},
+		permissions:{
+			"container.broadcast":{"*":false},
+			"container.bridge":{"*":false}
+		}
 	}
 
 	lineDescriptor = {
 		nodeName: "DIV", 
 		className: "text-document-line", 
-		permissions:textItemPerms
+		permissions:textItemPerms,
+		"data":{
+			"containerActions":[{"trigger":"click","call":"container.edit.text.onLineClick","params":[]}]
+		}
 	}
 	
 	textUnitDescriptor = {
@@ -105,10 +111,11 @@ class ContainerTextInjector {
 		this.#keyboard = new Keyboard(this.appId);
 		this.initKeyboard();
 
-		this.#handlers['container.select.selected'] = (e) => {
-			this.stop();
-			this.tryFetchTarget(e.selection)
-		}
+		// this.#handlers['container.select.selected'] = (e) => {
+		// 	this.stop();
+		// 	this.tryFetchTarget(e.selection)
+		// }
+
 		this.#handlers['paste'] = (event) => this.paste(event)
 		this.#handlers['cut'] = (event) => this.cut(event)
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
@@ -121,7 +128,13 @@ class ContainerTextInjector {
 				"left":"0px",
 				"position":"absolute"
 			},
-			"permissions":{"container.broadcast":{"*":false}}
+			"data":{
+		    	"ignore":true
+		    },
+			"permissions":{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		},
 		null,
 		this.appId)
@@ -132,7 +145,7 @@ class ContainerTextInjector {
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 
 		//create cursor pointer
-		this.#cursorDiv = this.container.createFromSerializable(null, this.cursorDescriptor, null, this.appId)
+		this.#cursorDiv = this.container.createFromSerializable(document.body, this.cursorDescriptor, null, this.appId)
 		this.container.hide(this.#cursorDiv, this.appId)
 	}
 
@@ -198,13 +211,14 @@ class ContainerTextInjector {
 	}
 
 	start (target) {
-		if (!target) {
+		if (!target || this.target == target) {
 			return;
 		}
 
+		this.container.componentStartedWork(this.appId, {})
 		console.log(`${this.appId} start text editing ${target}`)
-		this.stop();
-		this.target = ContainerTextInjector.findFirstDivParent(this.container.lookup(target));
+
+		this.target = this.findFirstDivParent(this.container.lookup(target));
 		console.log(`${this.appId} Set text edit target to ${target.id}`)
 		
 		try {
@@ -240,33 +254,20 @@ class ContainerTextInjector {
 		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 		
 		this.#keyboard.enable();
-		this.container.componentStartedWork(this.appId, {})
 	}
 
 	stop () {
 		if (this.target) {
 			console.log(`${this.appId} stop text editing`)
 			this.container.componentStoppedWork(this.appId)
-
 			this.#keyboard.disable()
 			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 			this.container.removeMetadata(this.target, 'text-editing')
 			
-			this.target = null;
 			this.cursor.setTarget(null);
 			this.container.hide(this.#cursorDiv, this.appId)
 			this.container.hide(this.#interface, this.appId)
-		}
-	}
-
-	tryFetchTarget (selection) {
-		if (!this.target) {
-			if (!selection) {
-				selection =  getSelection()
-			}
-			if (selection.length > 0) {
-				this.start(selection[0])
-			}
+			this.target = null;
 		}
 	}
 
@@ -274,24 +275,33 @@ class ContainerTextInjector {
 		return key.length === 1;
 	}
 
-	static findFirstDivParent(elem) {
+	findFirstDivParent(elem) {
 		if (!elem)
 			return null;
+		
+		if (this.isTextUnit(elem)) {
+			return elem.parentNode.parentNode
+		}
 
 		if (elem.nodeName == 'DIV') {
+			if (this.isLine(elem)) {
+				return elem.parentNode
+			}
 			return elem
 		}
 
-		return ContainerTextInjector.findFirstDivParent(elem.parentNode)
+		return this.findFirstDivParent(elem.parentNode)
 	}
 
 	isTargetTextEditable(target) {
 		if (target === this.container.parent) {
+			console.log(`${this.appId} - currently not allowing adding text to root container`)
 			return false;
 		}
 
-		for (const child of target.childNodes) {
+		for (const child of target.children) {
 			if (this.isLine(child)) {
+				console.log(`${this.appId} - found a line. Can text edit`)
 				return true;
 			}
 		}
@@ -300,11 +310,16 @@ class ContainerTextInjector {
 			return true;
 		}
 		
+		console.log(`${this.appId} - comprised only of other type of containers. Cannot text edit`)
 		return false;
 	}
 
 	//doesn't support rich text yet
 	paste (event) {
+	    if (!this.target) {
+	    	return;
+	    }
+	    
 	    let paste = (event.clipboardData || window.clipboardData).getData('text');
 	    this.addPrintable(paste)
 	    event.preventDefault();
@@ -342,7 +357,6 @@ class ContainerTextInjector {
 	}
 
 	cursorUp () {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}
@@ -354,7 +368,6 @@ class ContainerTextInjector {
 	}
 
 	cursorDown () {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}
@@ -366,7 +379,6 @@ class ContainerTextInjector {
 	}
 
 	cursorLeft () {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}
@@ -377,7 +389,6 @@ class ContainerTextInjector {
 	}
 
 	cursorRight () {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}
@@ -647,9 +658,15 @@ class ContainerTextInjector {
 		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length;
 		let offset = Math.ceil(clickP/charWidth)
 
+		this.start(e.target.parentNode.parentNode)
 		this.cursor.putOn(textUnit, offset)
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
+
+	// onLineClick(e) {
+	// 	let line = e.target
+	// 	this.start(e.target.parentNode)
+	// }
 
 	cursorUpdateVisible(blinker) {
 		if (!blinker) {
@@ -730,7 +747,6 @@ class ContainerTextInjector {
 	}
 
 	addPrintable(text) {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}
@@ -765,7 +781,6 @@ class ContainerTextInjector {
 	ToDo: Seems to be working ok
 	*/
 	newLine() {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}
@@ -795,7 +810,6 @@ class ContainerTextInjector {
 	//BUG: sometimes this doesn't delete anyting... 
 	//BUG: fix forward deletion
 	removePrintable(count) {
-		this.tryFetchTarget()
 		if (!this.target) {
 			return;
 		}

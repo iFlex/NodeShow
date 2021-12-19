@@ -4,6 +4,9 @@ import { getSelection } from '../utils/common.js'
 class ContainerStyler {
 	appId = 'container.edit.style'
 	container = null;
+	displayName = "Style"
+	transactional = true;
+
 	#enabled = false
 	#interface = null;
 	#handlers = {}
@@ -28,7 +31,13 @@ class ContainerStyler {
 				"left":"64px",
 				"position":"absolute"
 			},
-			"permissions":{"container.broadcast":{"*":false}}
+			"data":{
+		    	"ignore":true
+		    },
+			"permissions":{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		},
 		null,
 		this.appId)

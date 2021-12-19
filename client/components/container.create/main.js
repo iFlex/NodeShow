@@ -43,7 +43,13 @@ class ContainerCreator {
 				"left":"0px",
 				"position":"absolute"
 			},
-			"permissions":{"container.broadcast":{"*":false}}
+			"data":{
+		    	"ignore":true
+		    },
+			"permissions":{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		},
 		null,
 		this.appId)

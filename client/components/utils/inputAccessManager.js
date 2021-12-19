@@ -82,6 +82,14 @@ export class InputAccessManager {
 		this.recomputeAccessMode(event)
 	}
 
+	getGrant(event) {
+		if ( this.#grants[event] ) {
+			return this.#grants[event].grantedTo
+		}
+
+		return undefined;
+	}
+
 	getAllowed(event) {
 		if (!this.#grants[event]) {
 			return new Set([])

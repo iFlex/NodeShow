@@ -4,7 +4,10 @@ import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
 //BUG: fails to ignore interface
 class ContainerRepeller {
-    appId = 'container.format.repell'
+    appId = 'container.repell'
+    transactional = true
+    displayName = 'Repell'
+
 	#container = null;
     target = null;
     #overlap = null;
