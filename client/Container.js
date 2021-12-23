@@ -1,5 +1,4 @@
-//Node data attributes are strings
-//ToDo: make collapse a bit more content aware (based on settings). e.g. collapse but fit title (first text child). or collapse only modifiable
+//[NOTE] Node data attributes are strings
 export const ACTIONS = {
     create: 'container.create',
     delete: 'container.delete',
@@ -7,7 +6,8 @@ export const ACTIONS = {
     setParent: 'container.set.parent',
     update: 'container.update',
     bridge: 'container.bridge',
-    
+    error: 'container.error',
+
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',
     setHeight: 'container.set.height',
@@ -16,7 +16,8 @@ export const ACTIONS = {
     hide: 'container.hide',
     show: 'container.show',
     componentAdded: 'container.component.added',
-    componentRemoved: 'container.component.removed'
+    componentRemoved: 'container.component.removed',
+    loadHTML: 'container.loadHTML'
 }
 //Doc: setting data-ignore on container should cause the system to not index anything under it
 //events that can automatically triger other events.
@@ -35,6 +36,9 @@ export class Container {
 	socket = null;
     debug = false;
     CONTAINER_COUNT = 0;
+
+    #currentMaxZindex = 0;
+    #currentMinZindex = 0;
     /*
     Permissions describing what operations can be performed on containers
     Format {"containerId":{"operation":{"callerId":true/false}}}
@@ -280,7 +284,7 @@ export class Container {
         } else {
             permission = this.permissions[elem.id]
         }
-        return Container.clone(permission)
+        return Container.clone(permission || {})
     }
 
     loadPermissionsFromDom (node) {
@@ -418,6 +422,7 @@ export class Container {
 
     //<size>
     //contextualise width and height based on type of element and wrapping
+    //[DOC] width is always a number and expressed in pixels
 	setWidth(id, width, callerId, unitOverride) {
         let elem = Container.lookup(id)
         this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
@@ -642,7 +647,8 @@ export class Container {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
             this.#initDOMcontainer(domNode)
-            
+            this.updateZindexLimits(domNode)
+
             this.CONTAINER_COUNT++;
             this.emit(ACTIONS.create, {
                 presentationId: this.presentationId, 
@@ -695,19 +701,40 @@ export class Container {
         this.delete(elem, callerId)
     }
 
+    updateZindexLimits(node) {
+        if (node.style.zIndex) {
+            let zIndex = parseInt(node.style.zIndex)
+            if (this.#currentMaxZindex < zIndex) {
+                this.#currentMaxZindex = zIndex
+            }
+            if(this.#currentMinZindex > zIndex) {
+                this.#currentMinZindex = zIndex
+            }
+            console.log(`[CORE] zIndex[${this.#currentMinZindex},${this.#currentMaxZindex}]`)
+        } else if (this.#currentMaxZindex  != 0 || this.#currentMinZindex != 0) {
+            this.#currentMaxZindex++;
+            node.style.zIndex = `${this.#currentMaxZindex}`;
+        }
+    }
+
     bringToFront(id) {
         let node = Container.lookup(id)
-        node.style.zIndex = `${this.CONTAINER_COUNT + 1}` 
+        this.#currentMaxZindex++;
+        node.style.zIndex = `${this.#currentMaxZindex}` 
+        this.notifyUpdate(node)
     }
 
     sendToBottom(id) {
         let node = Container.lookup(id)
-        node.style.zIndex = "0"
+        this.#currentMinZindex--;
+        node.style.zIndex = `${this.#currentMinZindex}` 
+        this.notifyUpdate(node)
     }
 
     setZIndex(id, index) {
         let node = Container.lookup(id)
         node.style.zIndex = `${index}` 
+        this.notifyUpdate(node)
     }
 
     setMetadata (id, key, value) {

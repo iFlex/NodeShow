@@ -43,7 +43,7 @@ export class ContainerOverlap {
     getOverlappingSiblings(targetId) {
         let target = this.#container.lookup(targetId);
         let result = []
-        for (let sib of target.parentNode.childNodes) {
+        for (let sib of target.parentNode.children) { //childNodes
             if (sib.id !== target.id) {
                 let overlapA = this.getOverlapArea(this.getOverlapBBox(target, sib))
                 if (overlapA) {

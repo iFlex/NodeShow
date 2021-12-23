@@ -1,4 +1,5 @@
 import { container } from '../../nodeshow.js'
+import { getSelection } from '../utils/common.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
@@ -18,7 +19,8 @@ class ContainerMover {
 
 	#handlers = {}
 	#editableClass = 'editable:hover'
-	
+	#selection = []
+
 	lastX = 0;
 	lastY = 0;
 
@@ -101,6 +103,7 @@ class ContainerMover {
 	start(id) {
 		this.target = this.container.lookup(id)
 		this.container.componentStartedWork(this.appId, {})
+		this.#selection = new Set(getSelection())
 	}
 
 	handleDragUpdate(e) {
@@ -113,13 +116,32 @@ class ContainerMover {
 			return;
 		}
 		
+		let preTargetPos = this.container.getPosition(d.id)
 		this.modifyContainer(d.id, d.dx, d.dy, 
 			d.originalEvent.pageX, d.originalEvent.pageY,
 			d.targetOx, d.targetOy)
+
+		//[TODO]: Make selection drag work in nested contexts
+		if (this.#selection.has(d.id)) {
+			//only move selection if target is part of selection 
+			//(equivalent to: if all selection items are siblings with target)
+			for (let id of this.#selection) {
+				if (d.id != id) {
+					let pos = this.container.getPosition(id)
+					let dy = pos.top - preTargetPos.top
+					let dx = pos.left - preTargetPos.left
+
+					this.modifyContainer(id, d.dx, d.dy, 
+				d.originalEvent.pageX + dx, d.originalEvent.pageY + dy,
+				d.targetOx, d.targetOy);
+				}
+			}
+		}
 	}
 
 	stop() {
 		this.target = null;
+		this.#selection = null;
 		this.container.componentStoppedWork(this.appId)
 	}
 }

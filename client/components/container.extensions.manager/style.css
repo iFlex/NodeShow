@@ -1,6 +1,7 @@
 .ns-extensions-manager-toggle {
-    width: 32px;
+    width: auto;
     height: 32px;
+    padding:  5px;
     border-radius: 2px;
     background-color: green;
 }

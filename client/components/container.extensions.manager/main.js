@@ -31,7 +31,7 @@ class ContainerExtensionsManager {
 				"top":"0px",
 				"left":"250px",
 				"position":"fixed",
-                "width":"48px",
+                "width":"auto",
                 "height":"100%"
 			},
             "data":{

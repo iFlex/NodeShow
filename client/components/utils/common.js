@@ -3,9 +3,22 @@ import { container } from "../../nodeshow.js"
 
 export function getSelection() {
 	let selectorApp = container.getComponent('container.select')
-	let selection = selectorApp.getSelection() || []
+	if (!selectorApp) {
+		return []
+	}
 
-	return selection
+	return selectorApp.getSelection() || []
+}
+
+export function clearSelection () {
+	let selectorApp = container.getComponent('container.select')
+	if (selectorApp) {
+		selectorApp.clearSelection();
+	}
+}
+
+export function setSelection (selection) {
+
 }
 
 export function findActionableAnchestor(target, appId) {
@@ -14,7 +27,6 @@ export function findActionableAnchestor(target, appId) {
 	}
 	
 	try {
-		//ToDo: this shouldn't live here?...
 		container.isOperationAllowed('container.edit', target, appId)
 		container.isOperationAllowed('container.edit.pos', target, appId)
 	} catch(e) {

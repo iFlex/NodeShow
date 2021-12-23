@@ -1,8 +1,11 @@
 import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
+import { getSelection, clearSelection } from '../utils/common.js'
+
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { EVENTS as TouchEvents, Touch } from '../utils/touch.js' 
 
+//ToDo: read style configuration from container.edit.style
 class ContainerCreator {
 	appId = 'container.create'
 	container = null;
@@ -77,18 +80,33 @@ class ContainerCreator {
 		return this.#enabled
 	}
 
+	deleteNode(sid, spareChildren) {
+		if (this.container.getMetadata(sid, 'text-editing')) {
+			return;
+		}
+		console.log(`${this.appId} deleting: ${sid}`)
+		console.log(sid)	
+		try {
+			if (spareChildren) {
+				this.container.deleteSparingChildren(sid, this.appId);
+			} else {
+				this.container.delete(sid, this.appId);
+			}
+		} catch(e) {
+			console.error(e)
+		}
+	}
+
 	delete (spareChildren) {
 		if(this.target) {
-			if (this.container.getMetadata(this.target, 'text-editing')) {
-				return;
-			}
-			
-			console.log(`${this.appId}: deleting container: ${this.target.id}. Sparing children? ${spareChildren}`)
-			if (spareChildren) {
-				this.container.deleteSparingChildren(this.target, this.appId);
-			} else {
-				this.container.delete(this.target, this.appId);
-			}
+			this.deleteNode(this.target)
+
+			//[TODO]: check for stability, new feature
+			// let selection = getSelection();
+			// clearSelection();
+			// for (const sid of selection) {
+			// 	this.deleteNode(sid, spareChildren)
+			// }
 		}
 		this.target = null;
 	}
@@ -106,6 +124,7 @@ class ContainerCreator {
 			'padding': '5px',
 			'background-color': this.pickColor()	
 		}
+		this.overrideStyleWithStylerSettings(childStyle)
 
 		let parentSuggestion = this.target.getAttribute("data-child-style")
 		if (parentSuggestion) {
@@ -200,6 +219,23 @@ class ContainerCreator {
 		this.target = this.container.lookup(e.detail.id)
 		this.create(evt.pageX, evt.pageY)
 	}
+	
+	overrideStyleWithStylerSettings(style) {
+		let styler = this.container.getComponent('container.edit.style')
+		let stylerKeys = styler.getStyleKeys()
+		for (const key of stylerKeys) {
+			let value = this.container.getMetadata(null, key)
+			if (value) {
+				if (typeof value === 'string') {
+					style[key] = value
+				} else {
+					for (const [k,v] of Object.entries(value)) {
+						style[k] = v
+					}
+				}
+			}
+		}
+	}	
 }
 
 let ccreator = new ContainerCreator(container);

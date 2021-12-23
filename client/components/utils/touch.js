@@ -5,14 +5,14 @@ import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
 
 export const EVENTS = {
-	'DOWN':'mouse.down',
-	'MOVE':'mouse.move',
-	'UP':'mouse.up',
+	'DOWN':'touch.down',
+	'MOVE':'touch.move',
+	'UP':'touch.up',
 	'DRAG_START':'drag.start',
 	'DRAG_UPDATE':'drag.update',
 	'DRAG_END':'drag.end',
-	'CLICK': 'container.click',
-	'DOUBLE_CLICK':'container.dblclick',
+	'CLICK': 'container.touch.click',
+	'DOUBLE_CLICK':'container.touch.dblclick',
 	'ZOOM':'',
 	'ROTATE':''
 }
@@ -49,7 +49,7 @@ function handleStart(e) {
 		targetMetadata['targetOy'] = touch.layerY / container.getHeight(target)
 
 		moved = 0;
-		container.emit('drag.start',{
+		container.emit(EVENTS.DRAG_START,{
 			id:target.id,
 			dx: 0,
 			dy: 0,
@@ -63,6 +63,7 @@ function handleStart(e) {
 }
 
 function handleMove(e) {
+	
 	let touch = e.touches[0]
 	if (target) {
 		let dx = touch.screenX - lastX;
@@ -70,7 +71,7 @@ function handleMove(e) {
 
 		moved += Math.sqrt(Math.pow(Math.abs(dx),2) + Math.pow(Math.abs(dy),2))
 		
-		container.emit('drag.update',{
+		container.emit(EVENTS.DRAG_UPDATE,{
 			id:target.id,
 			dx:dx,
 			dy:dy,
@@ -95,7 +96,7 @@ function handleCancel(e) {
 function handleEnd(e) {
 	let touch = e.touches[0]
 	if (target) {
-		container.emit('drag.end',{
+		container.emit(EVENTS.DRAG_END,{
 			id:target.id,
 			dx: 0, //ToDo: incorrect
 			dy: 0,
@@ -107,11 +108,11 @@ function handleEnd(e) {
 
 		if (moved <= FOCUS_TRESHOLD) {
 			container.emit('container.focus', {id:target.id})
-			container.emit('container.click', {id:target.id, originalEvent:e})
+			container.emit(EVENTS.CLICK, {id:target.id, originalEvent:e})
 			//was click
 			let dnow = Date.now()
 			if (dnow - lastClickTime <= dblClickTreshold) {
-				container.emit('container.dblclick', {id:target.id, originalEvent:e})
+				container.emit(EVENTS.DOUBLE_CLICK, {id:target.id, originalEvent:e})
 			}
 			lastClickTime = dnow
 		}
@@ -149,7 +150,7 @@ export class Touch {
 		}
 	}
 
-	setAction(event, callback) {
+	setAction(event, callback, accessReq) {
 		this.#handlers[event] = callback;
 	}
 

@@ -11,14 +11,7 @@ class ContainerStyler {
 	#interface = null;
 	#handlers = {}
 	
-	state = {
-		backgroundColor: '#000000',
-		borderType: null,
-		borderWidth: '5px',
-		borderColor: 'grey',
-		borderRadius: '5px 5px 5px 5px',
-		transparency: '0%'
-	}
+	stateKeys = ["background-color","border-color","border-style","border-width","border-radius"]
 
 	constructor (container) {
 		this.container = container;
@@ -78,7 +71,7 @@ class ContainerStyler {
 		let selection = getSelection();
 		console.log(`${this.appId} got selection:`)
 		console.log(selection)
-		for ( const item of selection) {
+		for ( const item of selection ) {
 			try {
 				let child = this.container.lookup(item)
 				this.container.styleChild(child, style, this.appId)
@@ -111,8 +104,7 @@ class ContainerStyler {
 		
 		let target = e.target
 		let bstyle = this.#getBorderStyle(target)
-		
-		this.container.setMetadata(null, 'border-style', JSON.stringify(bstyle))
+		this.container.setMetadata(null, 'border-style', bstyle)
 		this.#applyChange(bstyle)
 	}
 
@@ -204,6 +196,10 @@ class ContainerStyler {
 				console.error(`${this.appId} failed to change y-axis unit to ${unit}`)
 			}
 		}
+	}
+
+	getStyleKeys() {
+		return this.stateKeys
 	}
 }
 

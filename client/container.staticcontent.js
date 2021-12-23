@@ -1,11 +1,9 @@
 import {Container} from "./Container.js"
 
-//ToDo: tidy
 Container.prototype.loadHtml = function(node, resource, callerId, emit) {
     let url = `components/${callerId}/${resource}`;
-    if (!callerId) {
-        url = resource
-    }
+    node = Container.lookup(node)
+    this.isOperationAllowed('container.loadHTML', node, callerId)
 
     console.log(`Fetching: ${url}`) 
     return fetch(url)

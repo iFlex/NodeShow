@@ -1,22 +1,25 @@
-import {container} from '../../nodeshow.js'
+import { container } from '../../nodeshow.js'
+import { Keyboard } from '../utils/keyboard.js'
 
-/*
-Add cursor
-*/
 class ContainerCollapser {
     appId = 'container.interact.collapse'
-	#container = null;
-    target = null;
+	target = null;
+
+    #container = null;
     #hoverTarget = null;
     #handlers = {}
     #enabled = false
+    #keyboard = null;
+
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this);
 
-        this.#handlers["container.edit.pos.selected"] = (e) => { this.target = e.detail.id };
-        this.#handlers["container.edit.pos.unselected"] = (e) => { this.target = null };
-		this.#handlers["keydown"] = (e) => this.handleKeydown(e)
+        this.#keyboard = new Keyboard(this.appId)
+        this.#keyboard.setAction(new Set(["ArrowDown"]), this, (e) => this.collapse(), false);
+        this.#keyboard.setAction(new Set(["ArrowUp"]), this, (e) => this.expand(), false);
+        
+        this.#handlers['container.select.selected'] = (e) => this.onSelection(e.detail.selection)
         this.#handlers["mouseover"] = (e) => { this.#hoverTarget = e.target }
     }
 
@@ -26,6 +29,7 @@ class ContainerCollapser {
                 document.addEventListener(key, value)
             }
             this.#enabled = true
+            this.#keyboard.enable();
         }
     }  
     
@@ -35,12 +39,17 @@ class ContainerCollapser {
                 document.removeEventListener(key, value)
             }
             this.#enabled = false
+            this.#keyboard.disable();
         }
     }
 
     isEnabled() {
 		return this.#enabled
 	}
+
+    onSelection (selection) {
+        this.target = selection[0]
+    }
 
     findClosestDiv(start) {
         if(!start) {
@@ -60,7 +69,7 @@ class ContainerCollapser {
     collapse() {
         let target = this.findClosestDiv(this.target || this.#hoverTarget)
         if (target) {
-            this.#container.setCollapseMode(target, {width:"32px",height:"32px"})
+            this.#container.setCollapseMode(target, {width:"32px",height:"32px"}, this.appId)
             this.#container.collapse(target, this.appId)
         }
     }
@@ -70,16 +79,6 @@ class ContainerCollapser {
         if (target) {
             console.log(`Expanding ${target}`)
             this.#container.expand(target, this.appId)
-        }
-    }
-
-    handleKeydown(e) {
-        //console.log(`Collapser key down: ${e.key}`)
-        if( e.key == 'ArrowDown') {
-            this.collapse();
-        }
-        if( e.key == 'ArrowUp' ) {
-            this.expand();
         }
     }
 }

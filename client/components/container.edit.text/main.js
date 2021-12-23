@@ -211,7 +211,7 @@ class ContainerTextInjector {
 	}
 
 	start (target) {
-		if (!target || this.target == target) {
+		if (!target || this.target == target || !this.#enabled) {
 			return;
 		}
 

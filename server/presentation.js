@@ -49,8 +49,6 @@ class Presentation {
 	}
 
 	findRoots() {
-		console.log("RAD PREZ DATRA:")
-		console.log(this.rawData)
 		let unadresasble = 0;
 		let brokenChildLinks = 0;
 		let brokenParentLinks = 0;
@@ -268,7 +266,29 @@ class Presentation {
 	isRoot(node) {
 		return !node.parentId
 	}
+
+	serialize() {
+		return {
+			id: this.id,
+		    title:`${this.presentation.title || this.id}`,
+      		created:this.presentation.created,
+      		last_updated:this.presentation.created,
+      		last_opened:this.presentation.last_opened,
+      		owner: this.presentation.owner,
+      		settings:this.presentation.settings
+		}
+	}
+
+	updateMetadata(data) {
+		let fields = ['title']
+		for (const key of fields) {
+			if (data[key]) {
+				console.log(`Setting ${key}=${data[key]} on ${data.id} `)
+				this.presentation[key] = data[key]
+			}
+		}
+		this.storage.put(this.id, this.presentation);
+	}
 }
 
 module.exports = Presentation
-	

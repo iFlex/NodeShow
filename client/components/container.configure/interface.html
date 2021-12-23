@@ -1,4 +1,10 @@
-<h3>Width</h3> Lock/Unlock
+<h3>Width</h3>
+<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.lockWidth","params":[]}}'>
+Lock
+</button>
+<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.unlockWidth","params":[]}}'>
+Unlock
+</button>
 <select id="ns-width-unit" 
 	  name="ns-width-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeWidthUnit","params":[]}}'	   
@@ -9,7 +15,13 @@
 	%</option>
 </select>
 
-<h3>Height<h3> Lock/Unlock
+<h3>Height<h3> 
+	<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.lockHeight","params":[]}}'>
+	Lock
+	</button>
+	<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.unlockHeight","params":[]}}'>
+	Unlock
+	</button>
 <select id="ns-height-unit" 
 	  name="ns-height-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeHeightUnit","params":[]}}'
@@ -20,7 +32,16 @@
 	%</option>
 </select>
 
-<h3>Horisontal Position</h3> Lock/Unlock
+<h3>Position</h3>
+<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.lockPosition","params":[]}}'>
+Lock
+</button>
+
+<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.unlockPosition","params":[]}}'>
+Unlock
+</button>
+
+Horizontal
 <select id="ns-pos-y-unit" 
 	  name="ns-pos-y-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePosXUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
@@ -29,8 +50,7 @@
 	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
 </select>
-
-<h3>Vertical Position</h3> Lock/Unlock
+Vertical
 <select id="ns-pos-x-unit" 
 	  name="ns-pos-x-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePosYUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>

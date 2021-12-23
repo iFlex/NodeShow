@@ -1,0 +1,216 @@
+<html>
+    <head>
+        <style>
+            /* Style the body */
+            body {
+              font-family: Arial;
+              margin: 0;
+            }
+
+            /* Header/Logo Title */
+            .header {
+              padding: 60px;
+              text-align: center;
+              background: #1abc9c;
+              color: white;
+              font-size: 15px;
+            }
+
+            .root {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 20px;
+            }
+
+            .card {
+              /* Add shadows to create the "card" effect */
+              box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+              transition: 0.3s;
+              margin: 5px;
+              width: 200px;
+            }
+
+            /* On mouse-over, add a deeper shadow */
+            .card:hover {
+              box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            }
+
+            /* Add some padding inside the card container */
+            .container {
+              padding: 2px 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+          <h1>NodeShow</h1>
+        </div>
+        
+        <button onclick="makeNew()">New NodeShow</button>
+        <input type="text" name="search">
+        <button>Search</button>
+        
+        <div id="insert-here" class="root">
+            <div id="prez-section" class="card">
+                <a id="link" href="">
+                    <img id="image" src="" alt="Overview" style="width:100%">
+                    <div id="inner-detail" class="container">
+                        <h4><b id="title">Dummy Title</b></h4>
+                        <p>Created <span id="created"></span></p>
+                    </div>
+                </a>
+                <button id="rename">Rename</button>
+                <button id="delete">Delete</button>
+            </div> 
+        </div>
+
+        <script type="text/javascript">
+            let BASE_URL = `https://${window.location.host}/`
+            function htreq(method, url, contentType, data, onComplete, onError) {
+                var http = new XMLHttpRequest();
+              
+                  http.open(method, url, true);
+                  http.setRequestHeader("Content-type", contentType);
+                  http.onreadystatechange = function() {
+                    if(http.readyState == 4 && http.status == 200) {
+                      onComplete(http.responseText);
+                    }
+                    else if( http.status != 200 && onError) {
+                      onError();
+                    }
+                  }
+
+                  if (data) {
+                    http.send(data);  
+                  } else {
+                    http.send();
+                  }
+                  
+            }
+            
+            function post(url, contentType, data, onComplete, onError) {
+                htreq("POST", url, contentType, data, onComplete, onError);
+            }
+
+            function get(url, contentType, onComplete, onError) {
+                htreq("GET", url, contentType, null, onComplete, onError);
+            }
+            
+            function makeNew() {
+                get(`${BASE_URL}new`, 
+                'text/plain',
+                (id) => {
+                    window.location.replace(`https://${window.location.host}/experimental.html?pid=${id}`);
+                });
+            }
+
+            let insert_at = 'insert-here'
+            let template_id = 'prez-section'
+            let keys_to_change = {
+                "link":"prez_link",
+                "image":"preview_link",
+                "title":"title",
+                "created":"created",
+                "rename":"",
+                "delete":""
+                //"updated":"last_updated"
+            }
+            
+            function formatDate(strval) {
+                let date = new Date(strval)
+                return date.toLocaleDateString('en-UK')
+            }
+
+            function setValue(node, value) {
+                if (!value) {
+                    return;
+                }
+                if (node.nodeName == 'IMG') {
+                    node.src = value
+                }
+                else if (node.nodeName == 'A') {
+                    node.href = value
+                }
+                else {
+                    node.innerHTML = value
+                }
+            }
+
+            function buildView(data) {
+                data = JSON.parse(data)
+                let template = document.getElementById(template_id)
+                let insertPoint = document.getElementById(insert_at)
+
+                template.parentNode.removeChild(template)
+                for (const item of data) {
+                    let newNode = template.cloneNode(true)
+                    
+
+                    insertPoint.appendChild(newNode)
+                    newNode.id = `${item.id}:${newNode.id}`
+
+                    item['prez_link'] = `/experimental.html?pid=${item.id}`
+                    item['preview_link'] = `https://wcs.smartdraw.com/software/img/diagram-software-example.png`
+                    item['created'] = formatDate(item['created'])
+                    item['last_updated'] = formatDate(item['last_updated'])
+
+                    rename = document.getElementById('rename')
+                    rename.addEventListener('click', (e) => renameNS(e));
+                    delet  = document.getElementById('delete')
+                    delet.addEventListener('click', (e) => deleteNS(e));
+
+                    for (const [key, ref] of Object.entries(keys_to_change)) {
+                        let node = document.getElementById(key)
+                        if (node) {
+                            node.id = `${item.id}:${key}`
+                            setValue(node, item[ref])
+                        }
+                    }
+
+                }
+            }  
+
+            function displayError() {
+
+            }
+
+            function pidFromId(id) {
+                return id.split(':')[0]
+            }
+
+            function deleteNS(e) {
+                let data = {
+                    id: pidFromId(e.target.id)
+                }
+
+                htreq("DELETE",`${BASE_URL}delete`,'application/json', JSON.stringify(data), (e) =>{
+                    console.log(`Deleted ${data.id}`)
+                    let p = document.getElementById(`${data.id}:prez-section`)
+                    p.parentNode.removeChild(p)
+                }, (e) => {
+                    alert("Failed to delete");
+                })
+            }
+
+            function renameNS(e) {
+                let data = {
+                    id: pidFromId(e.target.id),
+                    title: prompt('New title')
+                }
+                htreq("PATCH",`${BASE_URL}configure`,'application/json', JSON.stringify(data), (e) =>{
+                    console.log(`Renamed ${data.id} to ${data.title}`)
+                    setValue(document.getElementById(`${data.id}:title`), data.title)
+                }, (e) => {
+                    alert("Failed to rename");
+                })
+            }
+
+            get(`https://${window.location.host}/getPresentations`, 
+                'application/json',
+                buildView,
+                displayError);
+
+        </script>
+    </body>
+</html>

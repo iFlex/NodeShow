@@ -254,6 +254,8 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     if (rawDescriptor['cssText']){
         child.style.cssText = rawDescriptor['cssText']    
     }
+    
+    this.updateZindexLimits(child)
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit != false) {

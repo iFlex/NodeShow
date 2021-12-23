@@ -92,7 +92,6 @@ Container.prototype.setPosition = function(id, position, callerId) {
     });
 }
 
-//ToDo take angle into consideration somehow
 /* Returned position is always absolute and without account for transforms */
 Container.prototype.getPosition = function(id) {
     let node = Container.lookup(id)

@@ -120,8 +120,12 @@ class ContainerJsonEdit {
 			alert(e);
 			return;
 		}
-
 		for (const item of this.selection) {
+			let rmactions = this.container.getActions(item)
+			for (const actionToRm of rmactions) {
+				this.container.removeAction(item, actionToRm, this.appId)
+			}
+
 			for (const action of actions) {
 				try {
 					console.log(`${this.appId} saving action on container`)
@@ -134,7 +138,15 @@ class ContainerJsonEdit {
 				}
 			}
 
+			let permsToRm = this.container.getPermission(item)
+			for (const [rmperm, acl] of Object.entries(permsToRm)) {
+				for (const caller of Object.keys(acl)) {
+					this.container.removePermission(item, rmperm, caller, this.appId)
+				}
+			}
+			
 			for (const [permission, acl] of Object.entries(perms)) {
+
 				for (const [caller, allowed] of Object.entries(acl)) {
 					this.container.setPermission(item, permission, caller, allowed, this.appId)
 				}

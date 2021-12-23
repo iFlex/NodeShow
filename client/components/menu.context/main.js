@@ -1,4 +1,5 @@
 import { container } from '../../nodeshow.js'
+import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
 
 //ToDo: state based button text and action
 //ToDo: implement key bindings
@@ -9,14 +10,16 @@ class ContextMenu {
 	#handlers = {}
 	#interface = null
 
+	#touch = null
+
 	#defaultActions = [
-		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click', icon:'ns-new-icon'},
+		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click'},
 		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "deleteSparingChildren", shortcut:'End', icon:'ns-delete-icon'},
 		{name: "Text", action: "container.edit.text.start"},
 		{name: "ParentDown", action: "container.lineage.parentDown", shortcut:'Shift+<'},
 		{name: "ParentUp", action: "container.lineage.parentUp", shortcut:'Shift+>'},
-		{name: "Collapse", action: "collapse", shortcut: 'Ctrl+Down'},
+		{name: "Summarize", action: "summarizeToggle", shortcut: 'Ctrl+Down'},
 		{name: "Arrange[X]", action: ""},
 		{name: "Copy[X]", action: "", icon:"ns-copy-icon", shortcut:'Ctrl+C'},
 		{name: "Paste[X]", action: "", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
@@ -31,6 +34,11 @@ class ContextMenu {
 	constructor (container) {
 		this.#container = container;
 		container.registerComponent(this);
+		
+		this.#touch = new Touch(this.appId)
+		this.#touch.setAction(TouchEvents.CLICK, (e) => {
+			this.start(e)
+		})
 
 		this.#handlers['contextmenu'] = (e) => this.start(e)
 
@@ -68,6 +76,7 @@ class ContextMenu {
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
 				document.addEventListener(event, handler)
 			}
+			this.#touch.enable();
 		}
 	}
 
@@ -78,6 +87,8 @@ class ContextMenu {
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
 				document.removeEventListener(event, handler)
 			}
+			this.#touch.disable();
+			
 		}
 	}
 
@@ -86,6 +97,8 @@ class ContextMenu {
 	}
 
 	start (e) {
+		console.log(`${this.appId} - start`)
+		console.log(e)
 		this.#container.componentStartedWork(this.appId, {})
 		e.preventDefault()
 		this.#target = e.target

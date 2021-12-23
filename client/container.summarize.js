@@ -1,7 +1,6 @@
 import {Container, ACTIONS} from "./Container.js"
 
 //ToDo: find a better way to store state rather than as string in data- objects
-//collpase settings should be sent to the server somehow
 Container.prototype.isCollapsed = function(id) {
     let node = Container.lookup(id)
     
@@ -9,6 +8,14 @@ Container.prototype.isCollapsed = function(id) {
         return true;
     }
     return false;
+}
+
+Container.prototype.summarizeToggle = function(id, callerId) {
+    if (this.isCollapsed(id)) {
+        this.expand(id, callerId)
+    } else {
+        this.collapse(id, callerId)
+    }
 }
 
 Container.prototype.collapse = function(id, callerId) {
@@ -19,15 +26,19 @@ Container.prototype.collapse = function(id, callerId) {
         return;
     }
 
-    let settings = JSON.parse(node.getAttribute('data-collapse-settings'))
+    let settings = JSON.parse(node.getAttribute('data-collapse-settings')) || {height:'32px', width:'32px'}
     let prevState = this.toSerializableStyle(id, true)
     
     try {
         if (settings.height) {
-            this.setHeight(id, settings.height, callerId)
+            let unit = this.detectUnit(settings.height)
+            let h = parseInt(settings.height.replace(unit,''))
+            this.setHeight(id, h, callerId)
         }
         if (settings.width) {
-            this.setWidth(id, settings.width, callerId)
+            let unit = this.detectUnit(settings.width)
+            let w = parseInt(settings.width.replace(unit,''))
+            this.setWidth(id, w, callerId)
         }
     } catch (e) {
         //may partially fail due to permissions
@@ -42,8 +53,10 @@ Container.prototype.collapse = function(id, callerId) {
     });
 }
 
-Container.prototype.setCollapseMode = function(id, settings) {
-    Container.lookup(id).setAttribute('data-collapse-settings', JSON.stringify(settings))    
+Container.prototype.setCollapseMode = function(id, settings, callerId) {
+    Container.lookup(id).setAttribute('data-collapse-settings', JSON.stringify(settings))
+    //ensures collapse settings are persisted on the server
+    this.notifyUpdate(id, callerId)    
 }
 
 Container.prototype.expand = function(id, callerId) {

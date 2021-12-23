@@ -87,15 +87,22 @@ class ContainerSizer {
 
 		let w = this.container.getWidth(target)
 		let h = this.container.getHeight(target)
-		console.log(`${this.appId} -> (${dx} + ${w}) (${dy} + ${h}) ${x} ${y}`)
 		
 		if (this.#presenveRatio) {
 			let change = this.keepRatio(target, w, h, dx, dy)
 			dx = change.dx;
 			dy = change.dy;
 		}
-		this.container.setWidth(target, w + dx, this.appId);
-		this.container.setHeight(target, h + dy, this.appId);
+		try {
+			this.container.setWidth(target, w + dx, this.appId);	
+		} catch (e) {
+			//pass
+		}
+		try {
+			this.container.setHeight(target, h + dy, this.appId);
+		} catch (e) {
+			//pass
+		}
 	}
 
 	start(id) {

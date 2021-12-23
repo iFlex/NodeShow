@@ -4,11 +4,14 @@ const PORT= process.env.PORT || 8080;
 const SERVER=`http://localhost:${PORT}/`;
 const NGPS_LOCATION = process.env.NODE_SHOW_CLIENT_HOME || "../client"
 const NGPS_ENTRYPOINT = NGPS_LOCATION + "/index.html";
-const USER_STORAGE = process.env.USER_STORAGE_HOME || '../users'
-const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../prezzos'
+const USER_STORAGE = process.env.USER_STORAGE_HOME || '../storage/users'
+const TOKEN_STORAGE = process.env.TOKEN_STORAGE || '../storage/tokens'
+const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../storage/prezzos'
+const BLOB_STORE = process.env.BLOB_STORAGE || '../storage/blobs'
 const DEBUG_MODE = process.env.DEBUG_MODE || false;
 const STATIC_CONTENT = './static'
 const UPLOADS = './static/'
+//ToDo: Handle content lookup by link rather than try each folder until something is found...
 
 console.log(`Configured NodeShow server with`)
 console.log(`Server config: ${SERVER}`)
@@ -20,6 +23,7 @@ const https = require('https');
 const url = require('url');
 const fs = require('fs');
 const formidable = require('formidable')
+const utils = require('./common.js')
 
 if (!process.env.TLS_CERT_KEY || !process.env.TLS_CERT) {
   console.log("Please provide environment variables for the HTTPS server TLS config")
@@ -54,31 +58,23 @@ const dispatcher = new HttpDispatcher();
 const HttpUtils = require('./HttpUtils')
 const UserBase = require('./UserBase')
 const PresentationBase = require('./PresentationBase');
+
 //Storage
 const FileStorage = require('./FileStorage')
 const FolderKeyFileStorage = require('./FolderKeyFileStorage')
 //const RAMStorage = require('./RAMKeyStorage')
 
-const UserStorage = new FileStorage(USER_STORAGE);
+const Authenticator = require('./auth/authentication/auth.js')
+const auth = new Authenticator(new FolderKeyFileStorage(TOKEN_STORAGE))
+
+const UserStorage = new FolderKeyFileStorage(USER_STORAGE);
 const Users = new UserBase(UserStorage);
 
 const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
 
-//dispatcher.setStatic("/");
-//dispatcher.setStaticDirname(NGPS_LOCATION);
 const debug_level = 0;
-
-var utils = new (function(){
-  this.makeAuthToken = function(length){
-    token = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for( var i=0;i<length;++i)
-        token += possible.charAt(Math.floor(Math.random() * possible.length));
-    return token;
-  }
-})();
 
 //RAM FAST PRESENTATION ROUTING
 var presentations = {}
@@ -90,15 +86,56 @@ for (const prezzoId of Presentations.list()) {
 }
 
 
-function newPrezzo() {
-  let prezzo = Presentations.createNew()
+function newPrezzo(creator) {
+  let prezzo = Presentations.createNew(null, creator)
   presentations[prezzo.id] = {"id":prezzo.id, sockets:{}, presentation: prezzo}
 
   return prezzo.id;
 }
 
+function manuallyHandle(url, req, res) {
+  verifyRequest(req, res)
+  let content = ""
+
+  req.on("error", function(exception) {
+    response.writeHead(500, {'content-type': 'text/plain'});
+    response.end("FAILED");
+  });
+  
+  req.on("data", function(data) {
+    content += data;
+  });
+
+  req.on("end", function() {
+    console.log(content)
+    let data = JSON.parse(content)
+
+    try {
+      if (url == '/configure') {
+        setNodeShowMetadata(null, data)
+      } else if (url == '/delete') {
+        deletePresentation(null, data)
+      } 
+      res.writeHead(200, {'Content-Type': 'application/json'});
+    } catch(e) {
+      res.writeHead(500, {'Content-Type': 'application/json'})
+    }
+
+    res.end();
+  });
+};
+
 dispatcher.onGet("/new", function(req, res) {
-  let id = newPrezzo();
+  let cookie = verifyRequest(req, res);
+  let id = null;
+  try {
+    id = newPrezzo(Users.lookup(cookie.id));  
+  } catch (e) {
+    console.error(`Failed to create new presentation for user ${cookie.id}: ${e}`)
+    endWithError(res)
+    return;
+  }
+  
   console.log(`Created new prezzo ${id}`)
   
   res.writeHead(200, {'Content-Type': 'text/html'});
@@ -119,6 +156,13 @@ dispatcher.onGet("/list", function(req, res) {
   res.end();
 });
 
+dispatcher.onGet("/getPresentations", function(req, res) {
+  let cookie = verifyRequest(req, res)
+  let response = getPresentations(Users.lookup(cookie.id), null, null)
+  res.writeHead(200, {"Content-Type": "application/json"});
+  res.write(JSON.stringify(response));
+  res.end();
+});
 
 dispatcher.onGet("/edit", function(req, res) {
   const queryObject = url.parse(req.url, true).query;
@@ -135,31 +179,84 @@ dispatcher.onGet("/edit", function(req, res) {
   } 
 });
 
+//ToDo: enforce content size
+//ToDo: make more resilient
+function handleUpload(request, response) {
+  verifyRequest(request, response)
 
-function handlePost(request, response) {
+  let fn = utils.makeAuthToken(128)
+  let filename = `${BLOB_STORE}/${fn}`
+  let uploaded = 0
+  let MAX_CONTENT_SIZE = 0
+
+  request.on("error", function(exception) {
+    console.error("Error while uploading file: ", exception);
+    response.writeHead(500, {'content-type': 'text/plain'});
+    response.end("FAILED");
+  });
+  
+  request.on("data", function(data) {
+    //ToDo: handle failure
+    fs.appendFileSync(filename, data)
+  });
+
+  request.on("end", function() {
+    response.end(fn);
+  });
+}
+
+function handlePost(url, request, response) {
   var form = new formidable.IncomingForm({uploadDir:UPLOADS});
   form.parse(request, function(err, fields, files) {
       if (err) {
+        console.log(`Failed to parse post request`)
         console.error(err.message);
         return;
       }
 
-      response.writeHead(200, {'content-type': 'text/plain'});
-      response.write('received upload:\n\n');
-
-      console.log(`Usaer Uploaded:`)
-      console.log(JSON.stringify({fields: fields, files: files}))
-
-      // This last line responds to the form submission with a list of the parsed data and files.
-      response.end("OK");
-      //ToDo: submit this to a headless browser which can then beam the contents over to everyone (via this server ofc)
+      if (url == "/login.html") {
+        let result = login(fields, request)
+        if (result) {
+          response.writeHead(303, {
+            'content-type': 'text/plain',
+            'Set-Cookie': `token=${(Buffer.from(JSON.stringify(result))).toString('base64')}`,
+            'Location': '/home.html'
+          });
+        } else {
+          response.writeHead(403, {'content-type': 'text/plain'});
+        }
+      } else if (url == "/signup.html") {
+        let result = signup(fields, request, response)
+        if (!result) {
+          response.writeHead(403, {'content-type': 'text/plain'});
+        } else {
+          response.writeHead(303, {
+            'content-type': 'text/plain',
+            'Set-Cookie': `token=${(Buffer.from(JSON.stringify(result))).toString('base64')}`,
+            'Location': '/home.html'
+          });
+        }
+      } else {
+        let data = JSON.stringify({fields: fields, files: files})
+        response.writeHead(200, {'content-type': 'text/plain'});
+        console.log(`User Uploaded:`)
+        console.log(data)
+        //ToDo: submit this to a headless browser which can then beam the contents over to everyone (via this server ofc)
+      }
+      response.end();
   });
-  return;
 }
 
-function handleRequest(request, response){
+let noTokenNeeded = new Set(["/signup.html","/login.html"])
+
+function handleRequest(request, response) {
     console.log(`${request.method} - ${request.url}`)
     try {
+      if (!noTokenNeeded.has(request.url)) {
+        console.log("Verifying")
+        verifyRequest(request, response)
+      }
+
       var wasStatic = false;
       if(request.method.toLowerCase() == "get") {
         //static content server
@@ -168,48 +265,54 @@ function handleRequest(request, response){
           wasStatic = HttpUtils.handleStaticGet(request, response, STATIC_CONTENT)
         }
         if (!wasStatic) {
+          wasStatic = HttpUtils.handleStaticGet(request, response, BLOB_STORE)
+        }
+        if (!wasStatic) {
           dispatcher.dispatch(request, response);
         }
       } else if(request.method.toLowerCase() == "post") {
-        handlePost(request, response)
+        handlePost(request.url, request, response)
+      } else if(request.method.toLowerCase() == "put") {
+        handleUpload(request, response)
+      } else if(request.method.toLowerCase() == 'delete') {
+        manuallyHandle(request.url, request, response);
+      } else if(request.method.toLowerCase() == 'patch') {
+        manuallyHandle(request.url, request, response);
       }
+
     } catch(err) {
       console.log(err.stack);
     }
 }
 
 function parseCookies (headers) {
-  var list = {},
-      rc = headers.cookie;
+  var list = {},rc = headers.cookie;
 
   rc && rc.split(';').forEach(function( cookie ) {
       var parts = cookie.split('=');
       list[parts.shift().trim()] = decodeURI(parts.join('='));
   });
 
-  return list;
-}
-
-
-function findUserIdFromRequest(hdr) {
-  console.log(hdr)
-  let cookies = parseCookies(hdr);
-  return cookies['user_id']
+  try {
+    return JSON.parse(Buffer.from(list["token"],'base64').toString('ascii'))
+  } catch(e) {
+    return {}
+  }
 }
 
 //revisit this. It has grown to be overcomplicated.
 io.on('connection', function (socket) {
   console.log("New socket.io connection")
-  socket.on('register', function (data) {
+  socket.on('register', function (parsed) {
     console.log("Register request:")
-    console.log(data)
+    console.log(parsed)
 
-    let parsed = JSON.parse(data);
     let prezId = parsed.presentationId;
     let prezzo = presentations[prezId];
 
     if (prezzo) {
-      let user = Users.lookup(findUserIdFromRequest(socket.handshake.headers));
+      let cookie = parseCookies(socket.handshake.headers)
+      let user = Users.lookup(cookie.id);
       user.sessionId = utils.makeAuthToken(64); 
       if (!user.id) {
         user.id = user.sessionId
@@ -220,7 +323,7 @@ io.on('connection', function (socket) {
       
       let registerMsg = {userId: user.id, sessionId: user.sessionId, name: user.name, presentationId: prezId}
       console.log(`Registered new user Name(${user.name}) UID(${user.id}) SID(${user.sessionId}) for prezzo ${prezId}`)
-      socket.emit('register', JSON.stringify(registerMsg))
+      socket.emit('register', registerMsg)
       //beam over presentation
       broadcast(null, ['user.joined', registerMsg], prezzo.sockets);
       sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
@@ -253,8 +356,7 @@ function findUserBySocket(socket, prezzo){
   return null;
 }
 
-function handleBridgeUpdate(data, originSocket) {
-  let parsed = JSON.parse(data);
+function handleBridgeUpdate(parsed, originSocket) {
   if(debug_level > 1) {
     console.log(data)
   }
@@ -278,7 +380,7 @@ function handleBridgeUpdate(data, originSocket) {
     console.log(`event:${parsed.event} on:${prezId} by: UID(${userId}) SID(${sessionId})`)
     parsed.userId = userId;
     parsed = prezzo.presentation.update(parsed);
-    broadcast(sessionId, ['update', JSON.stringify(parsed)], prezzo.sockets);
+    broadcast(sessionId, ['update', parsed], prezzo.sockets);
   }
 }
 
@@ -307,15 +409,92 @@ function sendPresentationToNewUser(socket, prezzo) {
     if (debug_level > 1) {
       console.log(node)
     }
-    socket.emit('update', JSON.stringify({
+    socket.emit('update', {
       presentationId: prezzo.id,
       event: Events.create,
       detail: {
           parentId: node.parentId,
           descriptor: node
       }
-    }));
+    });
   }
+}
+
+//TODO: user getWithFilters
+function getPresentations(user, filters, pagination) {
+  //just get all of them for now
+  let result = []
+  for (const prezzoId of Presentations.list()) {
+    let prezzo = Presentations.get(prezzoId)
+    let details = prezzo.presentation
+    if (details.creator == user.id) {
+      result.push(prezzo.serialize())
+    }
+  }
+
+  result.sort((f, s) => { return s.created - f.created } )
+  return result
+}
+
+
+function setNodeShowMetadata(user, details) {
+  let prezzo = Presentations.get(details.id)
+  if (prezzo) {
+    prezzo.updateMetadata(details)
+    return prezzo.serialize()
+  } else {
+    console.log("Couldn't find the prezzo you're looking for")
+  }
+  throw `Can't find the NodeShow`;
+}
+
+function deletePresentation(user, details) {
+  Presentations.remove(details.id)
+}
+
+function verifyRequest(request, response) {
+  let cookie = parseCookies(request.headers)
+  if(!auth.verifyToken(cookie.id, cookie.token)){
+    console.log('Unauthorised request');
+    redirect('/login.html', response)
+    throw `Unauthorised request`
+  }
+  return cookie
+}
+
+function login(data) {
+  console.log('Login')
+  console.log(data)
+  let token = auth.login({id:data.identifier, password:data.password}, 
+    Users.lookup(data.identifier, true))
+  if (token) {
+    return {
+      id: data.identifier,
+      token: token
+    }
+  }
+  return null;
+}
+
+function signup(data) {
+  let user = Users.newUser(data)
+  if (user) {
+    return {
+      id: user.id,
+      token: auth.newToken(user)
+    }
+  }
+  return null;
+}
+
+function redirect(location, response) {
+  response.writeHead(303, {'content-type': 'text/plain','location':location});
+  response.end();
+}
+
+function endWithError(res) {
+  res.writeHead(500, {'content-type': 'text/plain'})
+  res.end();
 }
 
 //listen

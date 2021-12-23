@@ -10,9 +10,11 @@ export class LiveBridge {
     host = window.location.host;
     port = window.location.port;
 
+    #retryQueue = []
+
     //events that are sent over the network
     #events = {}
-
+    
 	//should plug into all relevant events and report them to the server
 	constructor(container, debug) {
 		this.container = container;
@@ -35,6 +37,7 @@ export class LiveBridge {
                 value.send.apply(this, [e])
             });
         }
+
 	}
 
     //no caller id, current user or component
@@ -86,36 +89,28 @@ export class LiveBridge {
             console.log("Sending server update")
             console.log(update)
         }
-        this.socket.emit("update", JSON.stringify(update));
+        this.socket.emit("update", update);
     }
     
 	registerSocketIo() {
 		console.log(`Registering Live Bridge via SocketIo ${this.host}`);
 		this.socket = io(`https://${this.host}`)
-		this.socket.emit('register', JSON.stringify({"presentationId":this.container.presentationId}));
+		this.socket.emit('register', {"presentationId":this.container.presentationId});
 
 		this.socket.on('register', d => {
-			try {
-				d = JSON.parse(d);
-			} catch ( e ){
-				console.error(e);
-				return;
-			}
-
 		  	console.log(`Registered with remote via SocketIo with UID:${d.userId} SID:${d.sessionId}`)
 		  	this.userId = d.userId;
             this.sessionId = d.sessionId;
 		 	console.log(d);
 		});
 
-		this.socket.on('update', d => this.handleUpdate(JSON.parse(d)))
+		this.socket.on('update', d => this.handleUpdate(d))
         this.socket.on('user.joined', d => {
             console.log(`User joined ${d.name}-${d.userId}`)
         })
         this.socket.on('user.left', d => {
             console.log(`User left ${d.name}-${d.userId}`)
         })
-        this.socket.on('insert', d => this.handleInsert(JSON.parse(d)))
     }
 
 	handleUpdate(data) {
@@ -156,24 +151,6 @@ export class LiveBridge {
         }
 	}
 
-    handleInsert(data) {
-        let holder = this.container.createFromSerializable(null, {
-            "nodeName":"DIV",
-            "computedStyle": {
-                "position":"absolute",
-                "top":"0px",
-                "left":"20px",
-                "min-width":"500px",
-                "min-height":"500px",
-                "width":"auto",
-                "height":"auto",
-                "overflow": "auto"
-            }
-        })
-
-        this.container.loadHtml(holder, data.detail.url, undefined, true)
-    }
-
 	//TESTING
 	beam() {	
 		let queue = [this.container.parent]
@@ -191,7 +168,7 @@ export class LiveBridge {
 				let raw = this.container.toSerializable(item.id);
                 console.log(raw)
                 
-                let jsndata = JSON.stringify({
+                let jsndata = {
                     presentationId: this.container.presentationId,
                     sessionId: this.sessionId,
                     event: ACTIONS.create,
@@ -199,7 +176,7 @@ export class LiveBridge {
                         parentId: parentId,
                         descriptor:raw
                     }
-                })
+                }
 
 				this.socket.emit("update", jsndata);
 			}

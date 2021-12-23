@@ -102,7 +102,8 @@ class ContainerClipboard {
 			
 			let data = JSON.stringify(clipboard)
 			e.clipboardData.setData("text/plain", data)
-			//[TODO]Warning: this will prevent regular execution. Figure out how to integrate with text editor
+			//[TODO]Warning: this will prevent regular execution.
+			//Figure out how to integrate with text editor and input fields
 			e.preventDefault()
 		}
 	}

@@ -31,17 +31,18 @@ class PresentationBase {
 		}
 	}
 
-	createNew(tag, failOnNoStorage) {
+	createNew(tag, creator, failOnNoStorage) {
 		if (!tag) {
 			tag = PresentationBase.makeId(5);
 			if (this.storage.get(tag)) {
 				throw 'Presentation ID already exists';
 			}
 
-			this.storage.write(tag, this.createMetadata(tag, undefined))
+			this.storage.write(tag, this.createMetadata(tag, creator.id))
 		}
 
 		let prezzo = new Presentation(tag, this.storage, failOnNoStorage);
+		this.presentations[tag] = prezzo
 		return prezzo;
 	}
 
@@ -51,10 +52,16 @@ class PresentationBase {
 
 	remove (id) {
 		delete this.presentations[id];
+		this.storage.remove(id);
 	}
 
 	get (id) {
 		return this.presentations[id];
+	}
+
+	//TODO
+	getWithFilter(callerId, filters) {
+
 	}
 
 	static makeId(length) {

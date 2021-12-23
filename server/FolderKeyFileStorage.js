@@ -48,13 +48,32 @@ class FolderKeyFileStorage {
 	}
 
 	remove(id) {
-		
+		this.updatesQueue.push({id:id, remove:true})
+		for (let record of this.updatesQueue) {
+			record.remove = true;
+		}
+	}
+
+	removeFolder(id) {
+		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
+		try {
+			let versions = FolderKeyFileStorage.getAllVersions(path)
+			for(let old of versions) {
+				let delpath = path+"/"+old
+				fs.unlinkSync(delpath)
+			}
+			fs.rmdirSync(path)
+		} catch (e) {
+			console.log(`Failure during remove for ${id}`)
+			console.error(e)
+			throw e
+		}
 	}
 
 	writeFile (id, data) {
 		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
 		let filename = `${path}/${Date.now()}.json`
-		
+
 		try {
 			fs.writeFileSync(filename, JSON.stringify(data));
 			let oldVersions = FolderKeyFileStorage.getAllVersions(path)
@@ -66,6 +85,7 @@ class FolderKeyFileStorage {
 			}
 		} catch (e) {
 			console.log(`Failure during persist for ${id} - ${e}`)
+			console.error(e)
 			FolderKeyFileStorage.initStorage(path)
 		}
 	}
@@ -74,7 +94,11 @@ class FolderKeyFileStorage {
 		let start = Date.now()
 		while (this.updatesQueue.length > 0) {
 			let update = this.updatesQueue.pop();
-			this.writeFile(update.id, update.data);
+			if (update.remove) {
+				this.removeFolder(update.id)
+			} else {
+				this.writeFile(update.id, update.data);
+			}
 		}
 		let end = Date.now()
 		//console.log(`Persiste step took: ${end - start}ms`)

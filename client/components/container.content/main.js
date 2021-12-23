@@ -1,11 +1,13 @@
 import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
+import { post } from '../utils/http.js'
 
 class ContainerContent {
     appId = 'container.content'
     displayName = 'Content'
     transactional = true
-
+    contentURL = `https://${window.location.host}`
+    
     #interface = null
     #handlers = {}
     #enabled = false
@@ -104,22 +106,6 @@ class ContainerContent {
       return null;
     }
 
-		// 	if (key == ';') {
-		// 		let units = this.getAllTextUnits()
-		// 		let text = ""
-		// 		for (const unit of units) {
-		// 			text += unit.innerText;
-		// 		}
-
-		// 		let style = this.textToStyle(text)
-		// 		console.log(style)
-		// 		this.container.styleChild(this.target, style, this.appId)
-				
-		// 		for(const unit of units) {
-		// 			this.container.delete(unit.id, this.appId);
-		// 		}
-		// 	}
-		// }
     getStyle(target) {
       let childStyle = {
         'position':'absolute',
@@ -189,9 +175,9 @@ class ContainerContent {
       let dataNode = this.container.lookup("ns-content-url")
       if (dataNode && dataNode.value) {
         let data = dataNode.value
-        if (this.isData(data)) {
-          //ToDo use the result from is data to figure out the content type
-          this.createFromData(this.getContentType(), data)
+        let isData = this.isData(data)
+        if (isData) {
+          this.uploadAndShow(isData)
         } else if (this.isLink(data)) {
           this.createFromData(this.getContentType(), data)
         } else {
@@ -201,23 +187,40 @@ class ContainerContent {
         dataNode.value = ""
       }
     }
+    
+    uploadAndShow (data) {
+      //ToDo use the result from is data to figure out the content type
+      post(this.contentURL, "application/octet-stream", atob(data.data), (uri) => {
+        this.createFromData(data.content, uri)
+      }, (e) => {
+        console.error(`${this.appId} - content load failed on read from server`)
+      })
+    }
 
     loadFileContents (type, reader) {
       //ToDo: figure out what to do about other types
-      this.createFromData(type, reader.result)
+      //ToDo: make more resilient... this is shoddy
+      
+      post(this.contentURL, type, reader.result,
+        (uri) => {
+          console.log(uri)
+          this.createFromData(type, uri)
+        },
+        (e) => {
+          console.error(`${this.appId} - content load failed on read from server`)
+        })
     }
 
     readFile(file) {
       console.log(`${this.appId} loading file ${file.name}`)
-    
+      console.log(file)
       var reader = new FileReader();
       var mimeType = file.type
       reader.onload = (e) => {
         console.log(`${this.appId} raw file content loaded`)
         this.loadFileContents(mimeType, reader)
       }
-      //ToDo: based on type of file, decide how to read
-      reader.readAsDataURL(file);
+      reader.readAsArrayBuffer(file)
     }
 
     loadFromFile(e) {

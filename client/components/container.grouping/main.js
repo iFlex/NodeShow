@@ -85,15 +85,17 @@ class ContainerGrouping {
 			sy: e.detail.originalEvent.screenY,
 			sx: e.detail.originalEvent.screenX
 		}
-		this.#grouper = this.#container.createFromSerializable(this.#groupParent, this.#groupDescriptor, null, this.appId)
-		this.#container.setPosition(this.#grouper, this.#startPos, this.appId)
 	}
 
 	handleDragUpdate(e) {
-		if (!this.#grouper){
+		if (!this.#startPos){
 			return;
 		}
 
+		if (!this.#grouper) {
+			this.#grouper = this.#container.createFromSerializable(this.#groupParent, this.#groupDescriptor, null, this.appId)
+			this.#container.setPosition(this.#grouper, this.#startPos, this.appId)
+		}
 		//update selection container
 		let pos = this.#container.getPosition(this.#grouper);
 		

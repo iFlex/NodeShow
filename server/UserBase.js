@@ -1,3 +1,5 @@
+const utils = import('./common.js')
+
 class UserBase {
 	
 	constructor (userStorage) {
@@ -12,9 +14,30 @@ class UserBase {
 		}
 	}
 
-	lookup(id) {
+	newUser(details) {
+		if (!details.identifier) {
+			return;
+		}
+
+		let existing = this.storage.get(details.identifier); 
+		if (existing) {
+		 	return null;
+		}
+
+		let user = {
+			id:details.identifier,
+			name:details.name,
+			email:details.identifier,
+			password:details.password
+		}
+		console.log(user)
+		this.storage.write(user.id, user)
+		return user;
+	}
+
+	lookup(id, failOnNotFound) {
 		let user = this.storage.get(id)
-		if (!user) {
+		if (!user && !failOnNotFound) {
 			return this.newAnonymousUser();
 		}
 		return user;
@@ -26,12 +49,6 @@ class UserBase {
 
 	delete(id) {
 
-	}
-
-	authenticate(id, details) {
-		let userRow = this.lookup(id);
-		//todo check details
-		return true;
 	}
 }
 

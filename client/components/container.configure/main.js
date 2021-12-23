@@ -1,4 +1,5 @@
 import { container } from '../../nodeshow.js'
+import { ACTIONS } from '../../Container.js'
 import { getSelection } from '../utils/common.js'
 
 //ToDo: implement. 
@@ -82,8 +83,50 @@ class ContainerConfig {
 
 	applyChanges() {
 		this.selection = getSelection() || [];
-
 	}
+
+	lockPosition() {
+		this.selection = getSelection();
+		for (const target of this.selection) {
+			this.container.setPermission(target, ACTIONS.setPosition, "*", false, this.appId)
+		}
+	}
+
+	unlockPosition() {
+		this.selection = getSelection();
+		for (const target of this.selection) {
+			this.container.removePermission(target, ACTIONS.setPosition, null, this.appId)
+		}
+	}
+
+	lockWidth() {
+		this.selection = getSelection();
+		for (const target of this.selection) {
+			this.container.setPermission(target, ACTIONS.setWidth, "*", false, this.appId)
+		}
+	}
+
+	unlockWidth() {
+		this.selection = getSelection();
+		for (const target of this.selection) {
+			this.container.removePermission(target, ACTIONS.setWidth, null, this.appId)
+		}
+	}
+
+	lockHeight() {
+		this.selection = getSelection();
+		for (const target of this.selection) {
+			this.container.setPermission(target, ACTIONS.setHeight, "*", false, this.appId)
+		}
+	}
+
+	unlockHeight() {
+		this.selection = getSelection();
+		for (const target of this.selection) {
+			this.container.removePermission(target, ACTIONS.setHeight, null, this.appId)
+		}
+	}
+
 }
 
 new ContainerConfig(container)

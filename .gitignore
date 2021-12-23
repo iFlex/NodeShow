@@ -110,3 +110,5 @@ dist/
 out/
 inspect/
 localconf/
+blobs/
+storage/

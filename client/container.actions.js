@@ -3,9 +3,9 @@ import {Container} from "./Container.js"
 /*
     The idea here is that you can bind actions to a container
     data-action: {"trigger":"event_name","call":"method.name","params":["p1","p2",...]}
-    
-    ToDo: Polish    
 */
+
+let trigger_listeners = {}
 
 Container.prototype.initActions = function(node) {
     let actions = this.getActions(node)
@@ -14,6 +14,7 @@ Container.prototype.initActions = function(node) {
     }   
 }
 
+//ToDo: switch to using set instead of list for actions.
 Container.prototype.addAction = function(id, action, callerId) {
     this.isOperationAllowed('container.actions.add', id, callerId);
     let node = Container.lookup(id)
@@ -30,16 +31,22 @@ Container.prototype.addAction = function(id, action, callerId) {
     })
 }
 
-//TODO: fix this. currently not working
 Container.prototype.removeAction = function(id, action, callerId) {
     this.isOperationAllowed('container.actions.remove', id, callerId);
     let node = Container.lookup(id)
-    this.detachAction(id, action)
+    this.detachAction(node, action)
 
+    let toRem = JSON.stringify(action)
     let actions = this.getActions(node)
-    delete actions[action]
-    this.saveActions(node, actions)
+    for (let i in actions) {
+        let existingAction = JSON.stringify(actions[i])
+        if (existingAction == toRem) {
+            actions.splice(i,1)
+            break;
+        }
+    }
 
+    this.saveActions(node, actions)
     this.emit('container.actions.remove', {
         id: node.id,
         action: action,
@@ -106,16 +113,21 @@ Container.prototype.lookupMethod = function(method) {
 }
 
 Container.prototype.detachAction = function(node, actionDescriptor) {
-
+    let key = JSON.stringify(actionDescriptor)
+    node.removeEventListener(actionDescriptor.trigger, trigger_listeners[key])
+    delete trigger_listeners[key]
 }
 
 Container.prototype.attachAction = function(node, actionDescriptor) { 
     let toCall = this.lookupMethod(actionDescriptor.call)
     if (toCall) {
-        node.addEventListener(actionDescriptor.trigger, e => {
+        let key = JSON.stringify(actionDescriptor)
+        trigger_listeners[key] = e => {
             let params = (actionDescriptor.params || []).concat([e])
             toCall.method.apply(toCall.context, params)
-        })
+        }
+
+        node.addEventListener(actionDescriptor.trigger, trigger_listeners[key])
     } else {
         throw `Could not find method ${actionDescriptor.call} to attach action`
     }
