@@ -37,7 +37,7 @@ Current Prios:
     [NOTE]: socker.io won't fire items with large payloads in them >500kb or so. Large data content will be sent to server as blob and served from a separate folder.
 [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
-[TODO]: implement undo/redo
+[TODO]: implement undo/redo history
 [TODO]: Text eitor interface improvements: pick font, size update, prettify
 [TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
 [TODO]: Move findActionableAncestor call from mouse() into the relevant components
@@ -45,6 +45,9 @@ Current Prios:
 [TODO]: Work on solid encoding interpretation on content from server
 [TODO]: grouper color selection. pick color in a smart way rather than just black
 [TODO]: copy/paste style only (via context menu)
+[SHOULD-HAVE]: implement user feedback mechanisms: toast, confirm, prompt, alert, info queue + dismiss
+[SHOULD-HAVE]: properly organise server code
+[NICE-TO-HAVE]: ability to hide/show either div or just div content from other contributors
 [TODO]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG][MUST-FIX]: Keyboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed

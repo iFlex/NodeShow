@@ -39,23 +39,7 @@ const options = {
 };
 
 const server = https.createServer(options, handleRequest);
-
-//ToDo: use debug mode and other settings to properly build the cors here
-const io = require('socket.io')(server, {  
-  cors: {
-    //origin: "https://example.com",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Access-Control-Allow-Origin"],
-    extraHeaders : {
-      'Access-Control-Allow-Origin': '*'
-    }
-    //credentials: true 
-  }
-});
-
-const HttpDispatcher = require('httpdispatcher');
-const dispatcher = new HttpDispatcher();
-const HttpUtils = require('./HttpUtils')
+//const HttpUtils = require('./HttpUtils')
 const UserBase = require('./UserBase')
 const PresentationBase = require('./PresentationBase');
 
@@ -74,56 +58,15 @@ const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
 const Presentations = new PresentationBase(PresentationStorage);
 const Events = require('./NodeShowEvents');
 
+const Streamer = require('./stream.js');
+const streamer = new Streamer(server, Presentations)
+
 const debug_level = 0;
-
-//RAM FAST PRESENTATION ROUTING
-var presentations = {}
-var socket2prezzo = {}
-
-console.log(Presentations.list())
-for (const prezzoId of Presentations.list()) {
-  presentations[prezzoId] = {"id":prezzoId, sockets:{}, presentation: Presentations.get(prezzoId)}
-}
-
 
 function newPrezzo(creator) {
   let prezzo = Presentations.createNew(null, creator)
-  presentations[prezzo.id] = {"id":prezzo.id, sockets:{}, presentation: prezzo}
-
   return prezzo.id;
 }
-
-function manuallyHandle(url, req, res) {
-  verifyRequest(req, res)
-  let content = ""
-
-  req.on("error", function(exception) {
-    response.writeHead(500, {'content-type': 'text/plain'});
-    response.end("FAILED");
-  });
-  
-  req.on("data", function(data) {
-    content += data;
-  });
-
-  req.on("end", function() {
-    console.log(content)
-    let data = JSON.parse(content)
-
-    try {
-      if (url == '/configure') {
-        setNodeShowMetadata(null, data)
-      } else if (url == '/delete') {
-        deletePresentation(null, data)
-      } 
-      res.writeHead(200, {'Content-Type': 'application/json'});
-    } catch(e) {
-      res.writeHead(500, {'Content-Type': 'application/json'})
-    }
-
-    res.end();
-  });
-};
 
 dispatcher.onGet("/new", function(req, res) {
   let cookie = verifyRequest(req, res);
@@ -146,7 +89,7 @@ dispatcher.onGet("/new", function(req, res) {
 
 dispatcher.onGet("/list", function(req, res) {
   let result = []
-  for (const [key, val] of Object.entries(presentations)) {
+  for (const [key, val] of Object.entries(Presentations.list())) {
     result.push(key)
   }
   
@@ -179,246 +122,7 @@ dispatcher.onGet("/edit", function(req, res) {
   } 
 });
 
-//ToDo: enforce content size
-//ToDo: make more resilient
-function handleUpload(request, response) {
-  verifyRequest(request, response)
-
-  let fn = utils.makeAuthToken(128)
-  let filename = `${BLOB_STORE}/${fn}`
-  let uploaded = 0
-  let MAX_CONTENT_SIZE = 0
-
-  request.on("error", function(exception) {
-    console.error("Error while uploading file: ", exception);
-    response.writeHead(500, {'content-type': 'text/plain'});
-    response.end("FAILED");
-  });
-  
-  request.on("data", function(data) {
-    //ToDo: handle failure
-    fs.appendFileSync(filename, data)
-  });
-
-  request.on("end", function() {
-    response.end(fn);
-  });
-}
-
-function handlePost(url, request, response) {
-  var form = new formidable.IncomingForm({uploadDir:UPLOADS});
-  form.parse(request, function(err, fields, files) {
-      if (err) {
-        console.log(`Failed to parse post request`)
-        console.error(err.message);
-        return;
-      }
-
-      if (url == "/login.html") {
-        let result = login(fields, request)
-        if (result) {
-          response.writeHead(303, {
-            'content-type': 'text/plain',
-            'Set-Cookie': `token=${(Buffer.from(JSON.stringify(result))).toString('base64')}`,
-            'Location': '/home.html'
-          });
-        } else {
-          response.writeHead(403, {'content-type': 'text/plain'});
-        }
-      } else if (url == "/signup.html") {
-        let result = signup(fields, request, response)
-        if (!result) {
-          response.writeHead(403, {'content-type': 'text/plain'});
-        } else {
-          response.writeHead(303, {
-            'content-type': 'text/plain',
-            'Set-Cookie': `token=${(Buffer.from(JSON.stringify(result))).toString('base64')}`,
-            'Location': '/home.html'
-          });
-        }
-      } else {
-        let data = JSON.stringify({fields: fields, files: files})
-        response.writeHead(200, {'content-type': 'text/plain'});
-        console.log(`User Uploaded:`)
-        console.log(data)
-        //ToDo: submit this to a headless browser which can then beam the contents over to everyone (via this server ofc)
-      }
-      response.end();
-  });
-}
-
 let noTokenNeeded = new Set(["/signup.html","/login.html"])
-
-function handleRequest(request, response) {
-    console.log(`${request.method} - ${request.url}`)
-    try {
-      if (!noTokenNeeded.has(request.url)) {
-        console.log("Verifying")
-        verifyRequest(request, response)
-      }
-
-      var wasStatic = false;
-      if(request.method.toLowerCase() == "get") {
-        //static content server
-        wasStatic = HttpUtils.handleStaticGet(request, response, NGPS_LOCATION)
-        if (!wasStatic) {
-          wasStatic = HttpUtils.handleStaticGet(request, response, STATIC_CONTENT)
-        }
-        if (!wasStatic) {
-          wasStatic = HttpUtils.handleStaticGet(request, response, BLOB_STORE)
-        }
-        if (!wasStatic) {
-          dispatcher.dispatch(request, response);
-        }
-      } else if(request.method.toLowerCase() == "post") {
-        handlePost(request.url, request, response)
-      } else if(request.method.toLowerCase() == "put") {
-        handleUpload(request, response)
-      } else if(request.method.toLowerCase() == 'delete') {
-        manuallyHandle(request.url, request, response);
-      } else if(request.method.toLowerCase() == 'patch') {
-        manuallyHandle(request.url, request, response);
-      }
-
-    } catch(err) {
-      console.log(err.stack);
-    }
-}
-
-function parseCookies (headers) {
-  var list = {},rc = headers.cookie;
-
-  rc && rc.split(';').forEach(function( cookie ) {
-      var parts = cookie.split('=');
-      list[parts.shift().trim()] = decodeURI(parts.join('='));
-  });
-
-  try {
-    return JSON.parse(Buffer.from(list["token"],'base64').toString('ascii'))
-  } catch(e) {
-    return {}
-  }
-}
-
-//revisit this. It has grown to be overcomplicated.
-io.on('connection', function (socket) {
-  console.log("New socket.io connection")
-  socket.on('register', function (parsed) {
-    console.log("Register request:")
-    console.log(parsed)
-
-    let prezId = parsed.presentationId;
-    let prezzo = presentations[prezId];
-
-    if (prezzo) {
-      let cookie = parseCookies(socket.handshake.headers)
-      let user = Users.lookup(cookie.id);
-      user.sessionId = utils.makeAuthToken(64); 
-      if (!user.id) {
-        user.id = user.sessionId
-      }
-
-      prezzo.sockets[user.sessionId] = { user: user, socket: socket };
-      socket2prezzo[socket] = prezzo;
-      
-      let registerMsg = {userId: user.id, sessionId: user.sessionId, name: user.name, presentationId: prezId}
-      console.log(`Registered new user Name(${user.name}) UID(${user.id}) SID(${user.sessionId}) for prezzo ${prezId}`)
-      socket.emit('register', registerMsg)
-      //beam over presentation
-      broadcast(null, ['user.joined', registerMsg], prezzo.sockets);
-      sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
-    }
-  });
-
-  socket.on('update', (data) => handleBridgeUpdate(data, socket));
- 
-  socket.on("disconnect", (e) => {
-    console.log(`Connection closed:${e}`);
-    let prezzo = socket2prezzo[socket];
-    delete socket2prezzo[socket];
-
-    if (prezzo) {
-      let leavingSessionId = findUserBySocket(socket, prezzo);
-      delete prezzo.sockets[leavingSessionId];
-
-      broadcast(null, ['user.left',{sessionId:leavingSessionId}], prezzo.sockets);
-      console.log(`Session ${leavingSessionId} has ended`);
-    }
-  });
-});
-  
-function findUserBySocket(socket, prezzo){
-  for( const [sessionId, record] of Object.entries(prezzo.sockets)) {
-    if (record.socket == socket) {
-      return sessionId;
-    }
-  }
-  return null;
-}
-
-function handleBridgeUpdate(parsed, originSocket) {
-  if(debug_level > 1) {
-    console.log(data)
-  }
-
-  let prezId = parsed.presentationId;
-  let sessionId = parsed.sessionId;
-  let prezzo = presentations[prezId];
-
-  if (prezzo) {
-    //identifying user
-    let sessionData = prezzo.sockets[sessionId]
-    let userId = undefined
-    if (!sessionData) {
-      console.log(`Could not find session data for session ${sessionId} in prezzo: ${prezId}`)
-      //return;
-    } else {
-      userId = sessionData.user.id;  
-    }
-    
-    //broadcasting
-    console.log(`event:${parsed.event} on:${prezId} by: UID(${userId}) SID(${sessionId})`)
-    parsed.userId = userId;
-    parsed = prezzo.presentation.update(parsed);
-    broadcast(sessionId, ['update', parsed], prezzo.sockets);
-  }
-}
-
-function broadcast(senderId, message, sockets) {
-  if(debug_level > 1){DEBUG_MODE
-    console.log("Broadcasting to all users in prezzo")
-    console.log(message)
-  }
-  if(message.length != 2) {
-    console.log("Invalid broadcast call");
-    return;
-  }
-
-  for (const [socSessionId, record] of Object.entries(sockets)) {
-    if (socSessionId != senderId) {
-      record.socket.emit(message[0], message[1]);
-    }
-  }
-}
-
-function sendPresentationToNewUser(socket, prezzo) {
-  console.log("Beaming presentation to new user");
-  let nodes = prezzo.getNodesAnyOrder(); //prezzo.getNodesInOrder();
-  console.log(`Node count ${nodes.length}`)
-  for (const node of nodes) {
-    if (debug_level > 1) {
-      console.log(node)
-    }
-    socket.emit('update', {
-      presentationId: prezzo.id,
-      event: Events.create,
-      detail: {
-          parentId: node.parentId,
-          descriptor: node
-      }
-    });
-  }
-}
 
 //TODO: user getWithFilters
 function getPresentations(user, filters, pagination) {
@@ -498,6 +202,7 @@ function endWithError(res) {
 }
 
 //listen
+streamer.start();
 server.listen(PORT, function(){
     console.log("Server listening on: https://localhost:%s", PORT);
 });
