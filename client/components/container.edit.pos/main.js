@@ -90,7 +90,7 @@ class ContainerMover {
 
 
 	//ToDo: consider scale for changing size
-	modifyContainer(targetId, dx, dy, x, y, targetOx, targetOy) {
+	modifyContainer(targetId, x, y, targetOx, targetOy) {
 		let target = this.container.lookup(targetId)
 		this.container.setPosition(target, {
 			top: y,
@@ -117,23 +117,19 @@ class ContainerMover {
 		}
 		
 		let preTargetPos = this.container.getPosition(d.id)
-		this.modifyContainer(d.id, d.dx, d.dy, 
+		this.modifyContainer(d.id,
 			d.originalEvent.pageX, d.originalEvent.pageY,
 			d.targetOx, d.targetOy)
-
-		//[TODO]: Make selection drag work in nested contexts
+		let postTargetPos = this.container.getPosition(d.id)
+		
+		let dy = postTargetPos.top - preTargetPos.top
+		let dx = postTargetPos.left - preTargetPos.left
 		if (this.#selection.has(d.id)) {
 			//only move selection if target is part of selection 
 			//(equivalent to: if all selection items are siblings with target)
 			for (let id of this.#selection) {
 				if (d.id != id) {
-					let pos = this.container.getPosition(id)
-					let dy = pos.top - preTargetPos.top
-					let dx = pos.left - preTargetPos.left
-
-					this.modifyContainer(id, d.dx, d.dy, 
-				d.originalEvent.pageX + dx, d.originalEvent.pageY + dy,
-				d.targetOx, d.targetOy);
+					this.container.move(id, dx, dy, this.appId)
 				}
 			}
 		}

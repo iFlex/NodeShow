@@ -35,6 +35,7 @@ Current Prios:
 [TODO][CRITICAL]: make LiveBridge & Server communication robust + show feedback to user about containers that haven't been persisted by the server.
     Feedback: items that have failed to persist will have a failed css rule on them with a data-failed property containing the reason
     [NOTE]: socker.io won't fire items with large payloads in them >500kb or so. Large data content will be sent to server as blob and served from a separate folder.
+[FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
 [TODO]: Text eitor interface improvements: pick font, size update, prettify
