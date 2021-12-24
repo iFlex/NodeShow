@@ -7,6 +7,8 @@ export const ACTIONS = {
     update: 'container.update',
     bridge: 'container.bridge',
     error: 'container.error',
+    syncronizing: 'container.syncronizing',
+    syncronized: 'container.syncronized',
 
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',

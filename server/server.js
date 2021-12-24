@@ -330,7 +330,10 @@ io.on('connection', function (socket) {
     }
   });
 
-  socket.on('update', (data) => handleBridgeUpdate(data, socket));
+  socket.on('update', (data, ack) => {
+    handleBridgeUpdate(data, socket)
+    ack();
+  });
  
   socket.on("disconnect", (e) => {
     console.log(`Connection closed:${e}`);

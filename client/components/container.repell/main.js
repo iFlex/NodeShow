@@ -73,11 +73,8 @@ class ContainerRepeller {
             if (child.id == node.id) {
                 continue;
             }
-            console.log("REPELL")
-            console.log(child)
             let overlap = this.#overlap.getOverlapBBox(node, child)
             if (overlap) {
-                console.log(overlap)
                 let moveX = Math.abs(overlap.right - overlap.left)
                 let moveY = Math.abs(overlap.bottom - overlap.top)
                 if (moveX > moveY) {

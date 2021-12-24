@@ -409,6 +409,7 @@ class ContainerTextInjector {
 	makeNewTextChild (line) {
 		this.textUnitDescriptor.computedStyle['color'] = this.state.textColor;
 		//this.textUnitDescriptor.computedStyle['background-color'] = this.state.highlightColor;
+		this.textUnitDescriptor.computedStyle['font-family'] = this.state.fontFam;
 		this.textUnitDescriptor.computedStyle['font-size'] = this.state.fontSize;
 
 		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor, null, this.appId)
@@ -776,10 +777,7 @@ class ContainerTextInjector {
 		this.cursorUpdateVisible(this.#cursorDiv)
 		this.container.notifyUpdate(textUnit.id, this.appId)
 	}
-
-	/*
-	ToDo: Seems to be working ok
-	*/
+	
 	newLine() {
 		if (!this.target) {
 			return;
@@ -997,6 +995,8 @@ class ContainerTextInjector {
 	}
 
 	setFont(fontFam) {
+		this.state.fontFam = fontFam
+
 		let selection = this.getSelected()
 		if (!selection || selection.units.size == 0) {
 			selection = {units:this.getAllTextUnits()}
@@ -1095,6 +1095,15 @@ class ContainerTextInjector {
 
 	setHighlightColor(e) {
 		this.#setHighlightColor(e.target.value)
+	}
+
+	changeFont(e) {
+		console.log(`${this.appId} setting font family to: ${e.target.value}`)
+		this.setFont(this.state.fontFam)
+	}
+
+	updateInterface() {
+		document.getElementById('ns-text-editor-font').value = this.state.fontSize
 	}
 }
 

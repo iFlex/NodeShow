@@ -1,8 +1,18 @@
 <div class="ns-horizontal-list ns-text-editor-interface "
       data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
         
-        <select id="ns-text-editor-font" name="ns-text-editor-font" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
-          <option value="default" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Default</option>
+        <select id="ns-text-editor-font" name="ns-text-editor-font" 
+        data-container-actions='[{"trigger":"input","call":"container.edit.text.changeFont","params":[]}]'
+        data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
+          <option value="Times New Roman" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Times New Roman</option>
+          <option value="Spectral" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Spectral</option>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
+          <option value="Arial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Arial</option>
         </select>
         
         <div id="ns-text-editor-font" class="ns-horizontal-list-unit ns-text-editor-interface-unit"

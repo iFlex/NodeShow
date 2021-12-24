@@ -1,5 +1,19 @@
 import {Container, ACTIONS} from "./Container.js"
 
+/*
+    Events:
+    syncrhonizing, synchronized, lost-connection, got-connection, user-joined, user-left
+*/
+let RELEVANT_EVENTS = [
+ACTIONS.create, 
+ACTIONS.delete, 
+ACTIONS.setParent, 
+ACTIONS.update,
+ACTIONS.setPosition,
+ACTIONS.setWidth,
+ACTIONS.setHeight
+]
+
 export class LiveBridge {
 	container = null;
 	socket = null;
@@ -10,7 +24,7 @@ export class LiveBridge {
     host = window.location.host;
     port = window.location.port;
 
-    #retryQueue = []
+    #retryQueue = {}
 
     //events that are sent over the network
     #events = {}
@@ -20,7 +34,7 @@ export class LiveBridge {
 		this.container = container;
 		this.debug = debug;
 
-        for (const event of Object.values(ACTIONS)) {
+        for (const event of RELEVANT_EVENTS) {
             this.#events[event] = {send:this.sendUpdate, recv:null}
         }
         
@@ -89,7 +103,12 @@ export class LiveBridge {
             console.log("Sending server update")
             console.log(update)
         }
-        this.socket.emit("update", update);
+
+        this.addUpdateToQueue(update)
+        this.socket.emit("update", update, () => {
+            //server ACKed message
+            this.removeUpdateFromQueue(update)
+        });
     }
     
 	registerSocketIo() {
@@ -151,6 +170,21 @@ export class LiveBridge {
         }
 	}
 
+    keyFromUpdate(update) {
+        return `${update.event}${update.detail.id}`
+    }
+
+    addUpdateToQueue(update) {
+        let key = this.keyFromUpdate(update)
+        this.container.emit(ACTIONS.syncronizing, {id:update.detail.id})
+        this.#retryQueue[key] = update
+    }
+
+    removeUpdateFromQueue(update) {
+        let key = this.keyFromUpdate(update)
+        this.container.emit(ACTIONS.syncronized, {id:update.detail.id})
+        delete this.#retryQueue[key]
+    }
 	//TESTING
 	beam() {	
 		let queue = [this.container.parent]
