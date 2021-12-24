@@ -17,6 +17,8 @@ class ContainerFeedback {
 		
 		this.#handlers[ACTIONS.syncronizing] = (e) => this.onSyncing(e.detail.id);
 		this.#handlers[ACTIONS.syncronized] = (e) => this.onSynced(e.detail.id);
+		this.#handlers[ACTIONS.connected] = (e) => this.onConnected();
+		this.#handlers[ACTIONS.disconnected] = (e) => this.onDisconnected();
 
 		this.#container.loadStyle("style.css", this.appId)
 		this.#interface = this.#container.createFromSerializable(document.body, {
@@ -24,7 +26,9 @@ class ContainerFeedback {
 			"computedStyle":{
 				"top":"0px",
 				"left":"0px",
-				"position":"absolute"
+				"position":"absolute",
+				"width":"100%",
+				"height":"100%"
 			},
 			"data":{
 		    	"ignore":true
@@ -37,6 +41,7 @@ class ContainerFeedback {
 		null,
 		this.appId)
 		this.#container.loadHtml(this.#interface, "loader.html", this.appId)
+		this.#container.hide(this.#interface)
 		
 		//TODO: make this only tick if queue has elements
 		setInterval((e) => {
@@ -76,6 +81,16 @@ class ContainerFeedback {
 		}
 	}
 
+	onConnected() {
+		console.log(`${this.appId} connection with server reestablished`)
+		this.#container.hide(this.#interface);
+	}
+
+	onDisconnected() {
+		console.log(`${this.appId} lost connection with server`)
+		this.#container.show(this.#interface);
+	}
+
 	onSyncing(id) {
 		this.#syncing[id] = Date.now()	
 	}
@@ -90,6 +105,7 @@ class ContainerFeedback {
 			if (!this.#container.getMetadata(id, 'syncing')) {
 				let clone = document.getElementById('nscf-infinite-loading-bar').cloneNode(true)
 				clone.id = this.makeLoaderId(id)
+				//use non container appendChild to avoid firing events about the loader
 				this.#container.lookup(id).appendChild(clone)
 				this.#container.setMetadata(id, 'syncing', true)
 			}	
@@ -103,6 +119,7 @@ class ContainerFeedback {
 		delete this.#syncing[id]
 		try {
 			this.#container.setMetadata(id, 'syncing', false)
+			//use non container appendChild to avoid firing events about the loader
 			let loader = document.getElementById(this.makeLoaderId(id))
 			if (loader) {
 				loader.parentNode.removeChild(loader)

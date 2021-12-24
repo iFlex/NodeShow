@@ -19,7 +19,10 @@ export const ACTIONS = {
     show: 'container.show',
     componentAdded: 'container.component.added',
     componentRemoved: 'container.component.removed',
-    loadHTML: 'container.loadHTML'
+    loadHTML: 'container.loadHTML',
+
+    connected: 'container.bridge.connected',
+    disconnected: 'container.bridge.disconnected'
 }
 //Doc: setting data-ignore on container should cause the system to not index anything under it
 //events that can automatically triger other events.

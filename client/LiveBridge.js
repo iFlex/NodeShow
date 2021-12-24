@@ -130,6 +130,10 @@ export class LiveBridge {
         this.socket.on('user.left', d => {
             console.log(`User left ${d.name}-${d.userId}`)
         })
+
+        this.socket.on('connect', e => this.handleReconnect(e))
+        this.socket.on('disconnect', e => this.handleDisconnect(e))
+        this.socket.on('error', e => { console.error(`[LiveBridge] - connection error ${e}`)})
     }
 
 	handleUpdate(data) {
@@ -184,6 +188,16 @@ export class LiveBridge {
         let key = this.keyFromUpdate(update)
         this.container.emit(ACTIONS.syncronized, {id:update.detail.id})
         delete this.#retryQueue[key]
+    }
+
+    handleReconnect() {
+        console.log(`[LiveBridge] connected`)
+        this.container.emit(ACTIONS.connected, {})
+    }
+
+    handleDisconnect() {
+        console.log(`[LiveBridge] disconnected`)
+        this.container.emit(ACTIONS.disconnected, {})
     }
 	//TESTING
 	beam() {	
