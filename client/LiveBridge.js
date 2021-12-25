@@ -20,6 +20,7 @@ export class LiveBridge {
     userId = null; //not currently used for any interaction
 	sessionId = null;
     debug = false;
+    RETRY_INTERVAL = 500;
     
     host = window.location.host;
     port = window.location.port;
@@ -134,6 +135,20 @@ export class LiveBridge {
         this.socket.on('connect', e => this.handleReconnect(e))
         this.socket.on('disconnect', e => this.handleDisconnect(e))
         this.socket.on('error', e => { console.error(`[LiveBridge] - connection error ${e}`)})
+
+        //TODO: make this tick only if there's stuff in the retry queue
+        setInterval((e) => {
+            this.retry()
+        }, this.RETRY_INTERVAL)
+    }
+
+    retry() {
+        for (let [evkey, update] of Object.entries(this.#retryQueue)) {
+            this.socket.emit("update", update, () => {
+                //server ACKed message
+                this.removeUpdateFromQueue(update)
+            });
+        }
     }
 
 	handleUpdate(data) {
@@ -179,6 +194,8 @@ export class LiveBridge {
     }
 
     addUpdateToQueue(update) {
+        //events that are complementary to each other must be added under the same key.
+        //e.g show and hide (if they ever get broadcast)
         let key = this.keyFromUpdate(update)
         this.container.emit(ACTIONS.syncronizing, {id:update.detail.id})
         this.#retryQueue[key] = update

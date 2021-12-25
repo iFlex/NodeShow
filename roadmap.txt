@@ -32,17 +32,7 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[CRIT]: Endless recursion bug... (once I added the feedback component)
 [TODO]: Itegrate robot acces to create NewsStands. (do a simple pre shared secret for now. implement OAuth later)
-[TODO][CRITICAL]: make LiveBridge & Server communication robust + show feedback to user about containers that haven't been persisted by the server. (using ACKs according to Socket.io docs)
-    Feedback: items that have failed to persist will have a failed css rule on them with a data-failed property containing the reason
-    [NOTE]: socker.io won't fire items with large payloads in them >500kb or so. Large data content will be sent to server as blob and served from a separate folder.
-    [NOTE]: some events make past events irrelevant: e.g setPosition, others are complementary: e.g. hide, show
-    + added ack-ing, added retry queue,
-    + add user feedback
-    - add a worker that keeps retrying if retryqueue contains data
-    - add heartbeat to ensure server is still up +user feedback (server not up means no saving)
-
 [TODO]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
 
 [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
@@ -71,6 +61,8 @@ Current Prios:
 [NICE-TO_HAVE]: resize selection? is it really needed? 
 [SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
 [NICE-TO-HAVE]: copy/paste triggered via context menu
+[TODO]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:
+    * very high event rates will cause the updates to slow down and lag
 [BUG]: Main menu can get burried under content. (not critical: reload fixes it)
 -----------------------------------------------------------------------
 - [must have]  Authentication

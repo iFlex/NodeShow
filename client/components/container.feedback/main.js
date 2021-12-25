@@ -28,7 +28,7 @@ class ContainerFeedback {
 				"left":"0px",
 				"position":"absolute",
 				"width":"100%",
-				"height":"100%"
+				"height":"auto"
 			},
 			"data":{
 		    	"ignore":true
