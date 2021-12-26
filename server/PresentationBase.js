@@ -38,7 +38,7 @@ class PresentationBase {
 				throw 'Presentation ID already exists';
 			}
 
-			this.storage.write(tag, this.createMetadata(tag, creator.id))
+			this.storage.persist(tag, this.createMetadata(tag, creator.id))
 		}
 
 		let prezzo = new Presentation(tag, this.storage, failOnNoStorage);

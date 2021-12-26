@@ -9,12 +9,17 @@ export const ACTIONS = {
     error: 'container.error',
     syncronizing: 'container.syncronizing',
     syncronized: 'container.syncronized',
+    bringToFront: 'container.bringToFront',
+    sendToBack: 'container.sendToBottom',
 
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',
     setHeight: 'container.set.height',
     setAngle: 'container.set.angle',
     setSiblingPosition: 'container.set.sibling.position',
+    setPermission: 'container.set.permission',
+    removePermission: 'container.remove.permission',
+
     hide: 'container.hide',
     show: 'container.show',
     componentAdded: 'container.component.added',
@@ -33,6 +38,8 @@ let ACTIONS_CHAIN = {}
     ACTIONS_CHAIN[ACTIONS.setHeight] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.setAngle] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.setSiblingPosition] = [ACTIONS.update]
+    ACTIONS_CHAIN[ACTIONS.setPermission] = [ACTIONS.update]
+    ACTIONS_CHAIN[ACTIONS.removePermission] = [ACTIONS.update]
 
 export class Container {
 	//ToDo: make all fields private
@@ -256,7 +263,13 @@ export class Container {
             this.permissions[elem.id][permName] = {}
         }
         this.permissions[elem.id][permName][opCaller] = allow
-        //ToDo: emit update
+        
+        this.emit(ACTIONS.setPermission, {
+            id:id,
+            permission: permName,
+            subject: opCaller,
+            callerId: callerId
+        })
     }
 
     removePermission(id, permName, opCaller, callerId) {
@@ -273,7 +286,13 @@ export class Container {
                 delete this.permissions[elem.id][permName]
             }
         }
-        //ToDo: emit update
+       
+       this.emit(ACTIONS.removePermission, {
+        id:id,
+        permission: permName,
+        subject: opCaller,
+        callerId: callerId
+       })
     }
 
     //ToDo: permission matching e.g. container.set.*
@@ -725,7 +744,11 @@ export class Container {
     bringToFront(id) {
         let node = Container.lookup(id)
         this.#currentMaxZindex++;
-        node.style.zIndex = `${this.#currentMaxZindex}` 
+        node.style.zIndex = `${this.#currentMaxZindex}`
+
+        this.emit(ACTIONS.bringToFront, {
+            id: id
+        }) 
         this.notifyUpdate(node)
     }
 
@@ -733,6 +756,10 @@ export class Container {
         let node = Container.lookup(id)
         this.#currentMinZindex--;
         node.style.zIndex = `${this.#currentMinZindex}` 
+
+        this.emit(ACTIONS.sendToBack, {
+            id: id
+        }) 
         this.notifyUpdate(node)
     }
 

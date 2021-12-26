@@ -33,8 +33,15 @@ Client Features:
 Current Prios:
 --------------------------------------------
 [TODO]: Itegrate robot acces to create NewsStands. (do a simple pre shared secret for now. implement OAuth later)
-[TODO]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
 
+[TODO]: Notify user when selecting or grouping more than the limit. Notify them the operation will be capped.
+
+[DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
+    1K Nodes were problematic: found out that the storage layer was the main slowdown.
+    Without sending updates to storage, it can handle 1K ev/s
+    [TODO]: more stress testing
+    
+[TODO]: load presentations via HTML rather than evnet stream. Large prezzos will slow down the server.
 [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
@@ -64,6 +71,7 @@ Current Prios:
 [TODO]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:
     * very high event rates will cause the updates to slow down and lag
 [BUG]: Main menu can get burried under content. (not critical: reload fixes it)
+ - tentative fix via listening for container created events. Should probably listen to bring to front as well
 -----------------------------------------------------------------------
 - [must have]  Authentication
 - [nice to have] Create Aligner

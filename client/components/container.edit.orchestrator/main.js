@@ -83,6 +83,14 @@ class ContainerEditOrchestrator {
 
 		this.#handlers[ACTIONS.componentAdded] = (e) => this.onComponentRegistered(e)
         this.#handlers[ACTIONS.componentRemoved] = (e) => this.onComponentUnregistered(e)
+        // this.#handlers[ACTIONS.create] = (e) => {
+        // 	this.#container.bringToFront(this.#interface, this.appId)
+        // }
+        // this.#handlers[ACTIONS.bringToFront] = (e) => {
+        // 	if (e.detail.id != this.#interface.id){
+        // 		this.#container.bringToFront(this.#interface, this.appId)
+        // 	}
+        // }
 
         document.onmousemove = function(event) {
 			lastX = event.pageX;

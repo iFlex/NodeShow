@@ -31,7 +31,7 @@ class UserBase {
 			password:details.password
 		}
 		console.log(user)
-		this.storage.write(user.id, user)
+		this.storage.persist(user.id, user)
 		return user;
 	}
 

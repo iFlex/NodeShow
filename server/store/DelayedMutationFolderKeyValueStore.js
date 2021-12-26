@@ -4,32 +4,31 @@ const fs = require('fs');
 * Implementation of file backed key: value storage.
 * Cannot handle large loads in its current form. Can take up to 200RPS
 */
-class FolderKeyFileStorage {
-	
-	constructor (rootDir) {
+class DelayedMutationFolderKeyValueStore {
+	#changed = {}
+
+	constructor (rootDir, fastStorage) {
 		this.rootDir = rootDir;
-		this.updatesQueue = [];
+		this.fastStorage = fastStorage;
+		DelayedMutationFolderKeyValueStore.initStorage(rootDir);
 
-		FolderKeyFileStorage.initStorage(rootDir);
-		let context = this;
-
-		let lock = false;
-		this.interval = setInterval(function (e) {
-			if (!context.lock) {
-				context.lock = true;
-				context.persist();
-				context.lock = false;
-			}
+		//persist every second
+		setInterval((e) => {
+			this.step()
 		}, 1000);	
 	}
 	
+	setFastStorage(storage) {
+		this.fastStorage = storage;
+	}
+
 	list () {
 		return fs.readdirSync(this.rootDir);
 	}
 
 	get (id) {
-		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id)
-		let filename = path +"/" +FolderKeyFileStorage.getLatestWrittenFile(path);
+		let path = DelayedMutationFolderKeyValueStore.getValuePath(this.rootDir, id)
+		let filename = path +"/" +DelayedMutationFolderKeyValueStore.getLatestWrittenFile(path);
 
 		try {	
 			return JSON.parse(fs.readFileSync(filename, 'utf8'))
@@ -40,28 +39,20 @@ class FolderKeyFileStorage {
 		return null
 	}
 
-	put (id, data) {
-		this.updatesQueue.push({id:id, data:data})
+	put (id) {
+		this.#changed[id] = true
 	}
 
-	//ToDo: broken interface, write is rather a create type operation
 	persist(id, data) {
-		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
-		FolderKeyFileStorage.initStorage(path)
+		let path = DelayedMutationFolderKeyValueStore.getValuePath(this.rootDir, id);
+		DelayedMutationFolderKeyValueStore.initStorage(path)
 		this.writeFile(id, data);
 	}
 
 	remove(id) {
-		this.updatesQueue.push({id:id, remove:true})
-		for (let record of this.updatesQueue) {
-			record.remove = true;
-		}
-	}
-
-	removeFolder(id) {
-		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
+		let path = DelayedMutationFolderKeyValueStore.getValuePath(this.rootDir, id);
 		try {
-			let versions = FolderKeyFileStorage.getAllVersions(path)
+			let versions = DelayedMutationFolderKeyValueStore.getAllVersions(path)
 			for(let old of versions) {
 				let delpath = path+"/"+old
 				fs.unlinkSync(delpath)
@@ -74,13 +65,22 @@ class FolderKeyFileStorage {
 		}
 	}
 
+	step() {
+		if (this.fastStorage) {
+			for( let id of Object.keys(this.#changed)) {
+				let data = this.fastStorage.get(id)
+				this.persist(id, data)
+			}
+		}
+	}
+
 	writeFile (id, data) {
-		let path = FolderKeyFileStorage.getValuePath(this.rootDir, id);
+		let path = DelayedMutationFolderKeyValueStore.getValuePath(this.rootDir, id);
 		let filename = `${path}/${Date.now()}.json`
 
 		try {
 			fs.writeFileSync(filename, JSON.stringify(data));
-			let oldVersions = FolderKeyFileStorage.getAllVersions(path)
+			let oldVersions = DelayedMutationFolderKeyValueStore.getAllVersions(path)
 			for(let old of oldVersions) {
 				let oldPth = path+"/"+old
 				if (filename && oldPth != filename) {
@@ -90,22 +90,8 @@ class FolderKeyFileStorage {
 		} catch (e) {
 			console.log(`Failure during persist for ${id} - ${e}`)
 			console.error(e)
-			FolderKeyFileStorage.initStorage(path)
+			DelayedMutationFolderKeyValueStore.initStorage(path)
 		}
-	}
-
-	persist () {
-		let start = Date.now()
-		while (this.updatesQueue.length > 0) {
-			let update = this.updatesQueue.pop();
-			if (update.remove) {
-				this.removeFolder(update.id)
-			} else {
-				this.writeFile(update.id, update.data);
-			}
-		}
-		let end = Date.now()
-		//console.log(`Persiste step took: ${end - start}ms`)
 	}
 
 	static getAllVersions(dir) {
@@ -141,4 +127,4 @@ class FolderKeyFileStorage {
 	}
 }
 
-module.exports = FolderKeyFileStorage
+module.exports = DelayedMutationFolderKeyValueStore

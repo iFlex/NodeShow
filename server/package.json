@@ -1,9 +1,9 @@
 {
   "dependencies": {
+    "formidable": "*",
     "httpdispatcher": "^2.1.2",
     "mime": "^2.5.2",
     "socket.io": "^4.3.1",
-    "strip-js":"*",
-    "formidable":"*"
+    "strip-js": "*"
   }
 }

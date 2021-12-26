@@ -133,21 +133,18 @@ class Presentation {
 			let broadcastPermission = data.detail.descriptor.permissions[Events.broadcast];
 			
 			if (broadcastPermission && broadcastPermission['*'] == false) {
-				console.log(`DROPPED ${data.event} on:${data.presentationId} by:${data.userId}`)
-				//this container wasn't meant to be broadcast to anyone
 				return {}
 			}
 
 			if (persistPermission && persistPermission['*'] == false) {
-				console.log(`NOT_PERSISTED ${data.event} on:${data.presentationId} by:${data.userId}`)
-				//this event is meant to be broadcast but not persisted
 				return data;
 			}
 		}
+        
         //ToDo: plug in logic to check if op is allowed
         try{
 			if (data.event == Events.create || data.event == Events.update) {
-	        	console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
+	        	//console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
 				
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
@@ -186,37 +183,37 @@ class Presentation {
 				if (id in this.roots) {
 					delete this.roots[id]
 				}
-				//ToDo: this creates a broken child link - remove from child list as well and maybe save in edit history
 			} else if(data.event == Events.setParent) {
-				// let childId = data.detail.id;
-				// let prevParentId = data.detail.prevParent;
-				// let newParentId = data.detail.parentId;
+				let childId = data.detail.id;
+				let prevParentId = data.detail.prevParent;
+				let newParentId = data.detail.parentId;
 				
-				// //add new link
-				// if (!this.rawData[newParentId].childNodes) {
-				// 	this.rawData[newParentId].childNodes = []
-				// }
-				// this.rawData[newParentId].childNodes.push({id:childId})
+				//add new link
+				if (!this.rawData[newParentId].childNodes) {
+					this.rawData[newParentId].childNodes = []
+				}
+				this.rawData[newParentId].childNodes.push({id:childId})
 
-				// //update graph links
-				// this.rawData[childId].parentId = newParentId
+				//update graph links
+				this.rawData[childId].parentId = newParentId
 				
-				// //remove old link
-				// if (this.rawData[prevParentId]) {
-				// 	let prevChildLinks = this.rawData[prevParentId].childNodes;
-				// 	if (prevChildLinks) {
-				// 		for (let i = 0 ; i < prevChildLinks.length; ++i ) {
-				// 			if(prevChildLinks[i].id == childId) {
-				// 				prevChildLinks.splice(i,1)
-				// 				break;
-				// 			}
-				// 		}
-				// 	}
-				// }
+				//remove old link
+				if (this.rawData[prevParentId]) {
+					let prevChildLinks = this.rawData[prevParentId].childNodes;
+					if (prevChildLinks) {
+						for (let i = 0 ; i < prevChildLinks.length; ++i ) {
+							if(prevChildLinks[i].id == childId) {
+								prevChildLinks.splice(i,1)
+								break;
+							}
+						}
+					}
+				}
 			} else {
-				console.log(`WARNING: uncategorised event type ${data.event}`)
+				//console.log(`WARNING: uncategorised event type ${data.event}`)
 			}
-
+			
+			//Can be heavy, FolderKeyFileStorage can take a max of 200rps
 			this.storage.put(this.id, this.presentation);
         } catch (e) {
         	console.log("Failed to update");

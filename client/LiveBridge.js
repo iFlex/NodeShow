@@ -27,6 +27,13 @@ export class LiveBridge {
 
     #retryQueue = {}
 
+    metrics = {
+        sent: 0,
+        recv: 0,
+        retry: 0,
+        rtt: 0,
+    }
+
     //events that are sent over the network
     #events = {}
     
@@ -106,10 +113,16 @@ export class LiveBridge {
         }
 
         this.addUpdateToQueue(update)
+        let start = Date.now()
         this.socket.emit("update", update, () => {
             //server ACKed message
             this.removeUpdateFromQueue(update)
+            let delta = Date.now() - start
+            if (!this.metrics.rtt) {
+                this.metrics.rtt = delta
+            }
         });
+        this.metrics.sent++;
     }
     
 	registerSocketIo() {
@@ -148,10 +161,16 @@ export class LiveBridge {
                 //server ACKed message
                 this.removeUpdateFromQueue(update)
             });
+            this.metrics.retry++;
         }
+
+        //console.log(`[LiveBridge] Sent ${this.metrics.sent} Recvd: ${this.metrics.recv} Retried: ${this.metrics.retry} RTT: ${this.metrics.rtt}`)
+        this.metrics.rtt = null;
     }
 
 	handleUpdate(data) {
+        this.metrics.recv++;
+
 		if(this.debug) {
             console.log("Received server update");
 		    console.log(data);

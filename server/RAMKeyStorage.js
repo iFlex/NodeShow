@@ -15,6 +15,14 @@ class RAMKeyStorage {
 	put (id, data) {
 		this.storage[id] = data
 	}
+
+	persist (id, data) {
+		this.put(id, data)
+	}
+	
+	remove (id, data) {
+		delete this.storage[id]
+	}
 }
 
 module.exports = RAMKeyStorage

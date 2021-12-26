@@ -16,6 +16,7 @@ class ContainerSelect {
 	#container = null;
 	appId = "container.select"
 	displayName = "Select"
+	MAX_SELECTION_SIZE = 250;
 
 	#enabled = false
 	#mouse = null;
@@ -150,8 +151,14 @@ class ContainerSelect {
 			this.#selection.push(entry.id)
 			let node = this.#container.lookup(entry.id)
 			$(node).addClass('ns-selected')
+
+			if (this.#selection.length >= this.MAX_SELECTION_SIZE) {
+				console.log(`${this.appId} - Selection overflow`)
+				break;
+			}
 		}
 		
+		console.log(`${this.appId} selected ${this.#selection.length} items`)
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
 		this.stop()
 		this.#startPos = null;

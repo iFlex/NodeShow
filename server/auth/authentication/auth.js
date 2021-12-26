@@ -29,7 +29,7 @@ class Authenticator {
 	newToken(user) {
 		let token = utils.makeAuthToken(128);
 		this.#reg[user.id] = token
-		this.storage.write(user.id, token)
+		this.storage.persist(user.id, token)
 		return token
 	}
 

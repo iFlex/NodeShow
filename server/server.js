@@ -60,8 +60,9 @@ const UserBase = require('./UserBase')
 const PresentationBase = require('./PresentationBase');
 
 //Storage
-const FileStorage = require('./FileStorage')
 const FolderKeyFileStorage = require('./FolderKeyFileStorage')
+const Cache = require('./Cache.js')
+const DelayedMutationFolderKeyValueStore = require('./store/DelayedMutationFolderKeyValueStore.js')
 //const RAMStorage = require('./RAMKeyStorage')
 
 const Authenticator = require('./auth/authentication/auth.js')
@@ -71,10 +72,13 @@ const UserStorage = new FolderKeyFileStorage(USER_STORAGE);
 const Users = new UserBase(UserStorage);
 
 const PresentationStorage = new FolderKeyFileStorage(PERSIST_LOCATION);
-const Presentations = new PresentationBase(PresentationStorage);
+const PrezPersister = new DelayedMutationFolderKeyValueStore(PERSIST_LOCATION);
+const PrezCache = new Cache(PrezPersister);
+PrezPersister.setFastStorage(PrezCache)
+const Presentations = new PresentationBase(PrezCache);
 const Events = require('./NodeShowEvents');
 
-const debug_level = 0;
+const debug_level = 1;
 
 //RAM FAST PRESENTATION ROUTING
 var presentations = {}
@@ -126,6 +130,7 @@ function manuallyHandle(url, req, res) {
 };
 
 dispatcher.onGet("/new", function(req, res) {
+  console.log(`Call to /new`)
   let cookie = verifyRequest(req, res);
   let id = null;
   try {
@@ -300,6 +305,8 @@ function parseCookies (headers) {
   }
 }
 
+let totalServiceTime = 0
+let services = 0
 //revisit this. It has grown to be overcomplicated.
 io.on('connection', function (socket) {
   console.log("New socket.io connection")
@@ -311,7 +318,7 @@ io.on('connection', function (socket) {
     let prezzo = presentations[prezId];
 
     if (prezzo) {
-      let cookie = parseCookies(socket.handshake.headers)
+      let cookie = authorize(socket.handshake.headers)
       let user = Users.lookup(cookie.id);
       user.sessionId = utils.makeAuthToken(64); 
       if (!user.id) {
@@ -331,8 +338,20 @@ io.on('connection', function (socket) {
   });
 
   socket.on('update', (data, ack) => {
-    handleBridgeUpdate(data, socket)
-    ack();
+    // let s = Date.now()
+    try {
+      handleBridgeUpdate(data, socket)    
+      if (ack) {
+        ack();
+      }
+    } catch (e) {
+      console.error(`Failed to process bridge update`)
+      console.error(e)
+    }
+    // let e = Date.now()
+    // totalServiceTime += (e-s)
+    // services++;
+    // console.log(`Service time: ${e - s} avg:${totalServiceTime/servicesa}`)
   });
  
   socket.on("disconnect", (e) => {
@@ -360,10 +379,15 @@ function findUserBySocket(socket, prezzo){
 }
 
 function handleBridgeUpdate(parsed, originSocket) {
-  if(debug_level > 1) {
-    console.log(data)
+  let cookie = authorize(originSocket.handshake.headers)
+  let user = Users.lookup(cookie.id);
+  
+  if (debug_level > 2) {
+    console.log(`UPDATE:`)
+    console.log(parsed)  
+    console.log(user)
   }
-
+  
   let prezId = parsed.presentationId;
   let sessionId = parsed.sessionId;
   let prezzo = presentations[prezId];
@@ -372,23 +396,18 @@ function handleBridgeUpdate(parsed, originSocket) {
     //identifying user
     let sessionData = prezzo.sockets[sessionId]
     let userId = undefined
-    if (!sessionData) {
-      console.log(`Could not find session data for session ${sessionId} in prezzo: ${prezId}`)
-      //return;
-    } else {
+    if (sessionData) {
       userId = sessionData.user.id;  
     }
     
-    //broadcasting
-    console.log(`event:${parsed.event} on:${prezId} by: UID(${userId}) SID(${sessionId})`)
-    parsed.userId = userId;
     parsed = prezzo.presentation.update(parsed);
+    parsed.userId = userId;
     broadcast(sessionId, ['update', parsed], prezzo.sockets);
   }
 }
 
 function broadcast(senderId, message, sockets) {
-  if(debug_level > 1){DEBUG_MODE
+  if(debug_level > 1){
     console.log("Broadcasting to all users in prezzo")
     console.log(message)
   }
@@ -455,14 +474,33 @@ function deletePresentation(user, details) {
   Presentations.remove(details.id)
 }
 
-function verifyRequest(request, response) {
-  let cookie = parseCookies(request.headers)
+function authorize(headers) {
+  let bearer = headers['authorization']
+  let cookie = {}
+  
+  //[TODO]:Secure this. Temporary and super insecure - meant to me more than just nothing
+  if (bearer) {
+    cookie.id = 'robot'
+    cookie.token = bearer
+  } else {
+    cookie = parseCookies(headers)
+  }
+
   if(!auth.verifyToken(cookie.id, cookie.token)){
-    console.log('Unauthorised request');
-    redirect('/login.html', response)
     throw `Unauthorised request`
   }
   return cookie
+}
+
+function verifyRequest(request, response) {
+  try {
+    return authorize(request.headers)
+  } catch (e) {
+    if (response) {
+      redirect('/login.html', response)
+    }
+    throw `Unauthorised request`
+  }
 }
 
 function login(data) {

@@ -11,6 +11,7 @@ class ContainerGrouping {
 	#container = null;
 	appId = "container.grouping"
 	displayName = 'Group'
+	MAX_GROUP_AT_ONCE = 100 //[TODO]: see if you can do any black magic to make this larger without display hiccups (e.g. shadow dom maybe?)
 
 	#enabled = false
 	#mouse = null;
@@ -122,14 +123,23 @@ class ContainerGrouping {
 		if (!this.#grouper) {
 			return;
 		}
+
 		let overlapped = this.#overlap.getOverlappingSiblings(this.#grouper)
+		let grouped = 0
 		for (let entry of overlapped) {
 			let pos = this.#container.getPosition(entry.id)
 			this.#container.setParent(entry.id, this.#grouper, this.appId)
 			this.#container.setPosition(entry.id, pos, this.appId)
+			
+			grouped++;
+			if (grouped >= this.MAX_GROUP_AT_ONCE) {
+				console.log(`Grouper reached maximum items to group at a time.`)
+				break;
+			}
 		}
 
 		this.#grouper = null;
+		this.#startPos = null;
 	}
 }
 
