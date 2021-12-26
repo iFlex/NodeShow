@@ -11,6 +11,8 @@ export const ACTIONS = {
     syncronized: 'container.syncronized',
     bringToFront: 'container.bringToFront',
     sendToBack: 'container.sendToBottom',
+    setContentAbstractionLevel: 'container.set.contentAbstractionLevel',
+    setAbstractionLevel: 'container.set.abstractionLevel',
 
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',

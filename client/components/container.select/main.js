@@ -7,11 +7,7 @@ import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
-//[BUG]: selecting upward and left inside containers... positioning is bonkers. 
-//Had to use screenX and screenY for width computation
-//read up on pageX and pageY - it has to do with this bug
-
-//[BUG]: selecting via drag selects root container as well
+//[BUG]: selecting upwards no longer works - fix plz :(
 class ContainerSelect {
 	#container = null;
 	appId = "container.select"
@@ -122,8 +118,8 @@ class ContainerSelect {
 		
 		let px = e.detail.originalEvent.pageX;
 		let py = e.detail.originalEvent.pageY;
-		let w = Math.abs(this.#startPos.sx - e.detail.originalEvent.screenX);
-		let h = Math.abs(this.#startPos.sy - e.detail.originalEvent.screenY);
+		let w = Math.abs(pos.left - e.detail.originalEvent.pageX);
+		let h = Math.abs(pos.top - e.detail.originalEvent.pageY);
 		
 		if ( px < pos.left ) {
 			pos.left = px;

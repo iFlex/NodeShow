@@ -37,16 +37,16 @@ class ContainerEditOrchestrator {
 		
 		this.#keyboard = new Keyboard(this.appId);
 		this.#keyboard.onPritable(this, (e) => this.tryAddText(e), false)
-		this.#keyboard.setAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), false)
-		this.#keyboard.setAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), false)
-		this.#keyboard.setAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), false)
-		this.#keyboard.setAction(new Set(['Control','4']), this, (e) => this.routeByIndex(4), false)
-		this.#keyboard.setAction(new Set(['Control','5']), this, (e) => this.routeByIndex(5), false)
-		this.#keyboard.setAction(new Set(['Control','6']), this, (e) => this.routeByIndex(6), false)
-		this.#keyboard.setAction(new Set(['Control','7']), this, (e) => this.routeByIndex(7), false)
-		this.#keyboard.setAction(new Set(['Control','8']), this, (e) => this.routeByIndex(8), false)
-		this.#keyboard.setAction(new Set(['Control','9']), this, (e) => this.routeByIndex(9), false)
-		this.#keyboard.setAction(new Set(['Control','0']), this, (e) => this.routeByIndex(0), false)
+		this.#keyboard.setAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
+		this.#keyboard.setAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
+		this.#keyboard.setAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), true)
+		this.#keyboard.setAction(new Set(['Control','4']), this, (e) => this.routeByIndex(4), true)
+		this.#keyboard.setAction(new Set(['Control','5']), this, (e) => this.routeByIndex(5), true)
+		this.#keyboard.setAction(new Set(['Control','6']), this, (e) => this.routeByIndex(6), true)
+		this.#keyboard.setAction(new Set(['Control','7']), this, (e) => this.routeByIndex(7), true)
+		this.#keyboard.setAction(new Set(['Control','8']), this, (e) => this.routeByIndex(8), true)
+		this.#keyboard.setAction(new Set(['Control','9']), this, (e) => this.routeByIndex(9), true)
+		this.#keyboard.setAction(new Set(['Control','0']), this, (e) => this.routeByIndex(0), true)
 
 		this.setupQuickEditShortcuts()
 

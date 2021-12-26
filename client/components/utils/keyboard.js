@@ -29,8 +29,7 @@ export class Keyboard {
     }
 
     disable () {
-        this.#pressedPrintables = new Set([])
-        this.#pressedNonPrintables = new Set([])
+        this.onBlur()
         
         document.removeEventListener("keydown", this.onKeyDown)
         document.removeEventListener("keyup", this.onKeyUp)

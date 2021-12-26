@@ -86,7 +86,7 @@ class ContainerTextInjector {
 		underlined: false,
 		textColor: "#000000",
 		highlightColor: undefined,
-		fontFam: "default",
+		fontFam: "Arial",
 		fontSize: "15px"
 	}
 

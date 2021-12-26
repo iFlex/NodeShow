@@ -56,7 +56,7 @@ class ContainerHax0r {
 	}
 
 	evaluate(e) {
-		eval(document.getElementById('ns-hax0r').value)
+		console.log(eval(document.getElementById('ns-hax0r').value))
 	}
 }
 

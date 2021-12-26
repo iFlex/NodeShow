@@ -69,7 +69,6 @@ class ContainerCollapser {
     collapse() {
         let target = this.findClosestDiv(this.target || this.#hoverTarget)
         if (target) {
-            this.#container.setCollapseMode(target, {width:"32px",height:"32px"}, this.appId)
             this.#container.collapse(target, this.appId)
         }
     }
@@ -77,7 +76,6 @@ class ContainerCollapser {
     expand() {
         let target = this.findClosestDiv(this.target || this.#hoverTarget)
         if (target) {
-            console.log(`Expanding ${target}`)
             this.#container.expand(target, this.appId)
         }
     }

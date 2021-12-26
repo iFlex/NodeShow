@@ -449,7 +449,7 @@ function getPresentations(user, filters, pagination) {
   for (const prezzoId of Presentations.list()) {
     let prezzo = Presentations.get(prezzoId)
     let details = prezzo.presentation
-    if (details.creator == user.id) {
+    if (details.creator == user.id || details.owner == user.id) {
       result.push(prezzo.serialize())
     }
   }
@@ -529,7 +529,7 @@ function signup(data) {
 }
 
 function redirect(location, response) {
-  response.writeHead(303, {'content-type': 'text/plain','location':location});
+  response.writeHead(302, {'content-type': 'text/plain','location':location});
   response.end();
 }
 

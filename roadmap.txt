@@ -11,7 +11,7 @@ Client Features:
 9   Content Insertion (img, video, svg, etc) ::container.content (works for images)
 10  Display Order Change
 ------------------------------------------------------------------------------
-11 !Collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, Crude) 
+11 [IN_PROGRESS]= !Collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, Crude) 
 ::builtin core - Experiental
  => Collapsing should be done in layers/stages.
     e.g. content -> layer 1     -> layer 2  -> layer 3      -> layer 4
@@ -20,7 +20,7 @@ Client Features:
                     Ample note 3
         state: tracks at what layer of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous layer. The first layer being the full content of the container.
-               
+     
 12  !Link Containers ::container.link [BROKEN & NEEDS PERSISTING MECHANISM]
     - create links
     - edit links
@@ -32,21 +32,16 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[TODO]: Itegrate robot acces to create NewsStands. (do a simple pre shared secret for now. implement OAuth later)
-
-[TODO]: Notify user when selecting or grouping more than the limit. Notify them the operation will be capped.
-
+[TODO]: Implement functionality to make container fit content (including abs pos content)
+[TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
     1K Nodes were problematic: found out that the storage layer was the main slowdown.
     Without sending updates to storage, it can handle 1K ev/s
     [TODO]: more stress testing
-    
-[TODO]: load presentations via HTML rather than evnet stream. Large prezzos will slow down the server.
-[FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
+    [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
 [TODO]: Text eitor interface improvements: pick font, size update, prettify
-[TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
 [TODO]: Move findActionableAncestor call from mouse() into the relevant components
 [TODO]: Revise and make robust Mouse & Keyboard
 [TODO]: Work on solid encoding interpretation on content from server
@@ -54,6 +49,8 @@ Current Prios:
 [TODO]: copy/paste style only (via context menu)
 [TODO]: make clipboard paste at current screen position
 [TODO]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
+[TODO]: make insert content via data b64 link work
+[TODO]: Notify user when selecting or grouping more than the limit. Notify them the operation will be capped.
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG][MUST-FIX]: Keyboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed
 [MUST-HAVE]: Standardize core. have it documented. Add tests
@@ -62,14 +59,17 @@ Current Prios:
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
+[SHOULD-HAVE]: copy/paste triggered via context menu
 [SHOULD-HAVE][CORE] when creating within a parent, or changing parents - have the child conform to parent rules by default 
 (e.g. respect parent stylign suggestionts)
+[SHOULD-HAVE]: load presentations via HTML rather than event stream. Large prezzos will slow down the server.
 [NICE-TO-HAVE]: clone an existing NodeShow using server side UI
 [NICE-TO_HAVE]: resize selection? is it really needed? 
 [SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
-[NICE-TO-HAVE]: copy/paste triggered via context menu
+[TODO]: add oAuth & roles for users. Robots should be configurable - currently using hardcoded PSK
 [TODO]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:
     * very high event rates will cause the updates to slow down and lag
+
 [BUG]: Main menu can get burried under content. (not critical: reload fixes it)
  - tentative fix via listening for container created events. Should probably listen to bring to front as well
 -----------------------------------------------------------------------
