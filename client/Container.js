@@ -70,6 +70,7 @@ export class Container {
     *  Solution 2: Same as solution 1 but always ensure 1st argument is the subject container
 
     *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
+    *  [NOTE]: Hooks methods should not generate any additional events to be fired.
     */
     static #hookedSetters = new Set([
         /**
@@ -522,32 +523,37 @@ export class Container {
     //<size>
     //contextualise width and height based on type of element and wrapping
     //[DOC] width is always a number and expressed in pixels
-	setWidth(id, width, callerId, unitOverride) {
+	setWidth(id, width, callerId, unitOverride, emit) {
         let elem = Container.lookup(id)
         this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
         
         let prevWidth = this.getWidth(id);
         jQuery(elem).css({width: `${width}px`});
-        this.emit(ACTIONS.setWidth, {
-            id: elem.id, 
-            width: width, 
-            prevWidth: prevWidth,
-            callerId: callerId
-        });
+
+        if (emit != false) {
+            this.emit(ACTIONS.setWidth, {
+                id: elem.id, 
+                width: width, 
+                prevWidth: prevWidth,
+                callerId: callerId
+            });
+        }
 	}
 
-	setHeight(id, height, callerId, unitOverride) {
+	setHeight(id, height, callerId, unitOverride, emit) {
         let elem = Container.lookup(id);
         this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
         
         let prevHeight = this.getHeight(elem);
         jQuery(elem).css({height: `${height}px`});
-        this.emit(ACTIONS.setHeight, {
-            id: elem.id, 
-            height: height, 
-            prevHeight: prevHeight,
-            callerId: callerId
-        });
+        if (emit != false) {
+            this.emit(ACTIONS.setHeight, {
+                id: elem.id, 
+                height: height, 
+                prevHeight: prevHeight,
+                callerId: callerId
+            });
+        }
     }
     
     getWidth(id) {
@@ -634,7 +640,7 @@ export class Container {
         return bbox;
     }
 
-    fitVisibleContent(id) {
+    fitVisibleContent(id, emit) {
         let node = Container.lookup(id)
         let bounding = {
             bottom: 0,
@@ -659,8 +665,8 @@ export class Container {
         let w = bounding.right - ppos.left;
         let h = bounding.bottom - ppos.top;
 
-        this.setWidth(node, w)
-        this.setHeight(node, h)
+        this.setWidth(node, w, emit)
+        this.setHeight(node, h, emit)
     }
 
     styleChild(child, style, callerId, emit) {

@@ -196,13 +196,21 @@ Container.registerPreSetterHook('setParent', function(node) {
     }
 });
 
-Container.registerPostSetterHook('create', function(pid, node) {
+//[TODO]: figure out what causes the event look feedback
+Container.registerPostSetterHook('create', applyAbstractionView);
+//Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
+
+function applyAbstractionView(pid, node) {
     let maxLvl = this.getAbstractionLevels(node)
     if (maxLvl > 0) {
         let lvl = this.getCurrentContentAbstractionLevel(node)
         updateDisplayedAbstractionLevel(this, node, lvl)
     }
-});
+}
+
+function applyAbstractionViewOnUpdate(node) {
+    applyAbstractionView.apply(this, [null, node])
+}
 
 function removeAll(ctx, node) {
     for (const child of node.children) {
