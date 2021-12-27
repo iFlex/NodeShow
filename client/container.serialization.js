@@ -6,6 +6,8 @@ let initQueue = {}
 function emitContainerCreated(context, parent, child, callerId) {
     //this container has finally been initialized
     console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
+    Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
+        
     context.CONTAINER_COUNT ++;
     context.emit(ACTIONS.create, {
         presentationId: context.presentationId, 
@@ -119,7 +121,6 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
         }
         addChildNodes(this, child, callerId)
     } else {
-        Container.applyPostHooks(this, 'create', [parentId, child, rawDescriptor, insertBefore, callerId])
         emitContainerCreated(this, parent, child, callerId)
     }
     

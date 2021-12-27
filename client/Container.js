@@ -72,7 +72,12 @@ export class Container {
     *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
     */
     static #hookedSetters = new Set([
-        'create',   //params: created DOM node, callerId 
+        /**
+         * [TODO-fix][NOTE] called by both createFromSerializable, createFromDom and index
+         * first 2 parameters are always: parentId and child
+         * other parameters depend on the original method (createFromSerializable, createFromDom or index)
+         */
+        'create',   //params: ParentId, Child Node, CallerId
         'update',   //params: DOM node, update descriptor, callerId
         'style',    //params: DOM node, style descriptor, callerId
         'setParent' //params: DOME node, new parent DOM node, prev parent Id, callerId

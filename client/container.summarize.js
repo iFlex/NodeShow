@@ -196,6 +196,14 @@ Container.registerPreSetterHook('setParent', function(node) {
     }
 });
 
+Container.registerPostSetterHook('create', function(pid, node) {
+    let maxLvl = this.getAbstractionLevels(node)
+    if (maxLvl > 0) {
+        let lvl = this.getCurrentContentAbstractionLevel(node)
+        updateDisplayedAbstractionLevel(this, node, lvl)
+    }
+});
+
 function removeAll(ctx, node) {
     for (const child of node.children) {
         let alvl = ctx.getAbstractionLevel(child)
@@ -215,13 +223,6 @@ function removeLevel(ctx, node, lvl) {
 }
 
 function updateDisplayedAbstractionLevel(ctx, node, lvl) {
-    let bounding = {
-        top: null,
-        left: null,
-        botton: 0,
-        right: 0
-    }
-
     for (const child of node.children) {
         if (lvl == ctx.getAbstractionLevel(child)) {
             ctx.show(child)
