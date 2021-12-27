@@ -31,7 +31,8 @@ export const ACTIONS = {
     connected: 'container.bridge.connected',
     disconnected: 'container.bridge.disconnected'
 }
-//Doc: setting data-ignore on container should cause the system to not index anything under it
+//DOC: setting data-ignore on container should cause the system to not index anything under it
+
 //events that can automatically triger other events.
 //WARNING: the related events will only receive id and callerId as details as well as the original_event data.
 let ACTIONS_CHAIN = {}
@@ -43,6 +44,7 @@ let ACTIONS_CHAIN = {}
     ACTIONS_CHAIN[ACTIONS.setPermission] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.removePermission] = [ACTIONS.update]
 
+//[TODO]: integrate hook callers wherever relevant
 export class Container {
 	//ToDo: make all fields private
     parent = null;
@@ -53,6 +55,32 @@ export class Container {
 
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
+
+    /*[TODO]: standardize what the parameters will be:
+    //         - need it to be resilient to changing function params as much as possible 
+    //         - need it to be consistent between pre and post hooks.
+    //         - need it to offer as much info as possible to the hook
+    *  Solution 1: preHook: receive exactly the same params as the method
+                  postHook: receive example the same params as the mothos + plus produced values if any
+
+                  + consistent with methods they hook into
+                  + hook has the same info as the original method to act on
+                  - hook method breaks/needs to change if Core API changes
+
+    *  Solution 2: Same as solution 1 but always ensure 1st argument is the subject container
+
+    *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
+    */
+    static #hookedSetters = new Set([
+        'create',   //params: created DOM node, callerId 
+        'update',   //params: DOM node, update descriptor, callerId
+        'style',    //params: DOM node, style descriptor, callerId
+        'setParent' //params: DOME node, new parent DOM node, prev parent Id, callerId
+    ])
+    static #preSetterHooks = {}
+    static #postSetterHooks = {}
+
+
     /*
     Permissions describing what operations can be performed on containers
     Format {"containerId":{"operation":{"callerId":true/false}}}
@@ -187,8 +215,8 @@ export class Container {
 			}
 
             this.#initDOMcontainer(item)
-			index ++;
 
+			index ++;
             if(emit != false) {
                 this.emit(ACTIONS.create, {
                     presentationId: this.presentationId, 
@@ -208,10 +236,11 @@ export class Container {
 		this.emit("Container.init", {presentationId:this.presentationId});
 	}
 
-    #initDOMcontainer(item) {
+    #initDOMcontainer(item, callerId) {
         //init actions
         try {
             this.initActions(item)
+            Container.applyPostHooks(this, 'create', [item.parentNode, item, callerId])
             this.loadPermissionsFromDom(item)
         } catch (e) {
             console.log("Could not init container actions. Did you not include the module?")
@@ -321,9 +350,45 @@ export class Container {
         }
     }
     //</permissions Subsystem>
+    //<hooks>
+    static registerPreSetterHook(setter, method) {
+        Container.#reisterHook(Container.#preSetterHooks, setter, method)
+    }
 
+    static registerPostSetterHook(setter, method) {
+        Container.#reisterHook(Container.#postSetterHooks, setter, method)
+    }
+
+    static #reisterHook(set, setter, method) {
+        if (!Container.#hookedSetters.has(setter)) {
+            throw `Invalid setter ${setter}`
+        }
+
+        if (!set[setter]) {
+            set[setter] = []
+        }
+        
+        set[setter].push(method)
+    }
+
+    static #applyHooks(ctx, set, setter, params) {
+        let methods = set[setter]
+        if (methods) {
+            for (const method of methods) {
+                method.apply(ctx, params)
+            }
+        }
+    }
+
+    static applyPreHooks(ctx, setter, params) {
+        Container.#applyHooks(ctx, Container.#preSetterHooks, setter, params)
+    }
+
+    static applyPostHooks(ctx, setter, params) {
+        Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
+    }
+    //</hooks>
     //<extensions subsystem>
-    //ToDo: get interface and style from server
     registerComponent(pointer) {
         let name = pointer.appId
         if (name in this.components) {
@@ -421,11 +486,13 @@ export class Container {
         if (child.parentNode.id === parent.id) {
             return; //noop
         }
+        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options])
+        
         
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
+        
         console.log(`Change parent for ${child.id} to ${parent.id}`)
-
         let prevParentId = child.parentNode.id;
         if (options && options.insertBefore && parent.firstChild) {
             jQuery(child).detach().insertBefore(Container.lookup(options.insertBefore));
@@ -433,6 +500,7 @@ export class Container {
             jQuery(child).detach().appendTo(parent);    
         }
 
+        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, prevParentId])
         this.emit(ACTIONS.setParent, {
             id: child.id,
             prevParent: prevParentId,
@@ -546,36 +614,6 @@ export class Container {
     //get bounding box in absolute coordinates
     //wonder if the browser is willing to give this up... rather than having to compute it in JS
     getContentBoundingBox(id) {
-        // let result = {
-        //     top: undefined,
-        //     left: undefined,
-        //     bottom: undefined,
-        //     right: undefined,
-        //     width: undefined,
-        //     height: undefined
-        // }
-
-        // let node = Container.lookup(id)
-        // if (node.children) {
-        //     for(const child of node.children) {
-        //         let rect = child.getBoundingClientRect();
-        //         if (result.left == undefined || result.left > rect.left) {
-        //             result.left = rect.left
-        //         }
-        //         if (result.top == undefined || result.top > rect.top) {
-        //             result.top = rect.top
-        //         }
-        //         if (result.bottom == undefined || result.bottom < rect.bottom) {
-        //             result.bottom = rect.bottom
-        //         }
-        //         if (result.right == undefined || result.right < rect.right) {
-        //             result.right = rect.right
-        //         }
-        //     }
-
-        //     result.width = Math.abs(result.right - result.left)
-        //     result.height = Math.abs(result.bottom - result.top)
-        // }
         let node = Container.lookup(id)
         let result = this.getPosition(node)
         result.right = result.left + node.scrollWidth //warning: scroll width and height are integers not fractions 
@@ -591,7 +629,37 @@ export class Container {
         return bbox;
     }
 
+    fitVisibleContent(id) {
+        let node = Container.lookup(id)
+        let bounding = {
+            bottom: 0,
+            right: 0,
+        }
+
+        for (let child of node.children) {
+            let pos = this.getPosition(child)
+            let w = this.getWidth(child) + pos.left
+            let h = this.getHeight(child) + pos.top
+
+            if (bounding.bottom < h) {
+                bounding.bottom = h
+            }
+
+            if (bounding.right < w) {
+                bounding.right = w
+            }            
+        }
+
+        let ppos = this.getPosition(node)
+        let w = bounding.right - ppos.left;
+        let h = bounding.bottom - ppos.top;
+
+        this.setWidth(node, w)
+        this.setHeight(node, h)
+    }
+
     styleChild(child, style, callerId, emit) {
+        Container.applyPreHooks(this, 'style', [child, style, callerId, emit])
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -602,6 +670,7 @@ export class Container {
             }
         }
 
+        Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
         if(emit != false) {
             this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
         }
@@ -666,13 +735,15 @@ export class Container {
     }
 
     addDomChild(parentId, domNode, callerId) {
+        Container.applyPreHooks(this, 'create', [parentId, domNode, callerId])
+
         let parent = Container.lookup(parentId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
 
         if (domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
-            this.#initDOMcontainer(domNode)
+            this.#initDOMcontainer(domNode, callerId)
             this.updateZindexLimits(domNode)
 
             this.CONTAINER_COUNT++;

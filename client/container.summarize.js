@@ -21,9 +21,10 @@ import {Container, ACTIONS} from "./Container.js"
  * Test removal functions
  * */
 
-//[TODO]: disallow empty abstraction layers other than the topmost one
 //[TODO]: integrate with other functions to reflect abstraction level. e.g. adding content / set parent / etc to respect abstraction
-
+//[TODO]: think about styling and padding
+//[TODO]: Make it work well for non positioned elements. e.g. text
+//[TODO]: hook parameters are inconsistent, establish what to do about it
 let C_ABS_LVL = 'contentAstractionLevel'
 let C_TOT_ABS_LVLS = 'contentTotalAbstractionLevels'
 let ABS_LVL = 'abstractionLevel'
@@ -35,6 +36,7 @@ Container.prototype.collapse = function(id, callerId) {
 
     if (currentLvl < maxAbsLevels) {
         this.setCurrentContentAbstractionLevel(node, currentLvl + 1)
+        this.notifyUpdate(node)
         return true;
     } 
     return false;
@@ -48,6 +50,7 @@ Container.prototype.expand = function(id, callerId) {
 
     if (currentLvl > 0) {
         this.setCurrentContentAbstractionLevel(node, currentLvl - 1)
+        this.notifyUpdate(node)
     }
 }
 
@@ -67,6 +70,7 @@ Container.prototype.createAbstractionLevel = function(c) {
     }
 
     node.dataset[C_TOT_ABS_LVLS] = maxAbsLevels + 1
+    this.notifyUpdate(node)
     return maxAbsLevels
 }
 
@@ -89,6 +93,7 @@ Container.prototype.removeAbstractionLevel = function(c, lvl) {
             this.setAbstractionLevel(child, i - 1)
         }
     }
+    this.notifyUpdate(node)
 }
 
 /**
@@ -101,6 +106,7 @@ Container.prototype.removeAllAbstraction = function(c) {
     node.dataset[C_TOT_ABS_LVLS] = 0;
     node.dataset[C_ABS_LVL] = 0
     removeAll(this, node)
+    this.notifyUpdate(node)
 }
 
 //Content abstraction level
@@ -184,6 +190,12 @@ Container.prototype.getAbstractionLevel = function(c) {
     return parseInt(node.dataset[ABS_LVL] || 0)
 }
 
+Container.registerPreSetterHook('setParent', function(node) {
+    if (this.getAbstractionLevel(node) > 0) {
+        throw `Not allowed to change ownership of abstraction level content`
+    }
+});
+
 function removeAll(ctx, node) {
     for (const child of node.children) {
         let alvl = ctx.getAbstractionLevel(child)
@@ -217,6 +229,6 @@ function updateDisplayedAbstractionLevel(ctx, node, lvl) {
             ctx.hide(child)
         }
     }
-    
-    //[TODO]: make node fit content + styling application
+
+    ctx.fitVisibleContent(node)
 }

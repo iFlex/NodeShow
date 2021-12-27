@@ -11,7 +11,7 @@ Client Features:
 9   Content Insertion (img, video, svg, etc) ::container.content (works for images)
 10  Display Order Change
 ------------------------------------------------------------------------------
-11 [IN_PROGRESS]= !Collapse (a means of sumarizing a container by making is much smaller and displaying a summary of what it contains) (via: Keyboard, Crude) 
+11 [IN_PROGRESS]= !Collapse (a means of sumarizing a container by making it much smaller and displaying a summary of what it contains)
 ::builtin core - Experiental
  => Collapsing should be done in layers/stages.
     e.g. content -> layer 1     -> layer 2  -> layer 3      -> layer 4
@@ -32,7 +32,10 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
+[MUST-HAVE]: Standardize core. have it documented. Add tests
+
 [TODO]: Implement functionality to make container fit content (including abs pos content)
+ - without harming non positioned elements? (can it be done?)
 [TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
     1K Nodes were problematic: found out that the storage layer was the main slowdown.
@@ -53,7 +56,6 @@ Current Prios:
 [TODO]: Notify user when selecting or grouping more than the limit. Notify them the operation will be capped.
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG][MUST-FIX]: Keyboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed
-[MUST-HAVE]: Standardize core. have it documented. Add tests
 [MUST-HAVE]: standardize all apps to use utils for mouse and keyboard events.
 [TODO]: split container.create to not have the inner organisation interface and create new app container.content.arrange
 [BUG]: Lineage component is a bit buggy and can even cause disappearences

@@ -11,12 +11,9 @@ function htmlSnapshot() {
 async function login (page, browser) {
   await page.type('[name="identifier"]', "Liviu");
   await page.type('[name="password"]', "nsizbst");
-  console.log('about to press the bastard')
   await page.click('[value="Login"]')//.then(() => page.waitForNavigation({waitUntil: 'load'}));
-  console.log(`Waiting for login`)
-  await page.waitFor(1000); // await for a 1s
+  await page.waitFor(1000); // await for 1s
   const pc = (await browser.pages()).length
-  console.log(`current page count ${pc}`)
   return (await browser.pages())[pc - 1]
 }
 

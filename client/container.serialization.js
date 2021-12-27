@@ -102,7 +102,8 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
         this.updateChild(rawDescriptor.id, rawDescriptor, callerId, false)
         return;
     }
-
+    
+    Container.applyPreHooks(this, 'create', [parentId, null, rawDescriptor, insertBefore, callerId])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     let child = makeAndInsertChild(rawDescriptor, parent, insertBefore)
@@ -118,6 +119,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
         }
         addChildNodes(this, child, callerId)
     } else {
+        Container.applyPostHooks(this, 'create', [parentId, child, rawDescriptor, insertBefore, callerId])
         emitContainerCreated(this, parent, child, callerId)
     }
     
@@ -181,8 +183,11 @@ Container.prototype.toSerializable = function(id) {
     serialize['computedStyle'] = this.toSerializableStyle(id);
     
     //save data- tags
-    serialize['data'] = $(elem).data();
-    
+    serialize['data'] = {}
+    for (let [key, value] of Object.entries(elem.dataset)) {
+        serialize.data[key] = value
+    }
+
     //save metadata
     serialize["permissions"] = this.permissions[elem.id]
 
@@ -217,6 +222,8 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit){
     let child = Container.lookup(childId)
+    Container.applyPreHooks(this, 'update', [child, rawDescriptor, callerId, emit])
+    
     //bulindly applying all properties received
     for (const [tag, value] of Object.entries(rawDescriptor)) {
         if (this.skipSetOnDOM[tag] || !value){
@@ -231,9 +238,9 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
         }
     }
 
-    //set data attributes
+    //set data attributes. Value is always a string.
     for( const [tag, value] of Object.entries(rawDescriptor.data || {})) {
-        child.dataset[tag] = JSON.stringify(value)
+        child.dataset[tag] = value
     }
 
     //apply permissions
@@ -256,6 +263,7 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     }
     
     this.updateZindexLimits(child)
+    Container.applyPostHooks(this, 'update', [child, rawDescriptor, callerId, emit])
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit != false) {
