@@ -83,7 +83,7 @@ class DelayedMutationFolderKeyValueStore {
 			let oldVersions = DelayedMutationFolderKeyValueStore.getAllVersions(path)
 			for(let old of oldVersions) {
 				let oldPth = path+"/"+old
-				if (filename && oldPth != filename) {
+				if (oldPth != filename) {
 					fs.unlinkSync(oldPth)
 				}
 			}

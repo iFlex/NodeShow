@@ -157,12 +157,13 @@ class ContainerContent {
     }
 
     getContentType() {
-      console.log(`getting content type`)
+      console.log(`${this.appId} getting content type`)
       try {
         var e = this.container.lookup("ns-content-type");
         return e.options[e.selectedIndex].text;
       } catch (ex) {
-        return undefined
+        console.error(`${this.appId} could not fetch content type`)
+        console.error(ex)
       }
       return undefined
     }

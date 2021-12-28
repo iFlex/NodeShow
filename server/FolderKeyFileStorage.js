@@ -17,7 +17,7 @@ class FolderKeyFileStorage {
 		this.interval = setInterval(function (e) {
 			if (!context.lock) {
 				context.lock = true;
-				context.persist();
+				context.background();
 				context.lock = false;
 			}
 		}, 1000);	
@@ -83,7 +83,7 @@ class FolderKeyFileStorage {
 			let oldVersions = FolderKeyFileStorage.getAllVersions(path)
 			for(let old of oldVersions) {
 				let oldPth = path+"/"+old
-				if (filename && oldPth != filename) {
+				if (oldPth != filename) {
 					fs.unlinkSync(oldPth)
 				}
 			}
@@ -94,7 +94,7 @@ class FolderKeyFileStorage {
 		}
 	}
 
-	persist () {
+	background () {
 		let start = Date.now()
 		while (this.updatesQueue.length > 0) {
 			let update = this.updatesQueue.pop();

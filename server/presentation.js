@@ -169,7 +169,7 @@ class Presentation {
 						let parent = this.rawData[this.rawData[id].parentId]
 						if (parent) {
 							//remove from child links
-							for (let i = 0 ; i < parent.childNodes; ++i) {
+							for (let i = 0 ; i < parent.childNodes.length; ++i) {
 								if (parent.childNodes[i].id == id) {
 									parent.childNodes.splice(i, 1)
 									break;

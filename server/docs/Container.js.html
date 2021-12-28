@@ -1,4 +1,32 @@
-//[NOTE] Node data attributes are strings
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Container.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Container.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>//[NOTE] Node data attributes are strings
 export const ACTIONS = {
     create: 'container.create',
     delete: 'container.delete',
@@ -119,7 +147,7 @@ export class Container {
         this.debug = debug
     }
 
-    //<utils>
+    //&lt;utils>
     static clone(obj) {
         if (!obj) {
             return null;
@@ -129,8 +157,8 @@ export class Container {
 
 	static getQueryVariable(variable) {
 		var query = window.location.search.substring(1);
-		var vars = query.split('&');
-		for (var i = 0; i < vars.length; i++) {
+		var vars = query.split('&amp;');
+		for (var i = 0; i &lt; vars.length; i++) {
 		    var pair = vars[i].split('=');
 		    if (decodeURIComponent(pair[0]) == variable) {
 		        return decodeURIComponent(pair[1]);
@@ -141,7 +169,7 @@ export class Container {
 
 	static generateUUID() { // Public Domain/MIT
 	    var d = new Date().getTime();//Timestamp
-	    var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+	    var d2 = ((typeof performance !== 'undefined') &amp;&amp; performance.now &amp;&amp; (performance.now()*1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
 	    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 	        var r = Math.random() * 16;//random number between 0 and 16
 	        if(d > 0){//Use timestamp until depleted
@@ -151,7 +179,7 @@ export class Container {
 	            r = (d2 + r)%16 | 0;
 	            d2 = Math.floor(d2/16);
 	        }
-	        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+	        return (c === 'x' ? r : (r &amp; 0x3 | 0x8)).toString(16);
 	    });
 	}
 
@@ -213,7 +241,7 @@ export class Container {
 		do {
 			let item = queue[index]
             
-            if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
+            if (!item.id &amp;&amp; item.nodeName != "SCRIPT" &amp;&amp; item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
                 this.CONTAINER_COUNT++;
 				labeledCount += 1;
@@ -235,7 +263,7 @@ export class Container {
                     id: item.id
                 });
             }
-		} while(index < queue.length)
+		} while(index &lt; queue.length)
 
 		console.log(`Indexed ${index} document entities. Labeled ${labeledCount}`)
 	}
@@ -269,9 +297,9 @@ export class Container {
         }
         return undefined
     }
-    //</utils>
+    //&lt;/utils>
 
-    //<Permissions Subsystem>
+    //&lt;Permissions Subsystem>
     isOperationAllowed(operation, resource, callerId) {
         let rules = ((this.permissions[resource.id] || {})[operation] || {})
         
@@ -359,13 +387,13 @@ export class Container {
 
     loadPermissionsFromDom (node) {
         let perms = JSON.parse(node.getAttribute("data-container-permissions"))
-        if (perms && typeof perms != 'string') {
+        if (perms &amp;&amp; typeof perms != 'string') {
             console.log("Loading permissions from DOM")
             this.permissions[node.id] = perms
         }
     }
-    //</permissions Subsystem>
-    //<hooks>
+    //&lt;/permissions Subsystem>
+    //&lt;hooks>
     static registerPreSetterHook(setter, method) {
         Container.#reisterHook(Container.#preSetterHooks, setter, method)
     }
@@ -402,8 +430,8 @@ export class Container {
     static applyPostHooks(ctx, setter, params) {
         Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
     }
-    //</hooks>
-    //<extensions subsystem>
+    //&lt;/hooks>
+    //&lt;extensions subsystem>
     registerComponent(pointer) {
         let name = pointer.appId
         if (name in this.components) {
@@ -477,7 +505,7 @@ export class Container {
 
         delete this.components[appId]['workSession']
     }
-    //</extensions subsystem>
+    //&lt;/extensions subsystem>
     
     nodeCountToRoot(id) {
         let pointer = Container.lookup(id)
@@ -486,7 +514,7 @@ export class Container {
         }
         
         let count = 0;
-        while (pointer && pointer != this.parent) {
+        while (pointer &amp;&amp; pointer != this.parent) {
             count ++;
             pointer = pointer.parentNode;
         }
@@ -494,7 +522,7 @@ export class Container {
         return count;
     }
 
-    //<nesting>
+    //&lt;nesting>
 	setParent(childId, parentId, callerId, options) {
         let parent = Container.lookup(parentId);
         let child = Container.lookup(childId);
@@ -509,7 +537,7 @@ export class Container {
         
         console.log(`Change parent for ${child.id} to ${parent.id}`)
         let prevParentId = child.parentNode.id;
-        if (options && options.insertBefore && parent.firstChild) {
+        if (options &amp;&amp; options.insertBefore &amp;&amp; parent.firstChild) {
             jQuery(child).detach().insertBefore(Container.lookup(options.insertBefore));
         } else {
             jQuery(child).detach().appendTo(parent);    
@@ -527,9 +555,9 @@ export class Container {
         this.notifyUpdate(prevParentId, callerId)
         this.notifyUpdate(parent, callerId)
     }
-    //</nesting>
+    //&lt;/nesting>
 
-    //<size>
+    //&lt;size>
     //contextualise width and height based on type of element and wrapping
     //[DOC] width is always a number and expressed in pixels
 	setWidth(id, width, callerId, unitOverride, emit) {
@@ -580,7 +608,7 @@ export class Container {
     getContentWidth (id) {
         return Container.lookup(id).scrollWidth
     }
-    //</size>
+    //&lt;/size>
 	
     setAngle(id, angle, originX, originY, callerId) {
         this.isOperationAllowed(ACTIONS.setAngle, id, callerId);
@@ -607,7 +635,7 @@ export class Container {
     getAngle(id) {
         //ToDo
     }
-    //</rotation>
+    //&lt;/rotation>
 
     hide(id, callerId) {
         let elem = Container.lookup(id);
@@ -661,11 +689,11 @@ export class Container {
             let w = this.getWidth(child) + pos.left
             let h = this.getHeight(child) + pos.top
 
-            if (bounding.bottom < h) {
+            if (bounding.bottom &lt; h) {
                 bounding.bottom = h
             }
 
-            if (bounding.right < w) {
+            if (bounding.right &lt; w) {
                 bounding.right = w
             }            
         }
@@ -698,7 +726,7 @@ export class Container {
 
     getChildAt(parentId, index) {
         let parent = Container.lookup(parentId)
-        if (index < 0 || index >= parent.childNodes.length) {
+        if (index &lt; 0 || index >= parent.childNodes.length) {
             return undefined;
         }
 
@@ -709,7 +737,7 @@ export class Container {
         let sibling = Container.lookup(siblingId)
         let parent = sibling.parentNode
         if (parent) {
-            for ( let i = 0 ; i < parent.childNodes.length; ++i ) {
+            for ( let i = 0 ; i &lt; parent.childNodes.length; ++i ) {
                 if (parent.childNodes[i].id == sibling.id) {
                     return i;
                 }
@@ -821,7 +849,7 @@ export class Container {
     updateZindexLimits(node) {
         if (node.style.zIndex) {
             let zIndex = parseInt(node.style.zIndex)
-            if (this.#currentMaxZindex < zIndex) {
+            if (this.#currentMaxZindex &lt; zIndex) {
                 this.#currentMaxZindex = zIndex
             }
             if(this.#currentMinZindex > zIndex) {
@@ -901,7 +929,7 @@ export class Container {
         return null;
     }
 
-    //<events>
+    //&lt;events>
     notifyUpdate(id, callerId) {
         let node = (id) ? Container.lookup(id) : this.parent
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId})
@@ -929,5 +957,27 @@ export class Container {
     appEmit(appId, type, details) {
         this.emit(appId+'.'+type, details); 
     }
-    //</events>
-}
+    //&lt;/events>
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#C_ABS_LVL">C_ABS_LVL</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Mon Dec 27 2021 23:36:52 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

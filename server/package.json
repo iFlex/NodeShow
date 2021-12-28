@@ -5,5 +5,21 @@
     "mime": "^2.5.2",
     "socket.io": "^4.3.1",
     "strip-js": "*"
-  }
+  },
+  "devDependencies": {
+    "jsdoc": "^3.6.7"
+  },
+  "scripts": {
+    "doc": "jsdoc -d docs --configure jsconf.json server.js",
+    "start": "node server.js"
+  },
+  "name": "server",
+  "version": "1.0.0",
+  "description": "NodeShow server backed",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "author": "Milorad Liviu Felix",
+  "license": "ISC"
 }

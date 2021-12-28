@@ -9,8 +9,8 @@ function htmlSnapshot() {
 }
 
 async function login (page, browser) {
-  await page.type('[name="identifier"]', "Liviu");
-  await page.type('[name="password"]', "nsizbst");
+  await page.type('[name="identifier"]', "");
+  await page.type('[name="password"]', "");
   await page.click('[value="Login"]')//.then(() => page.waitForNavigation({waitUntil: 'load'}));
   await page.waitFor(1000); // await for 1s
   const pc = (await browser.pages()).length

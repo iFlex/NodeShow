@@ -31,7 +31,6 @@ class ContainerSelect {
 			"width": "10px",
 			"height": "10px",
 			"margin":"0px",
-			"border-width":"0px",
 			"padding":"0px",
 			"border-color":"black",
 			"border-width":"1px",

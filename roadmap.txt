@@ -10,9 +10,7 @@ Client Features:
 8   Copy/Paste within presentation and accross presentations ::container.clipboard
 9   Content Insertion (img, video, svg, etc) ::container.content (works for images)
 10  Display Order Change
-------------------------------------------------------------------------------
-11 [IN_PROGRESS]= !Collapse (a means of sumarizing a container by making it much smaller and displaying a summary of what it contains)
-::builtin core - Experiental
+11  Abstract away complexity. A means of sumarizing a container's content by making it much smaller and displaying a summary of what it contains
  => Collapsing should be done in layers/stages.
     e.g. content -> layer 1     -> layer 2  -> layer 3      -> layer 4
                     Ample note 1    note 1     note 1/Title    small icon
@@ -20,7 +18,7 @@ Client Features:
                     Ample note 3
         state: tracks at what layer of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous layer. The first layer being the full content of the container.
-     
+------------------------------------------------------------------------------
 12  !Link Containers ::container.link [BROKEN & NEEDS PERSISTING MECHANISM]
     - create links
     - edit links
@@ -32,16 +30,23 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[MUST-HAVE]: Standardize core. have it documented. Add tests
+[MUST-HAVE]: Standardize Core. Add Tests. Document
+[TODO][FIX]: Broadcasting abstraction level stats. Currently broken:
+    . all works well with no collaborators
+    . when more collaborators are added, an event inifinte loop appears.
 
 [TODO]: Implement functionality to make container fit content (including abs pos content)
  - without harming non positioned elements? (can it be done?)
+ : currently a shitty but relatively working implementation exists
+
 [TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
+
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
     1K Nodes were problematic: found out that the storage layer was the main slowdown.
     Without sending updates to storage, it can handle 1K ev/s
     [TODO]: more stress testing
     [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
+
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
 [TODO]: Text eitor interface improvements: pick font, size update, prettify
@@ -69,13 +74,13 @@ Current Prios:
 [NICE-TO_HAVE]: resize selection? is it really needed? 
 [SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
 [TODO]: add oAuth & roles for users. Robots should be configurable - currently using hardcoded PSK
-[TODO]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:
+[NICE-TO-HAVE][MAYBE]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:
     * very high event rates will cause the updates to slow down and lag
 
 [BUG]: Main menu can get burried under content. (not critical: reload fixes it)
  - tentative fix via listening for container created events. Should probably listen to bring to front as well
 -----------------------------------------------------------------------
-- [must have]  Authentication
+- [must have] Proper Authentication
 - [nice to have] Create Aligner
 - [nice to have] Minimap
 - [nice to have] Collaborators & Follow
