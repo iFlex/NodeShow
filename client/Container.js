@@ -1,3 +1,9 @@
+/**
+ * Container Framework Module
+ * @module Container 
+ */
+
+//[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
 export const ACTIONS = {
     create: 'container.create',
@@ -44,9 +50,10 @@ let ACTIONS_CHAIN = {}
     ACTIONS_CHAIN[ACTIONS.setPermission] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.removePermission] = [ACTIONS.update]
 
-//[TODO]: integrate hook callers wherever relevant
+/** @class */
 export class Container {
-	//ToDo: make all fields private
+	//[TODO]: integrate hook callers wherever relevant
+    //ToDo: make all fields private
     parent = null;
 	presentationId = null;
 	socket = null;
@@ -71,6 +78,8 @@ export class Container {
 
     *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
     *  [NOTE]: Hooks methods should not generate any additional events to be fired.
+        * PreSetterHooks have the ability to stop the hooked method from executing
+        * PostSetterHooks do not have the ability to stop the hooked method from executing. Any exception thrown in a hook handler should be caught and logged (prevented from interfering with execution)
     */
     static #hookedSetters = new Set([
         /**
@@ -85,7 +94,6 @@ export class Container {
     ])
     static #preSetterHooks = {}
     static #postSetterHooks = {}
-
 
     /*
     Permissions describing what operations can be performed on containers
@@ -102,7 +110,8 @@ export class Container {
         }
     }
     */
-    permissions = {}
+
+    #permissions = {}
     localmetadata = {}
 	
     components = {}
@@ -173,6 +182,12 @@ export class Container {
         return el
     }
 
+    /**
+    * @summary Checks wether this instance of Container owns the referenced node.
+    * @description A node is owned by a Container instance if the root node of the instance is an ancestor of the given node.
+    * @param {(string|DOMReference)} id - container reference
+    * @returns {boolean} wether the node is owned or not
+    */
     owns (id) {
         let node = null
         try {   
@@ -192,14 +207,21 @@ export class Container {
     }
 
     /**
-    * Lookup DOM with given id in document.body
-    * @param {string} id the id or DOM object reference
+    * @summary Lookup DOM for given reference container in document.body
+    * @param {(string|DOMReference)} id - container reference
     * @returns {DOMObject} the DOM object with the given id
     */
     lookup (id) {
         return Container.lookup(id);
     }
 
+    /**
+    * @summary Traverses the DOM tree starting from the provided ROOT and initializes the framework on each found node.
+    * @description For each found node it will generate a unique ID if one isn't present and will call any postCreateHooks.
+    *   e.g. initialize permissions, initialize actions, etc.
+    * @param {DOMObject} root - DOM objet to start the indexing from
+    * @param {Boolean} emit - wether or not to emit events when discovering DOM Nodes
+    */
     index (root, emit) {
 		let queue = [root || this.parent]
 		var index = 0
@@ -225,7 +247,7 @@ export class Container {
 				}
 			}
 
-            this.#initDOMcontainer(item)
+            Container.applyPostHooks(this, 'create', [item.parentNode, item, null])
 
 			index ++;
             if(emit != false) {
@@ -240,6 +262,10 @@ export class Container {
 		console.log(`Indexed ${index} document entities. Labeled ${labeledCount}`)
 	}
 
+    /**
+    * @summary Initializes the Container framework. Requires a not to set as root.
+    * @param {DOMObject} element - DOM reference of the root node
+    */
 	init (element) {
 		//ToDo: check element type and enforce dom object
 		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
@@ -247,18 +273,11 @@ export class Container {
 		this.emit("Container.init", {presentationId:this.presentationId});
 	}
 
-    #initDOMcontainer(item, callerId) {
-        //init actions
-        try {
-            this.initActions(item)
-            Container.applyPostHooks(this, 'create', [item.parentNode, item, callerId])
-            this.loadPermissionsFromDom(item)
-        } catch (e) {
-            console.log("Could not init container actions. Did you not include the module?")
-            console.error(e)
-        }
-    }
-
+    /**
+    * @summary Detects the measuring unit of a given value. e.g. px, %, et
+    * @param {string} val - the id or DOM object reference to check
+    * @returns {string} the measuring unit of the given value
+    */
     //ToDo: make this regex
     detectUnit(val) {
         let units = ['px','%']
@@ -271,105 +290,23 @@ export class Container {
     }
     //</utils>
 
-    //<Permissions Subsystem>
-    isOperationAllowed(operation, resource, callerId) {
-        let rules = ((this.permissions[resource.id] || {})[operation] || {})
-        
-        if (rules) {
-            let explicit = rules[callerId]
-            if(explicit == false) {
-                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
-            }
-            if(explicit == true) {
-                return true;
-            }
-
-            let general = rules["*"]
-            if (general == false) {
-                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
-            }
-        } 
-
-        return true;
-    }
-
-    setPermission(id, permName, opCaller, allow, callerId) {
-        let elem = Container.lookup(id);
-        let operation = `set.${permName}`
-        this.isOperationAllowed(operation, elem, callerId)
-
-        if (!(elem.id in this.permissions)) {
-            this.permissions[elem.id] = {}
-        }
-        if (!(permName in this.permissions[elem.id])) {
-            this.permissions[elem.id][permName] = {}
-        }
-        this.permissions[elem.id][permName][opCaller] = allow
-        
-        this.emit(ACTIONS.setPermission, {
-            id:id,
-            permission: permName,
-            subject: opCaller,
-            callerId: callerId
-        })
-    }
-
-    removePermission(id, permName, opCaller, callerId) {
-        let elem = Container.lookup(id);
-        let operation = `remove.${permName || '*'}`
-        this.isOperationAllowed(operation, elem, callerId)
-        
-        if (this.permissions[elem.id]){
-            if (this.permissions[elem.id][permName]){
-                if (opCaller) {
-                    if (opCaller in this.permissions[elem.id][permName]) {
-                        delete this.permissions[elem.id][permName][opCaller]
-                    }
-                } else {
-                    delete this.permissions[elem.id][permName]
-                }
-            } else {
-                delete this.permissions[elem.id]
-            }
-        }
-       
-       this.emit(ACTIONS.removePermission, {
-        id:id,
-        permission: permName,
-        subject: opCaller,
-        callerId: callerId
-       })
-    }
-
-    //ToDo: permission matching e.g. container.set.*
-    getPermission(id, permName, opCaller) {
-        let elem = Container.lookup(id);
-        //prevent returning a pointer to the actual permission
-        let permission = this.permissions[elem.id]
-        if (permName) {
-            permission = permission[permName]
-            if (opCaller) {
-                return permission[opCaller]
-            }
-        } else {
-            permission = this.permissions[elem.id]
-        }
-        return Container.clone(permission || {})
-    }
-
-    loadPermissionsFromDom (node) {
-        let perms = JSON.parse(node.getAttribute("data-container-permissions"))
-        if (perms && typeof perms != 'string') {
-            console.log("Loading permissions from DOM")
-            this.permissions[node.id] = perms
-        }
-    }
-    //</permissions Subsystem>
     //<hooks>
+
+    /**
+    * @summary Registers a method to be called before the normal operation of a setter method from core functionality.
+    * @param {string} setter - setter name
+    * @param {method} method - method reference.
+    */
     static registerPreSetterHook(setter, method) {
         Container.#reisterHook(Container.#preSetterHooks, setter, method)
     }
 
+    /**
+    * @summary Registers a method to be called after the normal operation of a setter method from core functionality.
+    * @description This runs before any events are emitted by the original method.
+    * @param {string} setter - setter name
+    * @param {method} method - method reference.
+    */
     static registerPostSetterHook(setter, method) {
         Container.#reisterHook(Container.#postSetterHooks, setter, method)
     }
@@ -395,15 +332,180 @@ export class Container {
         }
     }
 
+    /**
+    * @summary Runs the preSetter hooks for a given setter and a given Container instance
+    *
+    * @param {reference} context - Container instance reference 
+    * @param {string} setter - setter name
+    * @param {array} params - array of parameters to pass to the hooks.
+    */
     static applyPreHooks(ctx, setter, params) {
         Container.#applyHooks(ctx, Container.#preSetterHooks, setter, params)
     }
 
+    /**
+    * @summary Runs the postSetter hooks for a given setter and a given Container instance
+    * @description This method applies all registered post setter hooks for a named setter right before the hooked method's event firing (if any). 
+    * Any exception thrown by the hook handler will be caught and logged, preventing it from failing to fire the hook method event.
+    * @param {reference} context - Container instance reference 
+    * @param {string} setter - setter name
+    * @param {array} params - array of parameters to pass to the hooks.
+    */
     static applyPostHooks(ctx, setter, params) {
-        Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
+        try {
+            Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
+        } catch (e) {
+            console.error(`[CORE] Failed to apply post setter hooks`)
+            console.error(e)
+        }
     }
+
     //</hooks>
+    /**
+    * @summary Chechks wether an operation can be carried out on a container by a caller
+    * @throws throws a string exception if operation is not allowed
+    * @param {string} operation - the name of the operation
+    * @param {DOMObject} resource  - the DOM reference of the container
+    * @param {string} resource  - the name of the caller
+    * @returns {boolean} returns true if operation is allowed, otherwise throws exception
+    */
+    isOperationAllowed(operation, resource, callerId) {
+        let rules = ((this.#permissions[resource.id] || {})[operation] || {})
+        
+        if (rules) {
+            let explicit = rules[callerId]
+            if(explicit == false) {
+                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
+            }
+            if(explicit == true) {
+                return true;
+            }
+
+            let general = rules["*"]
+            if (general == false) {
+                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
+            }
+        } 
+
+        return true;
+    }
+
+    /**
+    * @summary Sets a given permission on a given container. 
+    * @param {(string|DOMReference)} id - container reference
+    * @param {string} permName - the name of the permission being set 
+    * @param {string} opCaller - the name of the caller subject to this permission
+    * @param {boolean} allow - wether to allow the the given operation for the given caller
+    * @param {string} callerId  - the name of the caller of the setPermission method
+    * @param {boolean=false} isLocal - indicates if the permission should be persisted or only applied locally
+    */
+    setPermission(id, permName, opCaller, allow, callerId, isLocal) {
+        let elem = Container.lookup(id);
+        let operation = `set.${permName}`
+        this.isOperationAllowed(operation, elem, callerId)
+
+        if (!(elem.id in this.#permissions)) {
+            this.#permissions[elem.id] = {}
+        }
+        if (!(permName in this.#permissions[elem.id])) {
+            this.#permissions[elem.id][permName] = {}
+        }
+        
+        //load the permission into local memory
+        this.#permissions[elem.id][permName][opCaller] = allow
+        
+        //persist permission if needed
+        if (!isLocal) {
+            elem.dataset['permissions'] = JSON.stringify(this.#permissions[elem.id])
+        }
+
+        this.emit(ACTIONS.setPermission, {
+            id:id,
+            permission: permName,
+            subject: opCaller,
+            callerId: callerId,
+            isLocal: isLocal
+        })
+    }
+
+    /**
+    * @summary Removes permissions from a given container.
+    * @description It can remove all permissions, or all permissions of a certaing name, or the permission given to a specific caller. 
+    * @param {(string|DOMReference)} id - container reference
+    * @param {string=} permName - the name of the permission being set. If not provided, all permissions are removed. 
+    * @param {string=} opCaller - the name of the caller subject to this permission. If not provided, all permissions for the given permName are removed.
+    * @param {string} callerId  - the name of the caller of the setPermission method
+    */
+    removePermission(id, permName, opCaller, callerId) {
+        let elem = Container.lookup(id);
+        let operation = `remove.${permName || '*'}`
+        this.isOperationAllowed(operation, elem, callerId)
+        
+        if (this.#permissions[elem.id]){
+            if (this.#permissions[elem.id][permName]){
+                if (opCaller) {
+                    if (opCaller in this.#permissions[elem.id][permName]) {
+                        delete this.#permissions[elem.id][permName][opCaller]
+                    }
+                } else {
+                    delete this.#permissions[elem.id][permName]
+                }
+                elem.dataset['permissions'] = JSON.stringify(this.#permissions[elem.id])
+            } else {
+                delete this.#permissions[elem.id]
+                delete elem.dataset['permissions']
+            }
+        }
+       
+       this.emit(ACTIONS.removePermission, {
+        id:id,
+        permission: permName,
+        subject: opCaller,
+        callerId: callerId
+       })
+    }
+
+    //ToDo: permission matching e.g. container.set.*
+    /**
+    * @summary Retrieves the permissions for a given container.
+    * @description It can retrieve all permissions, or all permissions of a certaing name, or the permission given to a specific caller. 
+    * @param {(string|DOMReference)} id - container reference
+    * @param {string=} permName - the name of the permission being set. If not provided, all permissions are removed. 
+    * @param {string=} opCaller - the name of the caller subject to this permission. If not provided, all permissions for the given permName are removed.
+    */
+    getPermission(id, permName, opCaller) {
+        let elem = Container.lookup(id);
+        //prevent returning a pointer to the actual permission
+        let permission = this.#permissions[elem.id]
+        if (permName) {
+            permission = permission[permName]
+            if (opCaller) {
+                return permission[opCaller]
+            }
+        } else {
+            permission = this.#permissions[elem.id]
+        }
+        return Container.clone(permission || {})
+    }
+
+    /**
+    * @summary Loads permissions into memory from DOM storage. 
+    * @description Permissions are stored in data-container-permissions on the dataset of a DOM object. In order to be enforced they need to be loaded into memory. This method reads from the dataset of the DOM object and loads into memory. 
+    * @param {DOMReference} node - container to load for
+    */
+    loadPermissionsFromDataset(node) {
+        let perms = JSON.parse(node.getAttribute("data-container-permissions"))
+        if (perms && typeof perms != 'string') {
+            console.log("Loading permissions from DOM")
+            this.#permissions[node.id] = perms
+        }
+    }
     //<extensions subsystem>
+
+    /**
+    * @summary Registers an extension component into the Container Framework instance.
+    * @param {reference} pointer - Component instance reference 
+    */
     registerComponent(pointer) {
         let name = pointer.appId
         if (name in this.components) {
@@ -429,6 +531,10 @@ export class Container {
         }) 
     }
 
+    /**
+    * @summary Removes a registered component from the Container Framework instance.
+    * @param {reference} pointer - Component instance reference 
+    */
     unregisterComponent(component) {
         if (component.appId in this.components) {
             this.#unregisterComponent(component)
@@ -436,6 +542,11 @@ export class Container {
         }
     }
 
+    /**
+    * @summary Retrieves a reference for a given component.
+    * @param {string} appName - name of component to retrieve 
+    * @returns {reference} reference to the retrieved component
+    */
     getComponent(appName) {
         for (const [name, componentData] of Object.entries(this.components)) {
             if (appName == name) {
@@ -446,6 +557,10 @@ export class Container {
         return null;
     }
 
+    /**
+    * @summary Retrieves a list of component names loaded into the Container Framework instance.
+    * @returns {string[]} reference to the retrieved component
+    */
     listComponents() {
         return Object.keys(this.components)
     }
@@ -763,7 +878,8 @@ export class Container {
         if (domNode) {
             domNode.id = Container.generateUUID();
             parent.appendChild(domNode);
-            this.#initDOMcontainer(domNode, callerId)
+
+            Container.applyPostHooks(this, 'create', [domNode.parentNode, domNode, callerId])
             this.updateZindexLimits(domNode)
 
             this.CONTAINER_COUNT++;
@@ -931,3 +1047,8 @@ export class Container {
     }
     //</events>
 }
+
+//load persisted permissions when node is created
+Container.registerPostSetterHook('create', function(parentId, node){
+    this.loadPermissionsFromDataset(node)
+})

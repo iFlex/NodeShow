@@ -19,7 +19,7 @@ import {Container, ACTIONS} from "./Container.js"
  * 
  * Add ability to fit content when compressing. Store previou style in memory maybe.
  * Test removal functions
- * */
+ */
 
 //[TODO]: integrate with other functions to reflect abstraction level. e.g. adding content / set parent / etc to respect abstraction
 //[TODO]: think about styling and padding
@@ -29,6 +29,12 @@ let C_ABS_LVL = 'contentAstractionLevel'
 let C_TOT_ABS_LVLS = 'contentTotalAbstractionLevels'
 let ABS_LVL = 'abstractionLevel'
 
+/**
+ * @summary Increases container's abstraction level
+ * @description [TODO]
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
+ * @param {string} callerId - the name of the caller of this method
+ */
 Container.prototype.collapse = function(id, callerId) {
     let node = Container.lookup(id)
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
@@ -42,6 +48,12 @@ Container.prototype.collapse = function(id, callerId) {
     return false;
 }
 
+/**
+ * @summary Lowers container's abstraction level
+ * @description [TODO]
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
+ * @param {string} callerId - the name of the caller of this method
+ */
 Container.prototype.expand = function(id, callerId) {
     let node = Container.lookup(id);
     
@@ -55,11 +67,22 @@ Container.prototype.expand = function(id, callerId) {
 }
 
 //Create/Delete abstraction levels
+/**
+ * @summary Gets container's abstraction level count
+ * @description [TODO]
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
+ * @return {number} number of abstraction levels 
+ */
 Container.prototype.getAbstractionLevels = function(c) {
     let node = this.lookup(c);
     return parseInt(node.dataset[C_TOT_ABS_LVLS] || 0)
 }
 
+/**
+ * @summary Creates a new abstraction level for a given container
+ * @description [TODO]
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
+ */
 Container.prototype.createAbstractionLevel = function(c) {
     let node = this.lookup(c);
     let maxAbsLevels = this.getAbstractionLevels(node);
@@ -75,8 +98,10 @@ Container.prototype.createAbstractionLevel = function(c) {
 }
 
 /**
- * Removes one abstraction level from given container
- * Note: this is not the most efficient way to do it at the moment.
+ * @summary Removes a given abstraction level from a given container
+ * @description Note: this is not the most efficient way to do it at the moment.
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
+ * @param {number} level - The index of the abstraction level to remove
  */
 Container.prototype.removeAbstractionLevel = function(c, lvl) {
     let node = this.lookup(c);
@@ -97,9 +122,10 @@ Container.prototype.removeAbstractionLevel = function(c, lvl) {
 }
 
 /**
- * This will remove all children with abstraction levels other than 0. 
- * Effectively the container will have no content abstraction left
-*/
+ * @summary Removes all abstraction level from a given container
+ * @description Effectively the container will on longer have any abstraction.
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
+ */
 Container.prototype.removeAllAbstraction = function(c) {
     let node = this.lookup(c);
 
@@ -111,9 +137,12 @@ Container.prototype.removeAllAbstraction = function(c) {
 
 //Content abstraction level
 /**
- * Sets the current abstraction level for this container's content.
- * In other words any child of this container that has the abstraction level equal to the 2nd argument (lvl) will be displayed
+ * @summary Sets the current abstraction level for this container's content.
+ * @description In other words any child of this container that has the abstraction level equal to the 2nd argument (lvl) will be displayed
  * and all others hidden
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object
+ * @params {number} level - The index of the abstraction level to switch to
+ * @params {string} callerId - the name of the caller of this method
  */
 Container.prototype.setCurrentContentAbstractionLevel = function(c, lvl, callerId) {
     let node = this.lookup(c);
@@ -131,11 +160,24 @@ Container.prototype.setCurrentContentAbstractionLevel = function(c, lvl, callerI
     this.notifyUpdate(node)
 }
 
+/**
+ * @summary Gets the current abstraction level for this container's content.
+ * @description [TODO]
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object
+ * @returns {number} The current abstraction level of the given container
+ */
 Container.prototype.getCurrentContentAbstractionLevel = function(c) {
     let node = this.lookup(c);
     return parseInt(node.dataset[C_ABS_LVL] || 0)
 }
 
+/**
+ * @summary Retrieves a list of containers from a container's abstraction level.
+ * @description [TODO]
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object
+ * @param {number} level - abstraction level
+ * @returns {array} array of container references comprising the abstraction level
+ */
 Container.prototype.getAllInAbstractionLevel = function(c, lvl) {
     let node = this.lookup(c);
     let result = []
@@ -150,9 +192,13 @@ Container.prototype.getAllInAbstractionLevel = function(c, lvl) {
 
 //Container abstraction level
 /**
-* Sets the abstraction level of the given container. 
-* This can cause it to be hidden or displayed depending if it matches with the current content abstraction level or its parent. 
-*/
+ * @summary Sets the abstraction level a container belongs to.
+ * @description This can cause it to be hidden or displayed depending if it matches with the current content abstraction level or its parent.
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object
+ * @param {number} level - abstraction level
+ * @param {string} callerId - id of the caller of this method
+ * @returns {array} array of container references comprising the abstraction level
+ */
 Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
     let node = this.lookup(c);
     this.isOperationAllowed(ACTIONS.setAbstractionLevel, node, callerId);
@@ -185,6 +231,12 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
     this.notifyUpdate(node)
 }
 
+/**
+ * @summary Gets the abstraction level a container belongs to.
+ * @description [TODO] 
+ * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object
+ * @returns {number} container's abstraction level
+ */
 Container.prototype.getAbstractionLevel = function(c) {
     let node = this.lookup(c);
     return parseInt(node.dataset[ABS_LVL] || 0)

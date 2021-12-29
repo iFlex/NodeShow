@@ -1,5 +1,9 @@
 import { ACCESS_REQUIREMENT } from "./inputAccessManager.js"
- 
+
+/** @class
+ *  @summary Component managing simultaneous access to user input devices. 
+ *  @description TODO
+ * */ 
 export class InputManager {
 	#registry = {}
 	#accessMgr = null;

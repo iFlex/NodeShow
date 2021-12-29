@@ -189,9 +189,6 @@ Container.prototype.toSerializable = function(id) {
         serialize.data[key] = value
     }
 
-    //save metadata
-    serialize["permissions"] = this.permissions[elem.id]
-
     return serialize;
 }
 
@@ -218,7 +215,6 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
 /*
     Everything about the child that can be mutated after creation
     style
-    permissions
     actions
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit){
@@ -243,21 +239,9 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     for( const [tag, value] of Object.entries(rawDescriptor.data || {})) {
         child.dataset[tag] = value
     }
-
-    //apply permissions
-    if (rawDescriptor.permissions) {
-        this.permissions[child.id] = Container.clone(rawDescriptor.permissions)
-    }
     
     this.reorderChildren(child, rawDescriptor, callerId)
     
-    //init actions
-    try {
-        this.initActions(child)
-    } catch (e) {
-        console.log("Could not init container actions. Did you not include the module?")
-        console.error(e)
-    }
     //update style
     if (rawDescriptor['cssText']){
         child.style.cssText = rawDescriptor['cssText']    

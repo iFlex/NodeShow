@@ -5,19 +5,19 @@ Client Features:
 4.  Group (drag on screen to create a new parent for the captured elements) ::container.grouping
 5.  Select (drag on screen to select containers) ::container.select
 6.  Change Ownership (change parent to grandparent or sibling) ::container.lineage
-7.  Style Container  (shape, color, border, etc) 
-::container.style [CRUDE]
+7.  Style Container  (shape, color, border, etc) ::container.style [CRUDE]
 8   Copy/Paste within presentation and accross presentations ::container.clipboard
 9   Content Insertion (img, video, svg, etc) ::container.content (works for images)
 10  Display Order Change
-11  Abstract away complexity. A means of sumarizing a container's content by making it much smaller and displaying a summary of what it contains
- => Collapsing should be done in layers/stages.
-    e.g. content -> layer 1     -> layer 2  -> layer 3      -> layer 4
+11  Abstract away complexity. [PROBS_MOST_IMPORTANT] 
+    A means of sumarizing a container's content by making it much smaller and displaying a summary of what it contains. 
+    => Collapsing should be done in levels/stages.
+    e.g. content -> levels 1     -> levels 2  -> levels 3      -> levels 4
                     Ample note 1    note 1     note 1/Title    small icon
                     Ample note 2    note 2
                     Ample note 3
-        state: tracks at what layer of 'summarisation' the container is at
-               if you want to summarise futher, you summarise based on the previous layer. The first layer being the full content of the container.
+        state: tracks at what levels of 'summarisation' the container is at
+               if you want to summarise futher, you summarise based on the previous levels. The first levels being the full content of the container.
 ------------------------------------------------------------------------------
 12  !Link Containers ::container.link [BROKEN & NEEDS PERSISTING MECHANISM]
     - create links
@@ -30,7 +30,15 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[MUST-HAVE]: Standardize Core. Add Tests. Document
+[MUST-HAVE]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
+    - this should allow me to leave the project unattended for longer and work on other stuff as well.
+[BIG]: Pasting seems to not persist everything that is pasted...
+    caused by:
+    [TODO]: make core methods subject to LiveBridge more resilient. Currently exceptions can be thrown that stop persisting from happening
+
+[TODO]: standardize how things are persisted. When to save things in the DOM dataset and how that's kept in sync with in-memory structures. Ex: permission persistance and initiation is inconsistent.
+
+[TODO]: evaluate event firing and how it should be done
 [TODO][FIX]: Broadcasting abstraction level stats. Currently broken:
     . all works well with no collaborators
     . when more collaborators are added, an event inifinte loop appears.
@@ -45,8 +53,8 @@ Current Prios:
     1K Nodes were problematic: found out that the storage layer was the main slowdown.
     Without sending updates to storage, it can handle 1K ev/s
     [TODO]: more stress testing
-    [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 
+[FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
 [TODO]: Text eitor interface improvements: pick font, size update, prettify

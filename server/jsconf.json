@@ -5,7 +5,7 @@
     ],
     "recurseDepth": 10,
     "source": {
-        "include": ["../client","../server"],
+        "include": ["../client","../client/components/utils","../server"],
         "exclude": [],
         "includePattern": ".+\\.js(doc|x)?$",
         "excludePattern": "(^|\\/|\\\\)_"

@@ -198,6 +198,14 @@ class ContainerStyler {
 		}
 	}
 
+	changePadding (e) {
+
+	}
+
+	changeMargin (e) {
+
+	}
+	
 	getStyleKeys() {
 		return this.stateKeys
 	}

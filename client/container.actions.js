@@ -99,7 +99,7 @@ Container.prototype.lookupMethod = function(method) {
                 if (chain[i] in method) {
                     method = method[chain[i]]
                 } else {
-                    throw `CORE: ${chain[i]} method not found in component ${name}`
+                    throw `${chain[i]} method not found in component ${name}`
                 }
             }
         }
@@ -109,7 +109,7 @@ Container.prototype.lookupMethod = function(method) {
         }
     }
     
-    throw `CORE: Could not find method ${method}`
+    throw `Could not find method ${method}`
 }
 
 Container.prototype.detachAction = function(node, actionDescriptor) {
@@ -132,3 +132,7 @@ Container.prototype.attachAction = function(node, actionDescriptor) {
         throw `Could not find method ${actionDescriptor.call} to attach action`
     }
 }
+
+Container.registerPostSetterHook('create', function(parentId, node){
+    this.initActions(node)
+});

@@ -4,6 +4,7 @@ import "./container.positioning.js";
 import "./container.staticcontent.js";
 import "./container.actions.js";
 import "./container.summarize.js";
+import "./container.links.js";
 
 import {LiveBridge} from "./LiveBridge.js";
 //import "./container.extensions.js";

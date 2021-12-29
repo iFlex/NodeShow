@@ -4,6 +4,10 @@ export const ACCESS_REQUIREMENT = {
 	EXCLUSIVE:     2  // access will be given to only one EXCLUSIVE. DEFAULT will never get access unless specifically granted
 }
 
+/** @class
+ *  @summary Component managing simultaneous access to input events. 
+ *  @description TODO
+ * */ 
 export class InputAccessManager {
 	#access = {}
 	#grants = {}

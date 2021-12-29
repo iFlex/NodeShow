@@ -8,82 +8,11 @@
   <body style="height: auto; width: auto;"></body>
   <!-- CORE -->
   <script type="module">
-    import { Container, ACTIONS } from "../Container.js";
-    import "../container.serialization.js"
-    import "../container.positioning.js";
-    import "../container.staticcontent.js";
-    import "../container.actions.js";
-    import "../container.summarize.js";
+    import { assertEquals, assertTrue, TestRunner } from "./jsunit.js";
+    import { container } from "./test_core_setup.js";
+    import { ACTIONS } from '../Container.js'
 
-    let container = new Container(document.body, false);
-    container.init();
-
-    function assertTrue(bool) {
-      if (!bool) {
-        throw `ASSERTION_ERROR: should have been true`
-      }
-    }
-
-    function assertEquals(expected, actual) {
-      if (!(expected === actual)) {
-        throw `ASSERTION_ERROR: expected: ${expected} actual:${actual}`
-      }
-    }
-
-    class TestCoreContainerMethods {
-      constructor () {
-
-      }
-
-      beforeEach () {
-        let item = document.createElement("DIV")
-        item.id = '1'
-        document.body.appendChild(item)
-      }
-
-      afterEach () {
-        this.cleanPage ();
-      }
-
-      cleanPage () {
-        let toDel = []
-        for (const child of document.body.childNodes) {
-          toDel.push(child)
-        }
-
-        for (const child of toDel) {
-          child.parentNode.removeChild(child)
-        }
-      }
-
-      getAllFuncs(toCheck) {
-        const props = [];
-        let obj = toCheck;
-        do {
-            props.push(...Object.getOwnPropertyNames(obj));
-        } while (obj = Object.getPrototypeOf(obj));
-        
-        return props.sort().filter((e, i, arr) => { 
-           if (e!=arr[i+1] && typeof toCheck[e] == 'function' && e.includes('test')) return true;
-        });
-      }
-
-      run () {
-        let tests = this.getAllFuncs(this);
-        for (const method of tests) {
-          this.beforeEach()
-          try {
-            this[method]();
-            console.log(`PASSED: ${method}`)  
-          } catch (e){
-            console.error(`FAILED: ${method}`)
-            console.error(e)
-          }
-          this.afterEach();
-        }
-      }
-
-      testLookup () {
+    TestRunner.prototype.testLookup = function() {
         let byId = document.createElement("DIV")
         byId.id = '2'
         let byRef = document.createElement("DIV")
@@ -100,87 +29,89 @@
         assertTrue(container.lookup('3') == document.getElementById('3'))
       }
 
-      testDetectUnit() {
-        assertEquals('px',container.detectUnit('12px'))
-        assertEquals('px',container.detectUnit('1px'))
-        assertEquals('px',container.detectUnit('px'))
-        assertEquals('%',container.detectUnit('120%'))
-        assertEquals(undefined,container.detectUnit('12'))
-      }
-
-      testSetGetPermission() {
-        let item = document.createElement("DIV")
-        item.id = 'test_perm_get_set'
-        document.body.appendChild(item)
-
-        for (const identifier of [item, item.id]) {
-          container.setPermission(identifier, ACTIONS.setPosition, '*', false, 'test')
-          container.setPermission(identifier, ACTIONS.setPosition, 'uid_123', true, 'test')
-          container.setPermission(identifier, ACTIONS.setPosition, 'container.edit.text', false, 'test')
-          container.setPermission(identifier, ACTIONS.create, 'florin.salam', false, 'test')
-          container.setPermission(identifier, ACTIONS.create, 'florin.salam', true, 'test')
-          container.setPermission(identifier, ACTIONS.create, 'john.snow', true, 'test')
-          container.setPermission(identifier, ACTIONS.update, 'a', false, 'test')
-          container.setPermission(identifier, ACTIONS.update, 'b', true, 'test')
-          container.setPermission(identifier, ACTIONS.update, 'b', false, 'test')
-
-          assertEquals(false, container.getPermission(identifier, ACTIONS.setPosition, '*'))
-          assertEquals(true, container.getPermission(identifier, ACTIONS.setPosition, 'uid_123'))
-          assertEquals(false, container.getPermission(identifier, ACTIONS.setPosition, 'container.edit.text'))
-          assertEquals(true, container.getPermission(identifier, ACTIONS.create, 'florin.salam'))
-          assertEquals(true, container.getPermission(identifier, ACTIONS.create, 'john.snow'))
-          assertEquals(false, container.getPermission(identifier, ACTIONS.update, 'a'))
-          assertEquals(false, container.getPermission(identifier, ACTIONS.update, 'b'))
-
-          let perms = container.getPermission(identifier, ACTIONS.update)
-          assertEquals(2, Object.keys(perms).length)
-          assertEquals(false, perms['a'])
-          assertEquals(false, perms['b'])
-
-          perms = container.getPermission(identifier)
-          assertEquals(3, Object.keys(perms).length)
-          assertEquals(3, Object.keys(perms[ACTIONS.setPosition]).length)
-          assertEquals(2, Object.keys(perms[ACTIONS.create]).length)
-          assertEquals(2, Object.keys(perms[ACTIONS.update]).length)
-        }
-        container.removePermission(item)
-      }
-
-      testRemovePermission() {
-        let item = document.createElement("DIV")
-        item.id = 'test_perm_rem'
-        document.body.appendChild(item)
-
-        for (const identifier of [item, item.id]) {
-          container.setPermission(identifier, ACTIONS.setPosition, '*', false, 'test')
-          container.setPermission(identifier, ACTIONS.setPosition, 'a', true, 'test')
-          container.setPermission(identifier, ACTIONS.setPosition, 'b', false, 'test')
-          container.setPermission(identifier, ACTIONS.create, 'c', false, 'test')
-          container.setPermission(identifier, ACTIONS.create, 'd', false, 'test')
-          container.setPermission(identifier, ACTIONS.create, 'd', true, 'test')
-          container.setPermission(identifier, ACTIONS.update, 'e', false, 'test')
-          container.setPermission(identifier, ACTIONS.update, 'f', true, 'test')
-          container.setPermission(identifier, ACTIONS.update, 'f', false, 'test')
-
-          container.removePermission(identifier, ACTIONS.setPosition, 'b')
-          container.removePermission(identifier, ACTIONS.create, 'd')
-          container.removePermission(identifier, ACTIONS.update)
-
-          assertEquals(false, container.getPermission(identifier, ACTIONS.setPosition, '*'))
-          assertEquals(true, container.getPermission(identifier, ACTIONS.setPosition, 'a'))
-          assertEquals(2, Object.keys(container.getPermission(identifier, ACTIONS.setPosition)).length)
-
-          assertEquals(false, container.getPermission(identifier, ACTIONS.create, 'c'))
-          assertEquals(2, Object.keys(container.getPermission(identifier, ACTIONS.setPosition)).length)
-          assertEquals(0, Object.keys(container.getPermission(identifier, ACTIONS.update)).length)
-        }
-        container.removePermission(item)
-      }
+    TestRunner.prototype.testDetectUnit = function() {
+      assertEquals('px',container.detectUnit('12px'))
+      assertEquals('px',container.detectUnit('1px'))
+      assertEquals('px',container.detectUnit('px'))
+      assertEquals('%',container.detectUnit('120%'))
+      assertEquals(undefined,container.detectUnit('12'))
     }
 
-    let test = new TestCoreContainerMethods();
-    test.run();
+    TestRunner.prototype.testSetGetPermission = function() {
+      let item = document.createElement("DIV")
+      item.id = 'test_perm_get_set'
+      document.body.appendChild(item)
 
+      for (const identifier of [item, item.id]) {
+        container.setPermission(identifier, ACTIONS.setPosition, '*', false, 'test')
+        container.setPermission(identifier, ACTIONS.setPosition, 'uid_123', true, 'test')
+        container.setPermission(identifier, ACTIONS.setPosition, 'container.edit.text', false, 'test')
+        container.setPermission(identifier, ACTIONS.create, 'florin.salam', false, 'test')
+        container.setPermission(identifier, ACTIONS.create, 'florin.salam', true, 'test')
+        container.setPermission(identifier, ACTIONS.create, 'john.snow', true, 'test')
+        container.setPermission(identifier, ACTIONS.update, 'a', false, 'test')
+        container.setPermission(identifier, ACTIONS.update, 'b', true, 'test')
+        container.setPermission(identifier, ACTIONS.update, 'b', false, 'test')
+
+        assertEquals(false, container.getPermission(identifier, ACTIONS.setPosition, '*'))
+        assertEquals(true, container.getPermission(identifier, ACTIONS.setPosition, 'uid_123'))
+        assertEquals(false, container.getPermission(identifier, ACTIONS.setPosition, 'container.edit.text'))
+        assertEquals(true, container.getPermission(identifier, ACTIONS.create, 'florin.salam'))
+        assertEquals(true, container.getPermission(identifier, ACTIONS.create, 'john.snow'))
+        assertEquals(false, container.getPermission(identifier, ACTIONS.update, 'a'))
+        assertEquals(false, container.getPermission(identifier, ACTIONS.update, 'b'))
+
+        let perms = container.getPermission(identifier, ACTIONS.update)
+        assertEquals(2, Object.keys(perms).length)
+        assertEquals(false, perms['a'])
+        assertEquals(false, perms['b'])
+
+        perms = container.getPermission(identifier)
+        assertEquals(3, Object.keys(perms).length)
+        assertEquals(3, Object.keys(perms[ACTIONS.setPosition]).length)
+        assertEquals(2, Object.keys(perms[ACTIONS.create]).length)
+        assertEquals(2, Object.keys(perms[ACTIONS.update]).length)
+      }
+      container.removePermission(item)
+    }
+
+    TestRunner.prototype.testRemovePermission = function() {
+      let item = document.createElement("DIV")
+      item.id = 'test_perm_rem'
+      document.body.appendChild(item)
+
+      for (const identifier of [item, item.id]) {
+        container.setPermission(identifier, ACTIONS.setPosition, '*', false, 'test')
+        container.setPermission(identifier, ACTIONS.setPosition, 'a', true, 'test')
+        container.setPermission(identifier, ACTIONS.setPosition, 'b', false, 'test')
+        container.setPermission(identifier, ACTIONS.create, 'c', false, 'test')
+        container.setPermission(identifier, ACTIONS.create, 'd', false, 'test')
+        container.setPermission(identifier, ACTIONS.create, 'd', true, 'test')
+        container.setPermission(identifier, ACTIONS.update, 'e', false, 'test')
+        container.setPermission(identifier, ACTIONS.update, 'f', true, 'test')
+        container.setPermission(identifier, ACTIONS.update, 'f', false, 'test')
+
+        container.removePermission(identifier, ACTIONS.setPosition, 'b')
+        container.removePermission(identifier, ACTIONS.create, 'd')
+        container.removePermission(identifier, ACTIONS.update)
+
+        assertEquals(false, container.getPermission(identifier, ACTIONS.setPosition, '*'))
+        assertEquals(true, container.getPermission(identifier, ACTIONS.setPosition, 'a'))
+        assertEquals(2, Object.keys(container.getPermission(identifier, ACTIONS.setPosition)).length)
+
+        assertEquals(false, container.getPermission(identifier, ACTIONS.create, 'c'))
+        assertEquals(2, Object.keys(container.getPermission(identifier, ACTIONS.setPosition)).length)
+        assertEquals(0, Object.keys(container.getPermission(identifier, ACTIONS.update)).length)
+      }
+      container.removePermission(item)
+    }
+      
+    /**
+     * check local vs persisted permission
+     */
+     
+    let tr = new TestRunner()
+    tr.run();
     /*
     [CORE]
     ================================

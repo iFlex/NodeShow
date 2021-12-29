@@ -1,3 +1,7 @@
+/** @class
+ *  @summary Utility class implementing helper functions for determining container overlap.
+ *  @description A set of methods implementing helper functions for determining container overlap 
+ * */
 export class ContainerOverlap {
     #container = null;
 
