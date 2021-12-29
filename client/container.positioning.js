@@ -19,9 +19,9 @@ function findAbsPos(obj) {
             thewindow = obj.ownerDocument.parentWindow;
         if(thewindow) {
             if(thewindow.frameElement) {
-                var pos = findAbsPos(thewindow.frameElement);
-                curleft += pos[0];
-                curtop += pos[1];
+                var abspos = findAbsPos(thewindow.frameElement);
+                curleft += abspos[0];
+                curtop += abspos[1];
             }
         }
     }
@@ -64,8 +64,6 @@ Container.prototype.setPosition = function(id, position, callerId) {
     let elem = Container.lookup(id);
     this.isOperationAllowed(ACTIONS.setPosition, elem, callerId);
 
-    let posType = elem.style.position 
-    
     //do position translation (even if the positioning is absolute, it still uses the parent x,y as the origin point)
     let parentPos = this.getPosition(elem.parentNode || this.parent)
     position.top -= parentPos.top

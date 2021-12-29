@@ -1,9 +1,8 @@
 import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { getSelection, clearSelection } from '../utils/common.js'
+//import { getSelection, clearSelection } from '../utils/common.js'
 
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
-import { EVENTS as TouchEvents, Touch } from '../utils/touch.js' 
 
 //ToDo: read style configuration from container.edit.style
 class ContainerCreator {
@@ -37,8 +36,6 @@ class ContainerCreator {
 		this.#mouse.setAction(MouseEvents.DOUBLE_CLICK, (e) => this.onDoubleClick(e))
 		this.#mouse.setAction(MouseEvents.CLICK, (e) => this.focusOn(e.detail.id))
 	
-		//this.#handlers['touchstart'] = (e) => this.tapHandler(e)
-
 		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
 			"computedStyle":{

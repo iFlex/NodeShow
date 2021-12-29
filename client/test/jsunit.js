@@ -5,7 +5,7 @@ export function assertTrue(bool) {
 }
 
 export function assertEquals(expected, actual) {
-  if (!(expected === actual)) {
+  if (expected !== actual) {
     throw `ASSERTION_ERROR: expected: ${expected} actual:${actual}`
   }
 }

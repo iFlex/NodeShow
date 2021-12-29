@@ -19,7 +19,7 @@ Client Features:
         state: tracks at what levels of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous levels. The first levels being the full content of the container.
 ------------------------------------------------------------------------------
-12  !Link Containers ::container.link [BROKEN & NEEDS PERSISTING MECHANISM]
+12  [IN_PROGRESS] !Link Containers ::container.link [BROKEN & NEEDS PERSISTING MECHANISM]
     - create links
     - edit links
     - persist/load/maintain links
@@ -33,7 +33,7 @@ Current Prios:
 [MUST-HAVE]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
     - this should allow me to leave the project unattended for longer and work on other stuff as well.
 [BIG]: Pasting seems to not persist everything that is pasted...
-    caused by:
+    possibly caused by?:
     [TODO]: make core methods subject to LiveBridge more resilient. Currently exceptions can be thrown that stop persisting from happening
 
 [TODO]: standardize how things are persisted. When to save things in the DOM dataset and how that's kept in sync with in-memory structures. Ex: permission persistance and initiation is inconsistent.

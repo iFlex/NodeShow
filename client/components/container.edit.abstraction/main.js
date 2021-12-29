@@ -185,4 +185,4 @@ class ContainerEditAbstraction {
     }
 }
 
-let ccollapser = new ContainerEditAbstraction(container);
+new ContainerEditAbstraction(container);

@@ -1,7 +1,6 @@
 //responsible with grouping containers in parent or making a selection
 // This may be unnecessary
 import { container } from '../../nodeshow.js'
-import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { Keyboard } from '../utils/keyboard.js'

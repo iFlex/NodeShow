@@ -211,4 +211,4 @@ class ContainerStyler {
 	}
 }
 
-let cstyler = new ContainerStyler(container);
+new ContainerStyler(container);

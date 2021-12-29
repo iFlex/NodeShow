@@ -4,7 +4,6 @@
  */
 
 import { container } from "../../nodeshow.js"
-import { ACTIONS } from "../../Container.js"
 import { InputAccessManagerInstance as InputAccessManager} from "./inputAccessManager.js"
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
@@ -44,7 +43,6 @@ function handleStart(e) {
 		return null;
 	}
 
-	let eventType = e.type;
 	let touch = e.touches[0]
 
 	target = findActionableAnchestor(e.target, appId)
@@ -99,7 +97,6 @@ function handleCancel(e) {
 }
 
 function handleEnd(e) {
-	let touch = e.touches[0]
 	if (target) {
 		container.emit(EVENTS.DRAG_END,{
 			id:target.id,

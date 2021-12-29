@@ -156,5 +156,4 @@ class ContainerExtensionsManager {
     }
 }
 
-let cext = new ContainerExtensionsManager(container, true);
-//cext.enable()
+new ContainerExtensionsManager(container, true);

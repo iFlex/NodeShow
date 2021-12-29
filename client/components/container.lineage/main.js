@@ -72,7 +72,6 @@ class ContainerLineage {
 
     findLargestOverlap (target) {
         //check siblings and decide which one has the largest overlap
-        let children = target.parentNode.children
         let largestOverlapPercent = 0;
         let largestOverlapRec = null;
         
@@ -160,5 +159,4 @@ class ContainerLineage {
     }
 }
 
-let clinage = new ContainerLineage(container);
-//clinage.enable();
+new ContainerLineage(container);

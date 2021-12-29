@@ -179,7 +179,6 @@ class ContainerLink {
 
     //[TODO]: defer execution for going through children
     onContainerDelete(e) {
-        let target = this.#container.lookup(e.detail.id)
         let links = this.getLinksRelatedTo(e.detail.id)
         for (const link of links) {
             this.deleteLink(link, this.appId)

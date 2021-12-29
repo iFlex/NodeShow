@@ -4,7 +4,6 @@ const secretKey = 'vOVH6sdmpNWjRRIqCc7rdxs01lwHzfr3';
 const iv = crypto.randomBytes(16);
 
 const INITIAL_ALLOWED_AGE = 3 * 60 * 60; //3 hours 
-const MAX_AGE_ALLOWED = 48*60*60; //48H
 const AGE_ALLOW_INCREMENT = 60*10 // 10m
 
 let tokenStore = {}

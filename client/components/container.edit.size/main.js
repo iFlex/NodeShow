@@ -1,5 +1,4 @@
 import { container } from '../../nodeshow.js'
-import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 import { Keyboard } from '../utils/keyboard.js'

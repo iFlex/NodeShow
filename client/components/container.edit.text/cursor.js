@@ -1,5 +1,3 @@
-import {Container} from "../../Container.js"
-
 export class Cursor {
 	
 	#target = null

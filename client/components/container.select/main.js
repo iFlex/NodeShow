@@ -20,10 +20,10 @@ class ContainerSelect {
 	#overlap = null;
 
 	#selection = []
-	#canSelect = false;
 	#selectParent = null;
 	#selector = null;
-	#startPos = null
+	#startPos = null;
+	
 	#selectorDescriptor = {
 		nodeName:"DIV", 
 		computedStyle:{

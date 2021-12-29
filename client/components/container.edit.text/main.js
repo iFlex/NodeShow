@@ -2,7 +2,7 @@ import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { getSelection } from '../utils/common.js'
+//import { getSelection } from '../utils/common.js'
 //ToDo:
 //delete via delete doesn't work well
 //font and letter size tracking
@@ -38,8 +38,7 @@ class ContainerTextInjector {
 	#handlers = {};
 
 	#debug = false;
-	#newline = '&#13;'
-
+	
 	#cursorDiv = null
 	cursorDescriptor = {
 		nodeName:"DIV", 
@@ -759,11 +758,10 @@ class ContainerTextInjector {
 		
 		let curStat = this.cursor.get()
 		if (!curStat.line) {
-			let line = this.makeNewLine(0)
+			this.makeNewLine(0)
 			curStat = this.cursor.get()
 		}
 		if (!curStat.textUnit) {
-			let unit = this.makeNewTextChild(curStat.line)
 			curStat = this.cursor.get()
 		}
 	
@@ -799,7 +797,6 @@ class ContainerTextInjector {
 			this.container.setParent(textUnit, line, this.appId)
 		}
 		//update cursor
-		let r = this.cursor.putAt(curStat.lineNumber + 1, 0)
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 

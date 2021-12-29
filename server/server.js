@@ -78,7 +78,7 @@ PrezPersister.setFastStorage(PrezCache)
 const Presentations = new PresentationBase(PrezCache);
 const Events = require('./NodeShowEvents');
 
-const debug_level = 1;
+const debug_level = 3;
 
 //RAM FAST PRESENTATION ROUTING
 var presentations = {}
@@ -220,7 +220,7 @@ function handlePost(url, request, response) {
       }
 
       if (url == "/login.html") {
-        let result = login(fields, request)
+        let result = login(fields)
         if (result) {
           response.writeHead(303, {
             'content-type': 'text/plain',
@@ -231,7 +231,7 @@ function handlePost(url, request, response) {
           response.writeHead(403, {'content-type': 'text/plain'});
         }
       } else if (url == "/signup.html") {
-        let result = signup(fields, request, response)
+        let result = signup(fields)
         if (!result) {
           response.writeHead(403, {'content-type': 'text/plain'});
         } else {

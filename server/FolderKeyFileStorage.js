@@ -95,7 +95,6 @@ class FolderKeyFileStorage {
 	}
 
 	background () {
-		let start = Date.now()
 		while (this.updatesQueue.length > 0) {
 			let update = this.updatesQueue.pop();
 			if (update.remove) {
@@ -104,7 +103,6 @@ class FolderKeyFileStorage {
 				this.writeFile(update.id, update.data);
 			}
 		}
-		let end = Date.now()
 		//console.log(`Persiste step took: ${end - start}ms`)
 	}
 

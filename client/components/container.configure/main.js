@@ -82,7 +82,7 @@ class ContainerConfig {
 	}
 
 	applyChanges() {
-		this.selection = getSelection() || [];
+		this.selection = getSelection();
 	}
 
 	lockPosition() {

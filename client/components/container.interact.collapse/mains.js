@@ -81,4 +81,4 @@ class ContainerCollapser {
     }
 }
 
-let ccollapser = new ContainerCollapser(container);
+new ContainerCollapser(container);

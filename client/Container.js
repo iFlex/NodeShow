@@ -371,20 +371,18 @@ export class Container {
     */
     isOperationAllowed(operation, resource, callerId) {
         let rules = ((this.#permissions[resource.id] || {})[operation] || {})
-        
-        if (rules) {
-            let explicit = rules[callerId]
-            if(explicit == false) {
-                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
-            }
-            if(explicit == true) {
-                return true;
-            }
+    
+        let explicit = rules[callerId]
+        if(explicit == false) {
+            throw `DENIED ${operation} on ${resource.id} to ${callerId}`
+        }
+        if(explicit == true) {
+            return true;
+        }
 
-            let general = rules["*"]
-            if (general == false) {
-                throw `DENIED ${operation} on ${resource.id} to ${callerId}`
-            }
+        let general = rules["*"]
+        if (general == false) {
+            throw `DENIED ${operation} on ${resource.id} to ${callerId}`
         } 
 
         return true;

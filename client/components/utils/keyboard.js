@@ -151,7 +151,6 @@ export class Keyboard {
 
     handleKeyUp(e) {
         let isPrintable = this.isPrintable(e.key)
-        let action = this.#actions[this.setToKey(this.#pressedNonPrintables, e.key)]
         
         let key = this.setToKey(this.#pressedNonPrintables, e.key)
         this.#applyActionAndDefault(e, key, this.#actionsUp)

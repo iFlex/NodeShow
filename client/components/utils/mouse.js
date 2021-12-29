@@ -4,8 +4,7 @@
  */
 
 import { container } from "../../nodeshow.js"
-import { ACTIONS } from "../../Container.js"
-import { InputAccessManagerInstance as InputAccessManager, ACCESS_REQUIREMENT } from "./inputAccessManager.js"
+import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
 
@@ -41,9 +40,7 @@ function mouseDown(e) {
 		console.log(e)
 		return null;
 	}
-
-	let eventType = e.type;
-		
+	
 	target = findActionableAnchestor(e.target, appId)
 	if (target) {
 		focusTarget = target

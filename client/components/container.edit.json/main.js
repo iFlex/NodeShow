@@ -102,7 +102,7 @@ class ContainerJsonEdit {
 	}
 
 	applyChanges() {
-		this.selection = getSelection() || [];
+		this.selection = getSelection();
 
 		let actions = {}
 		let perms   = {}

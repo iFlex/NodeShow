@@ -14,7 +14,6 @@ class HttpUtils {
 		}
 
 		var params = url.indexOf("?");
-		var location = url.substring(0,params);
 		var filename = "";
 		var lastBackSlsh = url.lastIndexOf("/");
 		
@@ -25,10 +24,6 @@ class HttpUtils {
 		}
 
 		filename = url.substring(lastBackSlsh+1,url.length);
-		if(filename.length<2) {
-			if(params == -1)
-		  		filename = "index.html";
-		}
 
 		url = url.substring(startIndex,url.length).replaceAll("../","");
 		url = locationInject + url;

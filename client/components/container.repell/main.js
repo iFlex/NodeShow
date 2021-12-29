@@ -137,5 +137,4 @@ class ContainerRepeller {
     }
 }
 
-let crepeller = new ContainerRepeller(container);
-//crepeller.enable()
+new ContainerRepeller(container);

@@ -1,5 +1,3 @@
-const utils = import('./common.js')
-
 class UserBase {
 	
 	constructor (userStorage) {

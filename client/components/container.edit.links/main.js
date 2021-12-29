@@ -1,5 +1,4 @@
 import { container } from '../../nodeshow.js'
-import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
@@ -14,9 +13,6 @@ class ContainerEditLinks {
     left = null;
     right = null;
 
-    #leftDot = null;
-    #rightDot = null;
-    #currentLink = null;
     #enabled = false
     #mouse = null;
     #handlers = {}

@@ -2,7 +2,7 @@ import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, MiceManager } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { ACCESS_REQUIREMENT, InputAccessManagerInstance } from '../utils/inputAccessManager.js'
+import { InputAccessManagerInstance } from '../utils/inputAccessManager.js'
 import { getSelection } from '../utils/common.js'
 
 let lastY = 0
@@ -26,7 +26,6 @@ class ContainerEditOrchestrator {
 	#previousRoutes = {}
 	#handlers = {}
 	
-	#iconIds = {}
 	#menuRoot = null
 	#menuItemTemplate = null
 	#enabledTransactionalsCount = 0

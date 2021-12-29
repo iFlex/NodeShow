@@ -58,8 +58,7 @@ Container.prototype.expand = function(id, callerId) {
     let node = Container.lookup(id);
     
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
-    let maxAbsLevels = this.getAbstractionLevels(node)
-
+    
     if (currentLvl > 0) {
         this.setCurrentContentAbstractionLevel(node, currentLvl - 1)
         this.notifyUpdate(node)
