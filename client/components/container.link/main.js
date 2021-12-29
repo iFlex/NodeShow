@@ -2,6 +2,9 @@ import { container } from '../../nodeshow.js'
 import { Container, ACTIONS } from '../../Container.js'
 import { draw as straightLine } from './straightLine.js'
 
+//[TODO]: load links on container create
+//[TODO]: delete hooks
+//[TODO]: click hooks
 class ContainerLink {
     appId = 'container.link'
 	#container = null;
@@ -17,6 +20,9 @@ class ContainerLink {
         this.#container.registerComponent(this);
 
         this.#handlers[ACTIONS.update] = (e) => this.onContainerChange(e)
+        this.#handlers[ACTIONS.create] = (e) => this.onContainerCreate(e)
+        //[TODO]: need to use a hook instead of an event
+        //this.#handlers[ACTIONS.delete] = (e) => this.onContainerDelete(e)
 
         //init drawers
         this.#linkDrawers['straightLine'] = straightLine
@@ -63,6 +69,23 @@ class ContainerLink {
         return drawer.apply(this, [this.#container, descriptor])
     }
 
+    registerNewLink(linkId, from, to, descriptor) {
+        if (linkId in this.#links) {
+            throw `${this.appId} - LINK ID COLLISION ${linkId}`
+        }
+
+        this.#links[linkId] = descriptor
+        if (!this.#targetLinks[from]) {
+            this.#targetLinks[from] = new Set([])
+        }
+        if (!this.#targetLinks[to]) {
+            this.#targetLinks[to] = new Set([])
+        }
+
+        this.#targetLinks[from].add(linkId)
+        this.#targetLinks[to].add(linkId)
+    }
+
     createLink(from, to, descriptor, callerId) {
         let fromNode = this.#container.lookup(from)
         let toNode = this.#container.lookup(to)
@@ -74,7 +97,7 @@ class ContainerLink {
         descriptor = Container.clone(descriptor)
         descriptor.from = fromNode.id
         descriptor.to = toNode.id
-        descriptor.linkId = linkId
+        descriptor.id = linkId
         descriptor.linkUnits = []
 
         //draw link
@@ -86,26 +109,18 @@ class ContainerLink {
             descriptor.linkUnits.push(linkUnit.id)
         }
         nodelist[0].dataset.link = JSON.stringify(descriptor)
-        
-        this.#links[linkId] = descriptor
-        if (!this.#targetLinks[fromNode.id]) {
-            this.#targetLinks[fromNode.id] = new Set([])
-        }
-        if (!this.#targetLinks[toNode.id]) {
-            this.#targetLinks[toNode.id] = new Set([])
-        }
+        this.registerNewLink(linkId, fromNode.id, toNode.id, descriptor)
 
-        this.#targetLinks[fromNode.id].add(linkId)
-        this.#targetLinks[toNode.id].add(linkId)
-
+        this.#container.notifyUpdate(nodelist[0], this.appId)
         return linkId
     }
 
+    //[TODO]: delete doesn't get rid of links
     deleteLink(linkId, callerId) {
         const descriptor = this.#links[linkId]
         for (const linkUnitId of descriptor.linkUnits) {
             try {
-                this.#container.delete(this.#container.lookup(linkUnitId), callerId)
+                this.#container.delete(linkUnitId, callerId)
             } catch (e) {
                 console.error(`[CORE_LINKING]: failed to delete link ${linkId} component ${linkUnitId}`)
                 console.error(e)            
@@ -142,10 +157,32 @@ class ContainerLink {
         return links;
     }
 
+    onContainerCreate(e) {
+        let target = this.#container.lookup(e.detail.id)
+        if (target.dataset.link) {
+            let linkDescriptor = JSON.parse(target.dataset.link)
+            
+            this.registerNewLink(linkDescriptor.id, 
+                linkDescriptor.from, 
+                linkDescriptor.to, 
+                linkDescriptor)
+        }
+    }
+
+    //[TODO]: defer execution for going through children
     onContainerChange(e) {
         let links = this.getLinksRelatedTo(e.detail.id)
         for(const link of links) {
             this.draw(this.#links[link])
+        }
+    }
+
+    //[TODO]: defer execution for going through children
+    onContainerDelete(e) {
+        let target = this.#container.lookup(e.detail.id)
+        let links = this.getLinksRelatedTo(e.detail.id)
+        for (const link of links) {
+            this.deleteLink(link, this.appId)
         }
     }
 }
