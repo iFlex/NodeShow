@@ -58,7 +58,7 @@ class ContainerLink {
 
         let drawer = this.#linkDrawers[descriptor.drawer]
         if (!drawer) {
-            //drawer = this.#linkDrawers['straightLine']
+            drawer = this.#linkDrawers['straightLine']
         }
         return drawer.apply(this, [this.#container, descriptor])
     }
