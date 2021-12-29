@@ -55,7 +55,10 @@ export function draw(container, descriptor) {
     let linkUnits = []
     if (descriptor.linkUnits.length == 0) {
         linkUnits.push(createLinkUnit(container))
+    } else {
+        linkUnits.push(container.lookup(descriptor.linkUnits[0]))
     }
+    
     let link = linkUnits[0]
     let from = container.lookup(descriptor.from)
     let to = container.lookup(descriptor.to)
