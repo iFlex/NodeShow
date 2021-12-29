@@ -252,6 +252,6 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit != false) {
-        this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
+        this.emit(ACTIONS.update, {id:child.id, changes: descriptor, callerId:callerId})
     }
 }

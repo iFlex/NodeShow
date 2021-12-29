@@ -807,7 +807,7 @@ export class Container {
 
         Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
         if(emit != false) {
-            this.emit(ACTIONS.update, {id:child.id, callerId:callerId})
+            this.emit(ACTIONS.update, {id:child.id, changes:{"computedStle":style}, callerId:callerId})
         }
     }
 

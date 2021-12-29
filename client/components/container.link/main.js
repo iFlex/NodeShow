@@ -3,7 +3,6 @@ import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
-//support only straignt lines for now
 class ContainerLink {
     appId = 'container.link'
     displayName = 'Link'
@@ -32,105 +31,6 @@ class ContainerLink {
         //this.#handlers["keydown"] = (e) => this.cancelLink(e)
         //this.#handlers["container.focus"] = (e) => this.onSelect(e)
 		//this.#handlers["container.blur"] = (e) => this.cancelLink(e)
-    }
-
-    makeLinkObject() {
-        return this.#container.createFromSerializable(null, {
-            "nodeName":"div",
-            permissions: {
-                "container.setParent":{
-                    "*":false
-                },
-                "container.create":{ //prevent other apps from adding children to this 
-                    "*":false
-                }
-            },
-            computedStyle:{
-                "height":5,
-                "width":10,
-                "background-color": "black",
-                "position":"absolute"
-            }
-        }, null, this.appId)
-    }
-
-    isLink (data) {
-        return 'node' in data && 'left' in data && 'right' in data && Object.keys(data).length == 3
-    }
-
-    link (left, right, settings) {
-        //create the link
-        let link = {}
-        link['node'] = this.makeLinkObject()
-        link['left'] = left
-        link['right'] = right
-        
-        //keep a record of the link
-        let leftLinks = this.#links[left.target] || []
-        let rigthLinks = this.#links[right.target] || []
-        leftLinks.push(link)
-        rigthLinks.push(link)
-
-        this.#links[left.target] = leftLinks
-        this.#links[right.target] = rigthLinks
-
-        //draw the link and return it
-        this.draw(link)
-        return link
-    }
-    
-
-    calculateDistance(leftPos, rightPos) {
-        let deltaX = leftPos.left - rightPos.left
-        let deltaY = leftPos.top - rightPos.top
-
-        return Math.sqrt(deltaX*deltaX + deltaY*deltaY)
-    }
-
-    calculateLinkAngle(leftPos, rightPos) {
-        let deltaX = rightPos.left - leftPos.left
-        let deltaY = rightPos.top - leftPos.top
-        return Math.atan2( deltaY , deltaX );
-    }
-
-    computeAbsoluteLinkPosition(targetPos, linkDetail) {
-        targetPos.top += linkDetail.localY;
-        targetPos.left += linkDetail.localX;
-        return targetPos
-    }
-
-    draw(link, endX, endY) {
-        if (!this.isLink(link)) {
-            console.log(link)
-            throw `${this.appId} - attempted draw call on non link object`
-        }
-        let linkId = link.node.id
-        
-        let leftPos = this.computeAbsoluteLinkPosition(
-            this.#container.getPosition(link.left.target),
-            link.left
-        )
-        let rightPos = {}
-        if (link.right) {
-            rightPos = this.computeAbsoluteLinkPosition(
-                this.#container.getPosition(link.right.target),
-                link.right
-            );
-        } else {
-            rightPos.top = endY;
-            rightPos.left = endX;
-        }
-           
-        let angle = this.calculateLinkAngle(leftPos, rightPos)
-        
-        this.#container.setPosition(linkId, leftPos, this.appId)
-        this.#container.setAngle(linkId, angle+"rad", "0%", "0%", this.appId)
-        this.#container.setWidth(linkId, this.calculateDistance(leftPos, rightPos), this.appId)
-        this.#container.setHeight(linkId, 5, this.appId)
-    }
-
-    remove(link) {
-        //ToDo
     }
 
     enable() {
@@ -179,11 +79,32 @@ class ContainerLink {
     isEnabled() {
 		return this.#enabled
 	}
+    
+    #localToPercent(details) {
+        return {
+            percentX: details.localX / this.#container.getWidth(details.target),
+            percentY: details.localY / this.#container.getWidth(details.target)
+        }
+    }
+
+    link (left, right) {
+        let descriptor = {
+            "fromPos": this.#localToPercent(left),
+            "toPos": this.#localToPercent(right),
+            "drawer":"straightLine"
+        }
+
+        this.#container.createLink(left.target, right.target, descriptor);
+    }
+    
+    remove(link) {
+        //ToDo
+    }
 
     handleMouseMove(e) {
-        if (this.left && this.#currentLink) {
-            this.draw(this.#currentLink, e.pageX, e.pageY)
-        }   
+        // if (this.left && this.#currentLink) {
+        //     this.draw(this.#currentLink, e.pageX, e.pageY)
+        // }   
     }
 
     getLinksRelatedTo(targetId) {
@@ -207,26 +128,18 @@ class ContainerLink {
         }
 
         return links;
-    }
+    }to
 
     onContainerChange(e) {
-        let links = this.getLinksRelatedTo(e.detail.id)
-        for(const link of links) {
-            this.draw(link)
-        }
+        // let links = this.getLinksRelatedTo(e.detail.id)
+        // for(const link of links) {
+        //     this.draw(link)
+        // }
     }
 
     linkStart(target) {
         this.left = target
         this.right = null;
-        //this.placeDot(target)
-        //create preview link
-        // console.log("Drawing new preview link")
-        // let link = {}
-        // link['node'] = this.makeLinkObject()
-        // link['left'] = this.left
-                
-        // this.#currentLink = link
     }
 
     linkUpdate() {
@@ -236,23 +149,6 @@ class ContainerLink {
     linkFinish(target) {
         this.link(this.left, target)
         this.left = null
-
-        //this.placeDot(target)
-        // //Link preview
-        // this.#container.delete(this.#currentLink.node, this.appId)
-        // this.#currentLink = null
-    }
-
-    linkCancel() {
-        if (this.#currentLink) {
-            this.#container.delete(this.#currentLink.node, this.appId)
-        }
-        this.#currentLink = null
-        this.left = null
-        this.right = null
-
-        this.#container.hide(this.#leftDot, this.appId)
-        this.#container.hide(this.#rightDot, this.appId)
     }
 
     onSelect(event) {
@@ -264,7 +160,7 @@ class ContainerLink {
             absX: e.pageX,
             absY: e.pageY
         }
-        console.log(event)
+
         if (!this.left) {
             this.linkStart(target)
         } else {
