@@ -1,11 +1,10 @@
-import { container } from '../../nodeshow.js'
 import { Container, ACTIONS } from '../../Container.js'
 import { draw as straightLine } from './straightLine.js'
 
 //[TODO]: load links on container create
 //[TODO]: delete hooks
 //[TODO]: click hooks
-class ContainerLink {
+export class ContainerLink {
     appId = 'container.link'
 	#container = null;
     
@@ -218,6 +217,3 @@ class ContainerLink {
         }
     }
 }
-
-const clinker = new ContainerLink(container);
-clinker.enable();

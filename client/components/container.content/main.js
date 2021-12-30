@@ -1,8 +1,7 @@
-import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
 import { post } from '../utils/http.js'
 
-class ContainerContent {
+export class ContainerContent {
     appId = 'container.content'
     displayName = 'Content'
     transactional = true
@@ -231,5 +230,3 @@ class ContainerContent {
       }
     }
 }
-
-new ContainerContent(container);

@@ -1,7 +1,6 @@
 import { ACTIONS } from '../../Container.js'
-import { container } from '../../nodeshow.js'
 
-class ContainerFeedback {
+export class ContainerFeedback {
 	appId = "container.feedback"
 	#container = null;
 	#enabled = false
@@ -130,6 +129,3 @@ class ContainerFeedback {
 		}
 	}
 }
-
-let cf = new ContainerFeedback(container)
-cf.enable()

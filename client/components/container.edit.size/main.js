@@ -1,9 +1,8 @@
-import { container } from '../../nodeshow.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 import { Keyboard } from '../utils/keyboard.js'
 
-class ContainerSizer {
+export class ContainerSizer {
 	container = null;
 	appId = "container.edit.size"
 	displayName = "Resize"
@@ -129,6 +128,3 @@ class ContainerSizer {
 		this.container.componentStoppedWork(this.appId, {})
 	}
 }
-
-let csizer = new ContainerSizer(container);
-csizer.enable()

@@ -1,6 +1,4 @@
-import { container } from '../../nodeshow.js'
-
-class ContainerHax0r {
+export class ContainerHax0r {
 	appId = 'container.hax0r'
 	container = null;
 	transactional = true
@@ -59,5 +57,3 @@ class ContainerHax0r {
 		console.log(eval(document.getElementById('ns-hax0r').value))
 	}
 }
-
-new ContainerHax0r(container)

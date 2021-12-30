@@ -1,9 +1,8 @@
-import { container } from '../../nodeshow.js'
 import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
 
 //ToDo: state based button text and action
 //ToDo: implement key bindings
-class ContextMenu {
+export class ContextMenu {
 	appId = "menu.context"
 	#container = null;
 	#enabled = false
@@ -183,6 +182,3 @@ class ContextMenu {
 		
 	}
 }
-
-let cmenu = new ContextMenu(container)
-cmenu.enable()

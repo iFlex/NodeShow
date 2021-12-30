@@ -1,7 +1,6 @@
-import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
 
-class ContainerCollapser {
+export class ContainerCollapser {
     appId = 'container.interact.collapse'
 	target = null;
 
@@ -80,5 +79,3 @@ class ContainerCollapser {
         }
     }
 }
-
-new ContainerCollapser(container);

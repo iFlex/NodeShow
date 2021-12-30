@@ -1,9 +1,8 @@
-import { container } from '../../nodeshow.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
 //BUG: fails to ignore interface
-class ContainerRepeller {
+export class ContainerRepeller {
     appId = 'container.repell'
     transactional = true
     displayName = 'Repell'
@@ -136,5 +135,3 @@ class ContainerRepeller {
         }
     }
 }
-
-new ContainerRepeller(container);

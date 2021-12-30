@@ -1,13 +1,12 @@
 //responsible with grouping containers in parent or making a selection
 // This may be unnecessary
-import { container } from '../../nodeshow.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //[TODO]: select upwards no longer works :( - fix it
-class ContainerGrouping {
+export class ContainerGrouping {
 	#container = null;
 	appId = "container.grouping"
 	displayName = 'Group'
@@ -140,6 +139,3 @@ class ContainerGrouping {
 		this.#startPos = null;
 	}
 }
-
-let cgrouping = new ContainerGrouping(container)
-cgrouping.enable();

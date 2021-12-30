@@ -255,3 +255,10 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
         this.emit(ACTIONS.update, {id:child.id, changes: descriptor, callerId:callerId})
     }
 }
+
+Container.prototype.diagnozeSerde = function(argument) {
+    return {
+        "orphans":orphans,
+        "initQ":initQueue
+    }
+}

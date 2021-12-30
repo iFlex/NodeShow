@@ -1,8 +1,7 @@
-import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 
 //ToDo: make it toggle extensions on and off as well as register and deregister
-class ContainerExtensionsManager {
+export class ContainerExtensionsManager {
     appId = 'container.extensions.manager'
 	transactional = true
     displayName = "Apps"
@@ -155,5 +154,3 @@ class ContainerExtensionsManager {
         this.unloadComponentIcon(e.detail.name)
     }
 }
-
-new ContainerExtensionsManager(container, true);

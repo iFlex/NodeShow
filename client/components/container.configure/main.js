@@ -1,10 +1,9 @@
-import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { getSelection } from '../utils/common.js'
 
 //ToDo: implement. 
 //importance: this allows determining how content is arranged, setting overflow rules, how to position elements
-class ContainerConfig {
+export class ContainerConfig {
 	appId = 'container.configure'
 	container = null;
 	selection = null;
@@ -128,5 +127,3 @@ class ContainerConfig {
 	}
 
 }
-
-new ContainerConfig(container)

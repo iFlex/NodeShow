@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/jquery.js"></script>
+    <script src="../libs/socket-io.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>Node Show Experimental</title>
+  </head>
+  <body style="height: auto; width: auto;"></body>
+  
+  <script type="module">
+    import { assertNotEquals, assertEquals, TestRunner } from "./jsunit.js";
+    import { container } from "./test_core_setup.js";
+    import { ContainerClipboard } from "../components/container.clipboard/main.js"
+    import { dummyClipboardData } from './resources/dummyClipboardData.js'
+    
+    let clipboard = new ContainerClipboard(container)
+
+    TestRunner.prototype.testIdTranslation = function() {
+      let clipboardData = JSON.parse(JSON.stringify(dummyClipboardData))
+      clipboard.translateIds(clipboardData)
+
+      for (var i = 0; i < dummyClipboardData.length; ++i ) {
+        let before = dummyClipboardData[i]
+        let after  = clipboardData[i]
+
+        assertNotEquals(before.id, after.id)
+        if (before.parentId) {
+          assertNotEquals(before.parentId, after.id)
+        }
+        if (before.childNodes) {
+          //todo: check the two arrays have the same 'shape'
+          assertEquals(before.childNodes.length, after.childNodes.length)
+          for (var j = 0; j < before.childNodes.length; ++j) {
+            if (before.childNodes[j].id) {
+              assertNotEquals(before.childNodes[j].id, after.childNodes[j].id)
+            }
+          }
+        }
+      }
+    }
+    
+    let tr = new TestRunner()
+    tr.run();
+  </script>
+</html>

@@ -21,12 +21,12 @@ Client Features:
 ------------------------------------------------------------------------------
 12  [IN_PROGRESS] !Link Containers ::container.link
     - [DONE] create links
-    - [DONE] persist/load/maintain links
+    - [DONE] persist / load / maintain links
+    - delete links (delete any linkUnit should cause the whole link to be deleted)
     - edit links
     - interact with links
 
 13  Configure Container: (order, child style, positioning, etc):: container.configure
-    [BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 --------------------------------------------
 
 
@@ -34,9 +34,6 @@ Current Prios:
 --------------------------------------------
 [0. MUST-HAVE]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
     - this should allow me to leave the project unattended for longer and work on other stuff as well.
-[1. BUG]: Pasting seems to not persist everything that is pasted...
-    possibly caused by?:
-    [TODO]: make core methods subject to LiveBridge more resilient. Currently exceptions can be thrown that stop persisting from happening
 [2. TODO]: standardize how things are persisted. When to save things in the DOM dataset and how that's kept in sync with in-memory structures. Ex: permission persistance and initiation is inconsistent.
 [3. TODO]: evaluate event firing and how it should be done
 [TODO][FIX]: Broadcasting abstraction level stats. Currently broken:
@@ -46,14 +43,17 @@ Current Prios:
  - without harming non positioned elements? (can it be done?)
  : currently a shitty but relatively working implementation exists
 
-
 [TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
+[BUG]: can't drag through text anymore
+[BUG]: some interface components are persisted...
+[BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
     1K Nodes were problematic: found out that the storage layer was the main slowdown.
     Without sending updates to storage, it can handle 1K ev/s
     [TODO]: more stress testing
 
+[TODO]: implement component to visalise abstraction levels
 [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
@@ -72,6 +72,7 @@ Current Prios:
 [MUST-HAVE]: standardize all apps to use utils for mouse and keyboard events.
 [TODO]: split container.create to not have the inner organisation interface and create new app container.content.arrange
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
+[BUG]: Repell component sometimes goes beserk, interface gets moved
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
 [SHOULD-HAVE]: copy/paste triggered via context menu
@@ -87,6 +88,7 @@ Current Prios:
 
 [BUG]: Main menu can get burried under content. (not critical: reload fixes it)
  - tentative fix via listening for container created events. Should probably listen to bring to front as well
+
 -----------------------------------------------------------------------
 - [must have] Proper Authentication
 - [nice to have] Create Aligner

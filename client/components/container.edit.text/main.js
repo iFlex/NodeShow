@@ -1,4 +1,3 @@
-import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
@@ -26,7 +25,7 @@ textItemPerms[ACTIONS.setPosition] = {"*":false}
 //textItemPerms[ACTIONS.create] = {"*":false}
 
 //[BUG]: clicking on a text unit doesn't pop up the editor anymore. :D fix plz
-class ContainerTextInjector {
+export class ContainerTextInjector {
 	appId = "container.edit.text"
 
 	container = null;	
@@ -1106,6 +1105,3 @@ class ContainerTextInjector {
 		document.getElementById('ns-text-editor-font').value = this.state.fontSize
 	}
 }
-
-export let texter = new ContainerTextInjector(container, false);
-texter.enable()

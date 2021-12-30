@@ -1,11 +1,10 @@
-import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
 
 //[TODO]: add cancel button to cancel creating abstraction level
 //        add function trigger editing existing abstraction level (call start())
 //        add visualisation of how much abstraction each container has + ability to random access any of them / edit any of them
 
-class ContainerEditAbstraction {
+export class ContainerEditAbstraction {
     appId = 'container.edit.abstraction'
 	target = null;
 
@@ -184,5 +183,3 @@ class ContainerEditAbstraction {
         }
     }
 }
-
-new ContainerEditAbstraction(container);

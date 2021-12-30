@@ -1,7 +1,6 @@
-import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
 
-class ContainerStyler {
+export class ContainerStyler {
 	appId = 'container.edit.style'
 	container = null;
 	displayName = "Style"
@@ -210,5 +209,3 @@ class ContainerStyler {
 		return this.stateKeys
 	}
 }
-
-new ContainerStyler(container);

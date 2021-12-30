@@ -1,4 +1,3 @@
-import { container } from '../../nodeshow.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, MiceManager } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
@@ -14,7 +13,7 @@ let lastX = 0
 	Suggestion 3: make relevant apps ask for sole input focus while they are active. Which means all input is paused for all other apps (mouse and keyboard) 
 */
 //[TODO]: Add another app cathegory (other than transactional) which can be toggled via this app but that won't need to show an iterface
-class ContainerEditOrchestrator {
+export class ContainerEditOrchestrator {
 	appId = "container.edit.orchestrator"
 	#container = null;
 	#enabled = false
@@ -381,6 +380,3 @@ class ContainerEditOrchestrator {
 		}
 	}
 }
-
-let ceo = new ContainerEditOrchestrator(container)
-ceo.enable()

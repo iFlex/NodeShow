@@ -1,11 +1,10 @@
-import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
 //import { getSelection, clearSelection } from '../utils/common.js'
 
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
 //ToDo: read style configuration from container.edit.style
-class ContainerCreator {
+export class ContainerCreator {
 	appId = 'container.create'
 	container = null;
 	target = null;
@@ -234,6 +233,3 @@ class ContainerCreator {
 		}
 	}	
 }
-
-let ccreator = new ContainerCreator(container);
-ccreator.enable()

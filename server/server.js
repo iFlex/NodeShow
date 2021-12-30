@@ -387,7 +387,6 @@ function handleBridgeUpdate(parsed, originSocket) {
     console.log(parsed)  
     console.log(user)
   }
-  
   let prezId = parsed.presentationId;
   let sessionId = parsed.sessionId;
   let prezzo = presentations[prezId];

@@ -1,10 +1,9 @@
-import { container } from '../../nodeshow.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
 //quite problematic currently as it causes disappearings
-class ContainerLineage {
+export class ContainerLineage {
     appId = 'container.lineage'
     displayName = 'Lineage'
     transactional = true
@@ -158,5 +157,3 @@ class ContainerLineage {
         }
     }
 }
-
-new ContainerLineage(container);

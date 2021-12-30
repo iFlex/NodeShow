@@ -1,8 +1,7 @@
-import { container } from '../../nodeshow.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
-class ContainerEditLinks {
+export class ContainerEditLinks {
     appId = 'container.edit.links'
     displayName = 'Link'
     actuatorId = 'container.link'    
@@ -170,6 +169,3 @@ class ContainerEditLinks {
         // }
     }
 }
-
-const ceditlink = new ContainerEditLinks(container);
-ceditlink.enable();

@@ -6,11 +6,20 @@ export function assertTrue(bool) {
 
 export function assertEquals(expected, actual) {
   if (expected !== actual) {
-    throw `ASSERTION_ERROR: expected: ${expected} actual:${actual}`
+    throw `ASSERTION_ERROR: expected:${expected} actual:${actual}`
+  }
+}
+
+export function assertNotEquals(expected, actual) {
+  if (expected === actual) {
+    throw `ASSERTION_ERROR: expected:${expected} should not be equal to actual:${actual}`
   }
 }
 
 export class TestRunner {
+  #passed = 0 
+  #failed = 0
+
   constructor () {
 
   }
@@ -54,12 +63,20 @@ export class TestRunner {
       this.beforeEach()
       try {
         this[method]();
+        this.#passed++;
         console.log(`PASSED: ${method}`)  
       } catch (e){
         console.error(`FAILED: ${method}`)
         console.error(e)
+        this.#failed++;
       }
       this.afterEach();
     }
+
+    let status = 'SUCCESS'
+    if (this.#failed > 0) {
+      status = 'FAILURE'
+    }
+    alert(`${status} Passed:${this.#passed} Failed:${this.#failed}`)
   }
 }

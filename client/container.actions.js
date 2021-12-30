@@ -58,9 +58,13 @@ Container.prototype.getActions = function(node) {
     let result = []
     let actions = node.getAttribute("data-container-actions")
     if (actions) {
-        actions = JSON.parse(actions)
-        for (const k in actions) {
-            result.push(actions[k])
+        try {
+            actions = JSON.parse(actions)
+            for (const k in actions) {
+                result.push(actions[k])
+            }
+        } catch (e) {
+            //pass
         }
     }
 
@@ -68,7 +72,7 @@ Container.prototype.getActions = function(node) {
 }
 
 Container.prototype.saveActions = function(node, actions) {
-    node.setAttribute("data-container-actions", JSON.stringify(actions))
+    //node.setAttribute("data-container-actions", JSON.stringify(actions))
 }
 
 Container.prototype.lookupMethod = function(method) {

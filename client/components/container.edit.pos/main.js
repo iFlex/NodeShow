@@ -1,4 +1,3 @@
-import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
@@ -8,7 +7,7 @@ import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
 //happens because events stop firing
 //ToDo: fire drag end event
-class ContainerMover {
+export class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
 	displayName = "Move"
@@ -141,6 +140,3 @@ class ContainerMover {
 		this.container.componentStoppedWork(this.appId)
 	}
 }
-
-let cmover = new ContainerMover(container);
-cmover.enable()

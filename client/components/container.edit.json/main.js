@@ -1,8 +1,7 @@
-import { container } from '../../nodeshow.js'
 import { getSelection } from '../utils/common.js'
 
 //[BUG]: unsetting actions and permissions dones't work
-class ContainerJsonEdit {
+export class ContainerJsonEdit {
 	appId = 'container.edit.json'
 	container = null;
 	selection = null;
@@ -154,5 +153,3 @@ class ContainerJsonEdit {
 		}
 	}
 }
-
-new ContainerJsonEdit(container)

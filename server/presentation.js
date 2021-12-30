@@ -144,10 +144,11 @@ class Presentation {
         //ToDo: plug in logic to check if op is allowed
         try{
 			if (data.event == Events.create || data.event == Events.update) {
-	        	//console.log(`${data.event} -> ${data.detail.descriptor.nodeName}`)
+				//console.log(`${data.event}(${data.detail.descriptor.id}) -> ${data.detail.descriptor.nodeName}`)
 				
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
+		        
 		        this.rawData[child.id] = child;
 				
 				if (parentId) {
@@ -162,7 +163,7 @@ class Presentation {
 		        	this.roots[child.id] = true;
 		        }
 	    	} else if(data.event == Events.delete) {
-				let id = data.detail.id
+	    		let id = data.detail.id
 				if (id in this.rawData) {
 					if (this.rawData[id].parentId) {
 						//remove child ref

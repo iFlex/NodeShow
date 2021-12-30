@@ -1,8 +1,7 @@
-import { container } from '../../nodeshow.js'
 import { Container } from '../../Container.js'
 import { getSelection } from '../utils/common.js'
  
-class ContainerClipboard {
+export class ContainerClipboard {
 	appId = "container.clipboard"
 	#container = null;
 	#enabled = false
@@ -39,18 +38,21 @@ class ContainerClipboard {
 		return this.#enabled
 	}
 
-	translateIds (descriptor) {
+	//[TODO]: not complete, causes persistence issues
+	translateIds (clipboard) {
 		let idmap = {}
-		for (const record of descriptor) {
+		for (const record of clipboard) {
 			idmap[record.id] = Container.generateUUID()
 		}
-
-		for (const record of descriptor) {
+		console.log(`${this.appId} - paste ID translation`)
+		console.log(idmap)
+		
+		for (const record of clipboard) {
 			record.id = idmap[record.id]
 			record.parentId = idmap[record.parentId]
 			if (record.childNodes) {
 				for (const child of record.childNodes) {
-            		if(!child.id) {
+            		if(child.id) {
             			child.id = idmap[child.id]
             		}
             	}
@@ -63,13 +65,12 @@ class ContainerClipboard {
 		if (selection.length > 0) {
 			let clipboard = []
 			let travqueue = []
-			let idmap = {}
 			for (const id of selection) {
 				try {
 					let container = this.#container.lookup(id)
 					let descriptor = this.#container.toSerializable(container)
-					
-					idmap[descriptor.id] = ""
+					descriptor.parentId = null
+
 					clipboard.push(descriptor)
 					if (container.children){
 						for (const child of container.children) {
@@ -87,7 +88,6 @@ class ContainerClipboard {
 				let node = travqueue[i]
 				let descriptor = this.#container.toSerializable(node)
 				descriptor.parentId = node.parentNode.id
-				idmap[descriptor.id] = ""
 
 				clipboard.push(descriptor)
 				if (node.children) {
@@ -97,10 +97,10 @@ class ContainerClipboard {
 				}	
 				i++
 			}
-			console.log(`${this.appId} - copy`)
-			console.log(clipboard)
 			
 			let data = JSON.stringify(clipboard)
+			console.log(`${this.appId} - copy ${data.length}B`)
+			console.log(data)
 			e.clipboardData.setData("text/plain", data)
 			//[TODO]Warning: this will prevent regular execution.
 			//Figure out how to integrate with text editor and input fields
@@ -116,8 +116,7 @@ class ContainerClipboard {
 		}
 
 		let paste = (e.clipboardData || window.clipboardData).getData('text');
-	 	console.log(`${this.appId} - paste`)
-		console.log(paste)
+	 	console.log(`${this.appId} - paste ${paste.length}B`)
 
 	 	let toBuild = JSON.parse(paste)
 	 	this.translateIds(toBuild)
@@ -137,6 +136,3 @@ class ContainerClipboard {
 	}
 
 }
-
-let ccp = new ContainerClipboard(container)
-ccp.enable()
