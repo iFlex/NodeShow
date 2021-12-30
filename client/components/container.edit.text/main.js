@@ -762,6 +762,7 @@ class ContainerTextInjector {
 			curStat = this.cursor.get()
 		}
 		if (!curStat.textUnit) {
+			this.makeNewTextChild(curStat.line)
 			curStat = this.cursor.get()
 		}
 	
@@ -796,7 +797,9 @@ class ContainerTextInjector {
 		for (const textUnit of moveToNewLine) {
 			this.container.setParent(textUnit, line, this.appId)
 		}
+		
 		//update cursor
+		this.cursor.putAt(curStat.lineNumber + 1, 0)
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
