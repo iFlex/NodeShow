@@ -21,8 +21,7 @@ class ContainerLink {
 
         this.#handlers[ACTIONS.update] = (e) => this.onContainerChange(e)
         this.#handlers[ACTIONS.create] = (e) => this.onContainerCreate(e)
-        //[TODO]: need to use a hook instead of an event
-        //this.#handlers[ACTIONS.delete] = (e) => this.onContainerDelete(e)
+        this.#handlers[ACTIONS.delete] = (e) => this.onContainerDelete(e)
 
         //init drawers
         this.#linkDrawers['straightLine'] = straightLine
@@ -74,7 +73,6 @@ class ContainerLink {
             throw `${this.appId} - LINK ID COLLISION ${linkId}`
         }
 
-        this.#links[linkId] = descriptor
         if (!this.#targetLinks[from]) {
             this.#targetLinks[from] = new Set([])
         }
@@ -82,6 +80,7 @@ class ContainerLink {
             this.#targetLinks[to] = new Set([])
         }
 
+        this.#links[linkId] = descriptor
         this.#targetLinks[from].add(linkId)
         this.#targetLinks[to].add(linkId)
     }
@@ -118,6 +117,10 @@ class ContainerLink {
     //[TODO]: delete doesn't get rid of links
     deleteLink(linkId, callerId) {
         const descriptor = this.#links[linkId]
+        if (!descriptor) {
+            return;
+        }
+
         for (const linkUnitId of descriptor.linkUnits) {
             try {
                 this.#container.delete(linkUnitId, callerId)
@@ -145,7 +148,13 @@ class ContainerLink {
                 }
             }
 
-            let node = this.#container.lookup(currentId)
+            let node = null
+            try {
+                node = this.#container.lookup(currentId)
+            } catch (ex) {
+                break;
+            }
+
             for (const child of node.children) {
                 if (this.#targetLinks[child.id]) {
                     children.push(child.id)
@@ -177,11 +186,35 @@ class ContainerLink {
         }
     }
 
-    //[TODO]: defer execution for going through children
     onContainerDelete(e) {
         let links = this.getLinksRelatedTo(e.detail.id)
         for (const link of links) {
             this.deleteLink(link, this.appId)
+        }
+
+        this.scheduleCleanup()
+    }
+
+    //[TODO]: defer execution / split into work units
+    scheduleCleanup() {
+        this.cleanup();
+    }
+
+    cleanup() {
+        //go through all container IDs and remove the ones that have disappeared
+        let ghostLinks = new Set([])
+        for (const [nodeId, links] of Object.entries(this.#targetLinks)) {
+            try {
+                this.#container.lookup(nodeId)
+            } catch (e) {
+                for (const linkId of links){
+                    ghostLinks.add(linkId)
+                }
+            }
+        }
+
+        for (const linkId of ghostLinks) {
+            this.deleteLink(linkId, this.appId)
         }
     }
 }

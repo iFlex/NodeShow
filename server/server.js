@@ -78,7 +78,7 @@ PrezPersister.setFastStorage(PrezCache)
 const Presentations = new PresentationBase(PrezCache);
 const Events = require('./NodeShowEvents');
 
-const debug_level = 3;
+const debug_level = 0;
 
 //RAM FAST PRESENTATION ROUTING
 var presentations = {}
