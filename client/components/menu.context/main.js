@@ -15,7 +15,7 @@ export class ContextMenu {
 		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click'},
 		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "deleteSparingChildren", shortcut:'End', icon:'ns-delete-icon'},
-		{name: "Text", action: "container.edit.text.start"},
+		{name: "Text", action: "menu.context.editText", options:{forwardEvent:true}},
 		{name: "ParentDown", action: "container.lineage.parentDown", shortcut:'Shift+<'},
 		{name: "ParentUp", action: "container.lineage.parentUp", shortcut:'Shift+>'},
 		{name: "Collapse", action: "container.edit.abstraction.collapse", shortcut: 'Ctrl+Down'},
@@ -165,7 +165,14 @@ export class ContextMenu {
 	callAction(e, details) {
 		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
-            let params = [this.#target, this.appId]
+            let params = []
+            //[TODO]: make a better system for determining what params the call will be made with
+            if (details.options && details.options.forwardEvent) {
+            	params.push(e)
+            }
+            params.push(this.#target)
+            params.push(this.appId)
+            
             if (details.params) {
             	params = details.params
             }
@@ -180,5 +187,10 @@ export class ContextMenu {
 
 	createContainerWrapper(e) {
 		
+	}
+
+	editText(e) {
+		let textEditor = this.#container.getComponent('container.edit.text')
+		textEditor.start(this.#target, {top:e.pageY, left: e.pageX})
 	}
 }

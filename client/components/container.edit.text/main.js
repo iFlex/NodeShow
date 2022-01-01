@@ -39,6 +39,21 @@ export class ContainerTextInjector {
 	#debug = false;
 	
 	#cursorDiv = null
+	
+	defaultTextBoxDescriptor = {
+		nodeName:"DIV",
+		computedStyle:{
+			"position":"absolute",
+			"background-color": "transparent",
+			"top":"0px",
+			"left":"0px",
+			"width":"32px",
+			"height":"32:px",
+			"border-width":"2px solid",
+			"border-color":"black"
+		}
+	}
+
 	cursorDescriptor = {
 		nodeName:"DIV", 
 		className: "text-document-cursor", 
@@ -208,7 +223,7 @@ export class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['Control','v']), this, (key) => {}, false)
 	}
 
-	start (target) {
+	start (target, overrideNewBoxPos) {
 		if (!target || this.target == target || !this.#enabled) {
 			return;
 		}
@@ -228,9 +243,11 @@ export class ContainerTextInjector {
 		}
 		
 		if (!this.isTargetTextEditable(this.target)) {
-			console.log(`${this.appId} - container not suitable for text editing. Aborting`)
-			this.stop();
-			return;
+			console.log(`${this.appId} - container not suitable for text editing. Creating a transparent container to type in.`)
+			this.target = this.container.createFromSerializable(this.target, this.defaultTextBoxDescriptor, null, this.appId)
+			if (overrideNewBoxPos) {
+				this.container.setPosition(this.target, overrideNewBoxPos, this.appId)
+			}
 		}	
 
 		this.cursor.setTarget(this.target)
@@ -267,6 +284,10 @@ export class ContainerTextInjector {
 			this.container.hide(this.#interface, this.appId)
 			this.target = null;
 		}
+	}
+
+	getEditTarget() {
+		return this.target
 	}
 
 	static isPrintableCharacter(key) {

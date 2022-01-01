@@ -371,8 +371,10 @@ export class ContainerEditOrchestrator {
 		if (sel.length == 1 ) {
 			try {
 				let textEditor = this.#container.getComponent('container.edit.text');
-				textEditor.start(sel[0])
-				//ToDo: figure out a way to also send this char to the text editor
+				if (!textEditor.getEditTarget()) {
+					textEditor.start(sel[0])
+					textEditor.addPrintable(key)
+				}
 			} catch (e) {
 				console.error(`${this.appId} failed to start text editor on keyboard event`)
 				console.error(e)
