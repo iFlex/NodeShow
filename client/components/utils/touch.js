@@ -129,7 +129,6 @@ function actLikeMouse(evt) {
     return;
 
   evt.preventDefault();
-  var newEvt = document.createEvent("MouseEvents");
   var type = null;
   var touch = null;
 
@@ -148,9 +147,18 @@ function actLikeMouse(evt) {
       break;
   }
 
-  newEvt.initMouseEvent(type, true, true, evt.originalTarget.ownerDocument.defaultView, 0,
-    touch.screenX, touch.screenY, touch.clientX, touch.clientY,
-    evt.ctrlKey, evt.altKey, evt.shiftKey, evt.metaKey, 0, null);
+  let newEvt = new MouseEvent(type,{
+  	screenX: touch.screenX,
+  	screenY: touch.screenY,
+  	clientX: touch.clientX,
+  	clientY: touch.clientY,
+  	ctrlKey: evt.ctrlKey,
+  	shiftKey: evt.shiftKey,
+  	altKey: evt.altKey,
+  	metaKey: evt.metaKey,
+  	button: 0
+  }); 
+  
   evt.originalTarget.dispatchEvent(newEvt);
 }
 

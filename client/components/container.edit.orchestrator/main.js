@@ -193,7 +193,7 @@ export class ContainerEditOrchestrator {
 			contextMenuController.setMenuActions(ctxOptions)
 			contextMenuController.start({
 				target: this.#container.parent,
-				pageX: this.#container.getWidth(this.#interface),
+				pageX: lastX + this.#container.getWidth(this.#interface),
 				pageY: lastY,
 				preventDefault: function(){}
 			})
