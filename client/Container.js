@@ -87,6 +87,7 @@ export class Container {
          * first 2 parameters are always: parentId and child
          * other parameters depend on the original method (createFromSerializable, createFromDom or index)
          */
+        'new', //params: none
         'create',   //params: ParentId, Child Node, CallerId
         'update',   //params: DOM node, update descriptor, callerId
         'style',    //params: DOM node, style descriptor, callerId
@@ -126,6 +127,7 @@ export class Container {
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
         this.debug = debug
+        Container.applyPostHooks(this, 'new', [])
     }
 
     //<utils>

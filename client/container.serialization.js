@@ -3,12 +3,25 @@ import {Container, ACTIONS} from "./Container.js"
 let orphans = {}
 let initQueue = {}
 
-function getKeysToIgnore(context, section) {
-    if (!context.serializerIgnores || !context.serializerIgnores[section]) {
+function shouldNotIgnore(context, tag, key) {
+    //core permissions storage tag.
+    if (tag == 'data' && key == 'containerPermissions') {
+        return true;
+    }
+
+    if (!context.serializerKeeps || !context.serializerKeeps[tag]) {
+        return false;
+    }
+
+    return context.serializerKeeps[tag].has(key)    
+}
+
+function getKeysToIgnore(context, tag) {
+    if (!context.serializerIgnores || !context.serializerIgnores[tag]) {
         return new Set()
     }
 
-    return context.serializerIgnores[section]
+    return context.serializerIgnores[tag]
 }
 
 function stripClassName(classList, toStrip) {
@@ -281,19 +294,25 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     }
 }
 
+Container.prototype.serializerCannotIgnore = function(tag, key) {
+    if (!this.serializerKeeps) {
+        this.serializerKeeps = {}
+    }
+    if (!this.serializerKeeps[tag]) {
+        this.serializerKeeps[tag] = new Set()
+    }
+
+    this.serializerKeeps[tag].add(key)
+}
+
 /**
  * @summay Add a tag and key to ignore when serializing
  * @description This can be used when serializing a container to leave out certain properties that are mean only for the local context.
  */ 
 //[TODO]: currently supports className and data as tags, see if more are needed +test 
 Container.prototype.serializerIgnore = function(tag, key) {
-    if (tag === 'data') {
-        if (key == 'containerPermissions') {
-            throw `Cannot ignore permissions when serializing. User local permissions instead.`
-        }
-        if (key == 'containerActions') {
-            throw `Cannot ignore container actions when serializing.`
-        }
+    if (shouldNotIgnore(this, tag, key)) {
+        throw `Cannot ignore ${tag}:${key} when serializing`
     }
 
     if (!this.serializerIgnores) {

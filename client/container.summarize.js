@@ -2,20 +2,20 @@ import {Container, ACTIONS} from "./Container.js"
 /**
  * Container Abstraction.
  * 
- * Extension allowing you to have multiple layers of abstraction for a container's content.
+ * Extension allowing you to have multiple levels of abstraction for a container's content.
  * This means you can add content to a container and then abstract it away / summarize it, so not all the 
  * detail will be visible.
  * 
  * With this functionality you can:
- * * Create / Delete abstraction layers
- * * Get/Set content's abstraction layer (default = 0, which is root and equates to no abstraction)
- * * Get/Set the container's current abstration layer
+ * * Create / Delete abstraction levels
+ * * Get/Set content's abstraction level (default = 0, which is root and equates to no abstraction)
+ * * Get/Set the container's current abstration level
  *   - this determines what will be visible within the container
  * 
  * 
  * Implementation details
- *  Container stores what abstraction content abstraction layer it is displaying via data-contentAbstractionLayer. Defailt = 0 (no Abstraction)
- *  Container stores what abstraction layer it belongs to via data-abstractionLayer. Default = 0 (no abstraction)
+ *  Container stores what abstraction content abstraction level it is displaying via data-contentAbstractionLevel. Defailt = 0 (no Abstraction)
+ *  Container stores what abstraction level it belongs to via data-abstractionLevel. Default = 0 (no abstraction)
  * 
  * Add ability to fit content when compressing. Store previou style in memory maybe.
  * Test removal functions
@@ -88,7 +88,7 @@ Container.prototype.createAbstractionLevel = function(c) {
     
     let prevCount = this.getAllInAbstractionLevel(node, maxAbsLevels).length
     if (prevCount == 0) {
-        throw `Previous abstraction layer is empty, cannot make a new one based on an empty previous`
+        throw `Previous abstraction level is empty, cannot make a new one based on an empty previous`
     }
 
     node.dataset[C_TOT_ABS_LVLS] = maxAbsLevels + 1
@@ -249,6 +249,7 @@ Container.registerPreSetterHook('setParent', function(node) {
 
 //[TODO]: figure out what causes the event look feedback
 Container.registerPostSetterHook('create', applyAbstractionView);
+Container.registerPostSetterHook('new', setUnignorableDataFields);
 //Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
 function applyAbstractionView(pid, node) {
@@ -261,6 +262,14 @@ function applyAbstractionView(pid, node) {
 
 function applyAbstractionViewOnUpdate(node) {
     applyAbstractionView.apply(this, [null, node])
+}
+
+function setUnignorableDataFields() {
+    if (typeof this.serializerCannotIgnore === 'function') {
+        this.serializerCannotIgnore('data',C_ABS_LVL)
+        this.serializerCannotIgnore('data',C_TOT_ABS_LVLS)
+        this.serializerCannotIgnore('data',ABS_LVL)
+    }
 }
 
 function removeAll(ctx, node) {
