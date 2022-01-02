@@ -32,12 +32,12 @@ export class ContainerJsonEdit {
 				"position":"fixed"
 			},
 			"data":{
-		    	"ignore":true
-		    },
-			"permissions":{
-				"container.broadcast":{"*":false},
-				"container.bridge":{"*":false}
-			}
+		    	"ignore":true,
+		    	"containerPermissions":{
+					"container.broadcast":{"*":false},
+					"container.bridge":{"*":false}
+				}
+		    }
 		},
 		null,
 		this.appId)

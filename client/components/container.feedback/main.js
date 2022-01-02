@@ -30,12 +30,12 @@ export class ContainerFeedback {
 				"height":"auto"
 			},
 			"data":{
-		    	"ignore":true
+		    	"ignore":true,
+		    	"containerPermissions":{
+					"container.broadcast":{"*":false},
+					"container.bridge":{"*":false}
+				}
 		    },
-			"permissions":{
-				"container.broadcast":{"*":false},
-				"container.bridge":{"*":false}
-			}
 		},
 		null,
 		this.appId)

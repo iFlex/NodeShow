@@ -61,11 +61,11 @@ export class ContainerEditOrchestrator {
                 "height":"100%"
 			},
 			"data":{
-		    	"ignore":true
-		    },
-		   	"permissions": {
-		   		"container.bridge":{"*":false}
-		   	}
+		    	"ignore":true,
+		    	"containerPermissions": {
+			   		"container.bridge":{"*":false}
+			   	}
+		    }
 		},
 		null,
 		this.appId)

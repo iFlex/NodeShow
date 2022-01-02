@@ -50,11 +50,11 @@ export class ContextMenu {
 				"position":"absolute"
 			},
 			"data":{
-				"ignore":true
-			},
-			"permissions":{
-				"container.broadcast":{"*":false},
-				"container.bridge":{"*":false}
+				"ignore":true,
+				"containerPermissions":{
+					"container.broadcast":{"*":false},
+					"container.bridge":{"*":false}
+				}
 			}
 		},
 		null,

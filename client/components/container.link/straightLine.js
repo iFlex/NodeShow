@@ -34,12 +34,10 @@ function updateLink(container, link, from, fromPos, to, toPos) {
 function createLinkUnit(container) {
     return container.createFromSerializable(null, {
         "nodeName": "div",
-        permissions: {
-            "container.setParent": {
-                "*": false
-            },
-            "container.create": { //prevent other apps from adding children to this 
-                "*": false
+        data:{
+            containerPermissions: {
+                "container.setParent": {"*": false},
+                "container.create": {"*": false} //prevent other apps from adding children to this 
             }
         },
         computedStyle: {
