@@ -15,7 +15,6 @@ const DESCRIPTOR_FIELD_ALLOW_LIST = {
 		"className":{sanitize:false},
 		"src":{sanitize:false},
 		"cssText":{sanitize:false},
-		"permissions":{sanitize:false},
 		"data":{sanitize:false},
 		"innerHTML":{sanitize:true},
 	},
@@ -128,9 +127,10 @@ class Presentation {
 	
 	update(data) {
 		data = this.validate(data)
-		if (data.detail && data.detail.descriptor && data.detail.descriptor.permissions) {
-			let persistPermission = data.detail.descriptor.permissions[Events.persist];
-			let broadcastPermission = data.detail.descriptor.permissions[Events.broadcast];
+		if (data.detail && data.detail.descriptor && data.detail.descriptor.data && data.detail.descriptor.data.containerPermissions) {
+			let perms = JSON.parse(data.detail.descriptor.data.containerPermissions)
+			let persistPermission = perms[Events.persist];
+			let broadcastPermission = perms[Events.broadcast];
 			
 			if (broadcastPermission && broadcastPermission['*'] == false) {
 				return {}

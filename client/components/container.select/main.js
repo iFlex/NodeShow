@@ -12,6 +12,8 @@ export class ContainerSelect {
 	appId = "container.select"
 	displayName = "Select"
 	type = 'background'
+	selectedClass = 'ns-selected'
+
 	MAX_SELECTION_SIZE = 250;
 
 	#enabled = false
@@ -52,6 +54,7 @@ export class ContainerSelect {
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
 		
 		this.#keyboard = new Keyboard(this.appId);
+		this.#container.serializerIgnore('className', this.selectedClass)
 		//This conflicts with text editor 'Escape'
 		//this.#keyboard.setAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
 	}
@@ -144,7 +147,7 @@ export class ContainerSelect {
 		for (let entry of overlapped) {
 			this.#selection.push(entry.id)
 			let node = this.#container.lookup(entry.id)
-			$(node).addClass('ns-selected')
+			$(node).addClass(this.selectedClass)
 
 			if (this.#selection.length >= this.MAX_SELECTION_SIZE) {
 				console.log(`${this.appId} - Selection overflow`)
@@ -162,7 +165,7 @@ export class ContainerSelect {
 		this.clearSelection();
 
 		let target = this.#container.lookup(id)
-		$(target).addClass('ns-selected')
+		$(target).addClass(this.selectedClass)
 		this.#selection = [target]
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
 	}
@@ -174,7 +177,7 @@ export class ContainerSelect {
 	clearSelection() {
 		for ( const item of this.#selection ) {
 			let node = this.#container.lookup(item)
-			$(node).removeClass('ns-selected');
+			$(node).removeClass(this.selectedClass);
 		}
 
 		this.#selection = []

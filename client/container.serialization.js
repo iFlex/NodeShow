@@ -3,6 +3,22 @@ import {Container, ACTIONS} from "./Container.js"
 let orphans = {}
 let initQueue = {}
 
+function getKeysToIgnore(context, section) {
+    if (!context.serializerIgnores || !context.serializerIgnores[section]) {
+        return new Set()
+    }
+
+    return context.serializerIgnores[section]
+}
+
+function stripClassName(classList, toStrip) {
+    let result = classList
+    for (const strip of toStrip) {
+        result = result.replaceAll(strip, '')
+    }
+    return result
+}
+
 function emitContainerCreated(context, parent, child, callerId) {
     //this container has finally been initialized
     console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
@@ -153,14 +169,15 @@ Container.prototype.toSerializableStyle = function(id, snapshot) {
 }
 
 Container.prototype.toSerializable = function(id) {
-    let relevantProps = ['id','nodeName','className', 'src']
+    let basicProps = ['id','nodeName', 'src']
 
     let elem = Container.lookup(id);
     
     let serialize = {}
-    for (const tag of relevantProps) {
+    for (const tag of basicProps) {
         serialize[tag] = elem[tag];
     }
+    serialize['className'] = stripClassName(elem.className, getKeysToIgnore(this, 'className'))
 
     //only save inner html if leaf node
     if (!elem.children || elem.children.length == 0) {
@@ -180,13 +197,17 @@ Container.prototype.toSerializable = function(id) {
         }
     }
 
-    serialize['cssText'] = elem.style.cssText;
+    //[TODO]: figure out if cssText is needed
+    serialize['cssText'] = elem.style.cssText
     serialize['computedStyle'] = this.toSerializableStyle(id);
     
     //save data- tags
     serialize['data'] = {}
+    let dataIgnore = getKeysToIgnore(this, 'data')
     for (let [key, value] of Object.entries(elem.dataset)) {
-        serialize.data[key] = value
+        if (!dataIgnore.has(key)) {
+            serialize.data[key] = value
+        }
     }
 
     return serialize;
@@ -258,6 +279,31 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     } else if(emit != false) {
         this.emit(ACTIONS.update, {id:child.id, changes: descriptor, callerId:callerId})
     }
+}
+
+/**
+ * @summay Add a tag and key to ignore when serializing
+ * @description This can be used when serializing a container to leave out certain properties that are mean only for the local context.
+ */ 
+//[TODO]: currently supports className and data as tags, see if more are needed +test 
+Container.prototype.serializerIgnore = function(tag, key) {
+    if (tag === 'data') {
+        if (key == 'containerPermissions') {
+            throw `Cannot ignore permissions when serializing. User local permissions instead.`
+        }
+        if (key == 'containerActions') {
+            throw `Cannot ignore container actions when serializing. User local actions instead.`
+        }
+    }
+
+    if (!this.serializerIgnores) {
+        this.serializerIgnores = {}
+    }
+    if (!this.serializerIgnores[tag]) {
+        this.serializerIgnores[tag] = new Set()
+    }
+
+    this.serializerIgnores[tag].add(key)
 }
 
 Container.prototype.diagnozeSerde = function(argument) {
