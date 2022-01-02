@@ -11,7 +11,8 @@ export class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
 	displayName = "Move"
-
+	type = 'background'
+	
 	#enabled = false
 	#mouse = null
 	#touch = null

@@ -7,7 +7,9 @@ export class ContainerConfig {
 	appId = 'container.configure'
 	container = null;
 	selection = null;
-	transactional = true
+	
+	type = 'transactional'
+	modal = true
     displayName = "Config"
 
 	#enabled = false

@@ -4,7 +4,9 @@ import { post } from '../utils/http.js'
 export class ContainerContent {
     appId = 'container.content'
     displayName = 'Content'
-    transactional = true
+    type = 'transactional'
+    modal = true
+
     contentURL = `https://${window.location.host}`
     
     #interface = null

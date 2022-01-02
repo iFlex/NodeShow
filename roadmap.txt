@@ -32,19 +32,30 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[0. MUST-HAVE]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
+[TODO][L]: Aditing container at abstraction level should apply to abstraction level not root content.
+[TODO][L]: make text editor ignore invisible divs.
+
+[0. MUST-HAVE][XL]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
     - this should allow me to leave the project unattended for longer and work on other stuff as well.
-[2. TODO]: standardize how things are persisted. When to save things in the DOM dataset and how that's kept in sync with in-memory structures. Ex: permission persistance and initiation is inconsistent.
-[3. TODO]: evaluate event firing and how it should be done
+
+[2. TODO][M]: standardize how things are persisted. 
+! Any metadata about an object that is not mutated very frequently shall be stored in the dataset. This allows the current system to persist it by default without code change and requires registering a hook for loading from dataset whenever necessary
+e.g. Permissions, Actions, etc. 
+
+[3. TODO][L]: evaluate event firing and how it should be done
+
 [TODO][FIX]: Broadcasting abstraction level stats. Currently broken:
     . all works well with no collaborators
     . when more collaborators are added, an event inifinte loop appears.
+
 [TODO]: Implement functionality to make container fit content (including abs pos content)
  - without harming non positioned elements? (can it be done?)
  : currently a shitty but relatively working implementation exists
 
 [TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
-[BUG]: can't drag through text anymore
+ - make it possible for apps to ask for exclusive access over an input event
+    aquire/release
+    
 [BUG]: some interface components are persisted...
 [BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 
@@ -53,7 +64,7 @@ Current Prios:
     Without sending updates to storage, it can handle 1K ev/s
     [TODO]: more stress testing
 
-[TODO]: implement component to visalise abstraction levels
+[TODO]: implement component to visualise abstraction levels
 [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
 [TODO]: implement delete selection - introduced a BUG
 [TODO]: implement undo/redo
@@ -69,7 +80,6 @@ Current Prios:
 [TODO]: Notify user when selecting or grouping more than the limit. Notify them the operation will be capped.
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG][MUST-FIX]: Keyboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed
-[MUST-HAVE]: standardize all apps to use utils for mouse and keyboard events.
 [TODO]: split container.create to not have the inner organisation interface and create new app container.content.arrange
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
 [BUG]: Repell component sometimes goes beserk, interface gets moved

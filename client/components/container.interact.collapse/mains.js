@@ -3,7 +3,7 @@ import { Keyboard } from '../utils/keyboard.js'
 export class ContainerCollapser {
     appId = 'container.interact.collapse'
 	target = null;
-
+    
     #container = null;
     #hoverTarget = null;
     #handlers = {}

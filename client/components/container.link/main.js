@@ -1,11 +1,11 @@
 import { Container, ACTIONS } from '../../Container.js'
 import { draw as straightLine } from './straightLine.js'
 
-//[TODO]: load links on container create
 //[TODO]: delete hooks
 //[TODO]: click hooks
 export class ContainerLink {
     appId = 'container.link'
+    type = 'background'
 	#container = null;
     
     #enabled = false
@@ -113,7 +113,6 @@ export class ContainerLink {
         return linkId
     }
 
-    //[TODO]: delete doesn't get rid of links
     deleteLink(linkId, callerId) {
         const descriptor = this.#links[linkId]
         if (!descriptor) {

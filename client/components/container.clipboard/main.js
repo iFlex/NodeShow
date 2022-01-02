@@ -3,6 +3,7 @@ import { getSelection } from '../utils/common.js'
  
 export class ContainerClipboard {
 	appId = "container.clipboard"
+	type = 'background'
 	#container = null;
 	#enabled = false
 	#handlers = {}

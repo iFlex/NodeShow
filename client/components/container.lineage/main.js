@@ -6,7 +6,7 @@ import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 export class ContainerLineage {
     appId = 'container.lineage'
     displayName = 'Lineage'
-    transactional = true
+    type = 'service'
     
     container = null
     target = null

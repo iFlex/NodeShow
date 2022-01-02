@@ -7,7 +7,7 @@ export class ContainerFeedback {
 	#handlers = {}
 	#syncing = {}
 	#interface = null;
-
+	
 	#TIME_TILL_MARKED_UNSYNC = 500
 
 	constructor (container) {

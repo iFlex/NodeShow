@@ -21,7 +21,7 @@ export const EVENTS = {
 	'ROTATE':''
 }
 
-let appId = 'core-touch'
+let appId = null
 let FOCUS_TRESHOLD = 5
 let focusTarget = null;
 let target = null

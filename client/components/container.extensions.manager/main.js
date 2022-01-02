@@ -3,7 +3,8 @@ import { ACTIONS } from '../../Container.js'
 //ToDo: make it toggle extensions on and off as well as register and deregister
 export class ContainerExtensionsManager {
     appId = 'container.extensions.manager'
-	transactional = true
+	type = 'transactional'
+    modal = true
     displayName = "Apps"
 
     #container = null;

@@ -9,7 +9,7 @@ import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
 
 //ToDo: ensure click and double click events take distance from origin point into account
-let appId = 'core-mouse' //Temporary, think this up
+let appId = null; //Temporary, think this up
 
 let FOCUS_TRESHOLD = 5
 let focusTarget = null;

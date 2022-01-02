@@ -30,7 +30,7 @@ textLinePerms[ACTIONS.setPosition] = {"*":false}
 //[BUG]: clicking on a text unit doesn't pop up the editor anymore. :D fix plz
 export class ContainerTextInjector {
 	appId = "container.edit.text"
-
+	
 	container = null;	
 	target = null;
 	#interface = null;

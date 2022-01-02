@@ -6,6 +6,7 @@ import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 //ToDo: read style configuration from container.edit.style
 export class ContainerCreator {
 	appId = 'container.create'
+	type = 'background'
 	container = null;
 	target = null;
 	palette = ["#605B56", "#837A75", "#ACC18A", "#DAFEB7", "#F2FBE0"]

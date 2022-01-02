@@ -1,12 +1,29 @@
-export const ACCESS_REQUIREMENT = { 
-	DEFAULT:       0, // access will be given to all listeners
-	SET_EXCLUSIVE: 1, // access will be given to all DEFAUL and only one SET_EXCLUSIVE out of all SET_EXCLUSIVE
-	EXCLUSIVE:     2  // access will be given to only one EXCLUSIVE. DEFAULT will never get access unless specifically granted
+export const ACCESS_REQUIREMENT = {
+	// Access will be given to all listeners 
+	DEFAULT:       0,
+	// Access will be given to all DEFAUL and only one SET_EXCLUSIVE out of all SET_EXCLUSIVE
+	SET_EXCLUSIVE: 1,
+	// Access will be given to only one EXCLUSIVE listener. DEFAULT will never get access unless specifically granted
+	EXCLUSIVE:     2,
+    // Access will be given to all listeners with SET_INCLUSIVE, all others will not receive the event unless specifically granted.	
+	//[TODO]: not implemented
+	SET_INCLUSIVE: 3
 }
 
 /** @class
- *  @summary Component managing simultaneous access to input events. 
- *  @description TODO
+ *  @summary Component managing simultaneous access to input events.
+ *  @description This access manager controlls which of the registered listeners of an event
+ *  will receive that event when it fires. This is achieved by registering listeners with a desired access mode (default, set_exclusive, and exclusive).
+ *  The semantic of this is: By registering listener a with access mode M for event _e, we mean that a should always have access mode M for event _e. 
+ * 	
+ * 	[TODO][NOT_IMPLEMENTED]There is also a way to temporarily grant a different access mode to a listener on demand. This is meant to be used for transactional workloads.
+ *  e.g. There's a service always listening in on paste events preventing default bubbling up in order to provide its functionality.
+ *       There is also an application that when enabled needs to have exclusive access to paste events so that it can let the event bubble up to the browser (for populating text fields). 
+ *       The intended behaviour here is that the service should receive the paste events as long as the application is not enabled. When the application is enabled, all paste events are routed to it.
+ *       Then when it is disabled, it releases the exlusive access and the service receives further paste events.
+ * 
+ *  Currently this can be achieved by registering and unregistering a new listener with EXCLUSIVE access mode.
+ 	[TODO]: maintain order of registering, so when someone registers with EXCLUSIVE access - the latest such register gets the access. then when they unregister the one registered before it gets the access and so on.
  * */ 
 export class InputAccessManager {
 	#access = {}

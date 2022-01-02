@@ -5,7 +5,8 @@ export class ContainerEditLinks {
     appId = 'container.edit.links'
     displayName = 'Link'
     actuatorId = 'container.link'    
-    
+    type = 'background'
+
 	#container = null;
     #actuator = null;
     

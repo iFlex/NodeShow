@@ -4,7 +4,8 @@ export class ContainerStyler {
 	appId = 'container.edit.style'
 	container = null;
 	displayName = "Style"
-	transactional = true;
+	type = 'transactional'
+	modal = true
 
 	#enabled = false
 	#interface = null;

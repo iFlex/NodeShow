@@ -22,13 +22,13 @@ export class ContainerEditOrchestrator {
 	#mouseManager = null;
 	#interface = null;
 	#conflictingGroups = [];
+	#modals = new Set([])
 	#previousRoutes = {}
 	#handlers = {}
 	
 	#menuRoot = null
 	#menuItemTemplate = null
-	#enabledTransactionalsCount = 0
-
+	
 	constructor (container) {
 		this.#container = container;
 		container.registerComponent(this);	
@@ -216,17 +216,22 @@ export class ContainerEditOrchestrator {
 			this.#menuRoot.children[0].appendChild(node)
 		}
 
+		this.#modals = new Set([])
 		let components = this.#container.listComponents()
 		for ( const component of components ) {
 			let comp = this.#container.getComponent(component)
-			if (comp.transactional) {
+			if (comp.type == 'transactional' || comp.type == 'service') {
 				let node = this.#menuItemTemplate.cloneNode(true)
 				node.id = component
-				node.setAttribute('data-type','transactional')
+				node.setAttribute('data-type', comp.type)
 				node.addEventListener('click', (e) => {
 					this.toggleTransactionalApp(comp, node)
 				})
 				this.#menuRoot.children[0].appendChild(node)
+
+				if (comp.modal) {
+					this.#modals.add(comp.appId)
+				}
 			}
 		}
 
@@ -238,7 +243,7 @@ export class ContainerEditOrchestrator {
 		for (const toggler of menu.children) {
 			let type = toggler.getAttribute('data-type')
 
-			if (type == 'transactional') {
+			if (type == 'transactional' || type == 'service') {
 				let id = toggler.id
 				let node = toggler.children[0]
 				let component = this.#container.getComponent(id)
@@ -326,14 +331,26 @@ export class ContainerEditOrchestrator {
 		this.rebuildMenu();
 	}
 
-	toggleTransactionalApp(container, node) {
-		let state = container.isEnabled()
+	switchOffOtherModals (compId) {
+		for (const appId of this.#modals) {
+			if (appId !== compId) {
+				let comp = this.#container.getComponent(appId)
+				if (comp) {
+					comp.disable()
+				}
+			}
+		}
+	}
+
+	toggleTransactionalApp(component, node) {
+		let state = component.isEnabled()
 		if (state) {
-			container.disable();
-			this.#enabledTransactionalsCount--;		
+			component.disable();		
 		} else {
-			container.enable();
-			this.#enabledTransactionalsCount++;
+			component.enable();
+			if (component.modal) {
+				this.switchOffOtherModals(component.appId)
+			}
 		}
 
 		this.updateMenu();

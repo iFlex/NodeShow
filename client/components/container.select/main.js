@@ -11,6 +11,7 @@ export class ContainerSelect {
 	#container = null;
 	appId = "container.select"
 	displayName = "Select"
+	type = 'background'
 	MAX_SELECTION_SIZE = 250;
 
 	#enabled = false

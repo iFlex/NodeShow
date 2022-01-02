@@ -5,7 +5,8 @@ export class ContainerJsonEdit {
 	appId = 'container.edit.json'
 	container = null;
 	selection = null;
-	transactional = true
+	type = 'transactional'
+	modal = true
     displayName = "JEdit"
 
 	#containerId = 'ns-container-id'

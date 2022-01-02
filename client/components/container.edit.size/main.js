@@ -6,7 +6,8 @@ export class ContainerSizer {
 	container = null;
 	appId = "container.edit.size"
 	displayName = "Resize"
-
+	type = 'background'
+	
 	#enabled = false
 	#mouse = null;
 	#keyboard = null;

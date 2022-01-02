@@ -7,6 +7,7 @@ import { Keyboard } from '../utils/keyboard.js'
 export class ContainerEditAbstraction {
     appId = 'container.edit.abstraction'
 	target = null;
+    type = 'background'
 
     #container = null;
     #hoverTarget = null;
