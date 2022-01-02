@@ -32,7 +32,8 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[TODO][L]: Aditing container at abstraction level should apply to abstraction level not root content.
+[TODO][L]: Editing container at abstraction level should apply to abstraction level not root content.
+[TODO][]: Determine if content in abstraction level > 0 should be allowed to be abstracted.
 [TODO][L]: make text editor ignore invisible divs.
 
 [3. TODO][L]: evaluate event firing and how it should be done
@@ -55,10 +56,11 @@ e.g. Permissions, Actions, etc.
  - without harming non positioned elements? (can it be done?)
  : currently a shitty but relatively working implementation exists
 
-[TODO]: Fix clash between UI input fields and container.clipboard and container.edit.text
+[TODO][L]: Fix clash between UI input fields and container.clipboard and container.edit.text
  - make it possible for apps to ask for exclusive access over an input event
     aquire/release
-    
+ : requires changes in InputAccessManager and a Clipboard interface implementation
+ 
 [BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes

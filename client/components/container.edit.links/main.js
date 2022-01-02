@@ -53,9 +53,10 @@ export class ContainerEditLinks {
 	}
     
     #localToPercent(details) {
+        let pos = this.#container.getPosition(details.target)
         return {
-            percentX: details.localX / this.#container.getWidth(details.target),
-            percentY: details.localY / this.#container.getWidth(details.target)
+            percentX: (details.absX - pos.left) / this.#container.getWidth(details.target),
+            percentY: (details.absY - pos.top) / this.#container.getHeight(details.target)
         }
     }
 
