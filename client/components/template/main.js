@@ -1,7 +1,5 @@
-import { container } from '../../nodeshow.js'
-
-class Template {
-	appId = "container.select"
+export class Template {
+	appId = "app.id.here"
 	#container = null;
 	#enabled = false
 	
@@ -38,6 +36,3 @@ class Template {
 		this.#container.componentStoppedWork(this.appId)
 	}
 }
-
-let t = new Template(container)
-t.enable()
