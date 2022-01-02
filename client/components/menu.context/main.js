@@ -162,6 +162,11 @@ export class ContextMenu {
 		}
 	}
 
+	tellUserOnError(e) {
+		let userd = this.#container.getComponent('user.dialogue')
+		userd.toast(e)
+	}
+
 	callAction(e, details) {
 		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
@@ -177,7 +182,11 @@ export class ContextMenu {
             	params = details.params
             }
 
-            toCall.method.apply(toCall.context, params)
+            try {
+            	toCall.method.apply(toCall.context, params)
+            } catch (e) {
+            	this.tellUserOnError(e)
+            }
 	    } else {
 	        throw `Could not find method ${call} to attach action`
 	    }

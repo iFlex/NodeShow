@@ -44,6 +44,8 @@ e.g. Permissions, Actions, etc.
 
 [3. TODO][L]: evaluate event firing and how it should be done
 
+[TODO][M]: Integrate user feedback in relevant apps
+
 [TODO][FIX]: Broadcasting abstraction level stats. Currently broken:
     . all works well with no collaborators
     . when more collaborators are added, an event inifinte loop appears.
