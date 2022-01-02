@@ -292,7 +292,7 @@ Container.prototype.serializerIgnore = function(tag, key) {
             throw `Cannot ignore permissions when serializing. User local permissions instead.`
         }
         if (key == 'containerActions') {
-            throw `Cannot ignore container actions when serializing. User local actions instead.`
+            throw `Cannot ignore container actions when serializing.`
         }
     }
 
