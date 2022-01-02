@@ -49,7 +49,6 @@
     new ContainerRepeller(container)
     new ContainerExtensionsManager(container)
     new ContainerEditAbstraction(container)
-    new ContainerClipboard(container)
     new UserDialogue(container)
     new ContainerHax0r(container)
 
@@ -64,6 +63,8 @@
     let cgrouper = new ContainerGrouping(container)
     let cselect = new ContainerSelect(container)
     let contextMenu = new ContextMenu(container)
+    let clipboard = new ContainerClipboard(container)
+    
 
     clinker.enable()
     cmover.enable()
@@ -76,5 +77,6 @@
     ccreator.enable()
     contextMenu.enable()
     orchestrator.enable()
+    clipboard.enable()
   </script>
 </html>

@@ -19,6 +19,8 @@ let targetMetadata = {};
 let moved = 0;
 let lastX = 0;
 let lastY = 0;
+let lastPageX = 0;
+let lastPageY = 0;
 
 let dblClickTreshold = 300;
 let lastClickTime = 0;
@@ -63,6 +65,9 @@ function mouseDown(e) {
 }
 
 function mouseMove(e) {
+	lastPageX = e.pageX;
+	lastPageY = e.pageY;
+
 	if (target) {
 		let dx = e.screenX - lastX;
 		let dy = e.screenY - lastY;
@@ -112,6 +117,13 @@ function mouseUp(e) {
 
 		target = null;
 		e.preventDefault();
+	}
+}
+
+export function getCursorPosition() {
+	return {
+		x: lastPageX,
+		y: lastPageY
 	}
 }
 

@@ -44,7 +44,7 @@ Current Prios:
 ! Any metadata about an object that is not mutated very frequently shall be stored in the dataset. This allows the current system to persist it by default without code change and requires registering a hook for loading from dataset whenever necessary
 e.g. Permissions, Actions, etc. 
 
-
+[TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 [TODO][M]: Integrate user feedback in relevant apps
 
 [TODO][FIX]: Broadcasting abstraction level stats. Currently broken:

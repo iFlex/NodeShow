@@ -1,6 +1,7 @@
 import { Container } from '../../Container.js'
 import { getSelection } from '../utils/common.js'
- 
+import { getCursorPosition } from '../utils/mouse.js'
+
 export class ContainerClipboard {
 	appId = "container.clipboard"
 	type = 'background'
@@ -61,6 +62,36 @@ export class ContainerClipboard {
 		}
 	}
 
+	normalizePositions(roots, dx, dy) {
+		let minPos = null
+		//find top left position
+		for (const root of roots) {
+			let pos = this.#container.getPosition(root)
+			if (!minPos || (pos.top <= minPos.top && pos.left <= minPos.left)) {
+				minPos = pos 
+			}
+		}
+
+		//reposition clipboard paste
+		for (const root of roots) {
+			let pos = this.#container.getPosition(root)
+			pos.top = pos.top - minPos.top + dy
+			pos.left = pos.left - minPos.left + dx
+			this.#container.setPosition(root, pos, this.appId)
+		}	
+	}
+
+	getRoots(clipboard) {
+		let roots = []
+		for (const record of clipboard) {
+			//only roots will be traspositioned
+			if (!record.parentId) {
+				roots.push(record.id)
+			}
+		}
+		return roots
+	}
+
 	copy (e) {
 		let selection = getSelection()
 		if (selection.length > 0) {
@@ -112,6 +143,8 @@ export class ContainerClipboard {
 	paste (e) {
 		let parent = this.#container.parent
 		let selection = getSelection()
+		let cursorPos = getCursorPosition()
+
 		if (selection.length > 0) {
 			parent = selection[0]
 		}
@@ -121,10 +154,12 @@ export class ContainerClipboard {
 
 	 	let toBuild = JSON.parse(paste)
 	 	this.translateIds(toBuild)
-		
+
 	 	for (const desc of toBuild) {
-	 		this.#container.createFromSerializable(desc.parentId || parent, desc, null, this.appId)
-	 	}   
+	 		let node = this.#container.createFromSerializable(desc.parentId || parent, desc, null, this.appId)
+	 	}
+
+	 	this.normalizePositions(this.getRoots(toBuild), cursorPos.x, cursorPos.y)
 	 }
 
 	cut (e) {
@@ -135,5 +170,4 @@ export class ContainerClipboard {
 			this.#container.delete(id, this.appId)
 		}
 	}
-
 }
