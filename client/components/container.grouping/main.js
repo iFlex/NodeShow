@@ -60,7 +60,6 @@ export class ContainerGrouping {
 			this.#enabled = false
 			this.#mouse.disable();
 			this.#keyboard.disable();
-			this.stop();
 		}
 	}
 

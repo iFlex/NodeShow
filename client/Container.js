@@ -414,7 +414,7 @@ export class Container {
         
         //persist permission if needed
         if (!isLocal) {
-            elem.dataset['permissions'] = JSON.stringify(this.#permissions[elem.id])
+            elem.dataset.containerPermissions = JSON.stringify(this.#permissions[elem.id])
         }
 
         this.emit(ACTIONS.setPermission, {
@@ -448,10 +448,10 @@ export class Container {
                 } else {
                     delete this.#permissions[elem.id][permName]
                 }
-                elem.dataset['permissions'] = JSON.stringify(this.#permissions[elem.id])
+                elem.dataset.containerPermissions = JSON.stringify(this.#permissions[elem.id])
             } else {
                 delete this.#permissions[elem.id]
-                delete elem.dataset['permissions']
+                delete elem.dataset.containerPermissions
             }
         }
        
@@ -492,11 +492,13 @@ export class Container {
     * @param {DOMReference} node - container to load for
     */
     loadPermissionsFromDataset(node) {
-        let perms = JSON.parse(node.getAttribute("data-container-permissions"))
-        if (perms && typeof perms != 'string') {
-            console.log("Loading permissions from DOM")
-            this.#permissions[node.id] = perms
+        if (!node.dataset || !node.dataset.containerPermissions) {
+            return;
         }
+
+        let perms = JSON.parse(node.dataset.containerPermissions)
+        console.log("Loading permissions from DOM")
+        this.#permissions[node.id] = perms
     }
     //<extensions subsystem>
 
@@ -1048,5 +1050,8 @@ export class Container {
 
 //load persisted permissions when node is created
 Container.registerPostSetterHook('create', function(parentId, node){
+    this.loadPermissionsFromDataset(node)
+})
+Container.registerPostSetterHook('update', function(node, descriptor){
     this.loadPermissionsFromDataset(node)
 })

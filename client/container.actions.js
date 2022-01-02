@@ -72,7 +72,7 @@ Container.prototype.getActions = function(node) {
 }
 
 Container.prototype.saveActions = function(node, actions) {
-    //node.setAttribute("data-container-actions", JSON.stringify(actions))
+    node.setAttribute("data-container-actions", JSON.stringify(actions))
 }
 
 Container.prototype.lookupMethod = function(method) {

@@ -237,7 +237,11 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
 
     //set data attributes. Value is always a string.
     for( const [tag, value] of Object.entries(rawDescriptor.data || {})) {
-        child.dataset[tag] = value
+        if (typeof value === 'object') {
+            child.dataset[tag] = JSON.stringify(value)
+        } else {
+            child.dataset[tag] = value
+        }
     }
     
     this.reorderChildren(child, rawDescriptor, callerId)

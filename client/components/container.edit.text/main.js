@@ -22,7 +22,10 @@ import { Keyboard } from '../utils/keyboard.js'
 
 const textItemPerms = {}//, "container.edit":{"*":false}}
 textItemPerms[ACTIONS.setPosition] = {"*":false}
-//textItemPerms[ACTIONS.create] = {"*":false}
+textItemPerms[ACTIONS.create] = {"*":false}
+
+const textLinePerms = {}
+textLinePerms[ACTIONS.setPosition] = {"*":false}
 
 //[BUG]: clicking on a text unit doesn't pop up the editor anymore. :D fix plz
 export class ContainerTextInjector {
@@ -58,29 +61,31 @@ export class ContainerTextInjector {
 		nodeName:"DIV", 
 		className: "text-document-cursor", 
 		computedStyle:{"position":"absolute"},
-		data:{ignore:true},
-		permissions:{
-			"container.broadcast":{"*":false},
-			"container.bridge":{"*":false}
+		data:{
+			ignore:true,
+			containerPermissions:{
+				"container.broadcast":{"*":false},
+				"container.bridge":{"*":false}
+			}
 		}
 	}
 
 	lineDescriptor = {
 		nodeName: "DIV", 
 		className: "text-document-line", 
-		permissions:textItemPerms,
 		"data":{
-			"containerActions":[{"trigger":"click","call":"container.edit.text.onLineClick","params":[]}]
+			"containerActions":[{"trigger":"click","call":"container.edit.text.onLineClick","params":[]}],
+			"containerPermissions":textLinePerms
 		}
 	}
 	
 	textUnitDescriptor = {
 		nodeName: "SPAN", 
-		className: "text-document-unit", 
-		permissions:textItemPerms,
+		className: "text-document-unit",
 		computedStyle:{},
 		"data":{
-			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}]
+			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}],
+			"containerPermissions":textItemPerms
 		}
 	}
 	
@@ -142,12 +147,12 @@ export class ContainerTextInjector {
 				"position":"absolute"
 			},
 			"data":{
-		    	"ignore":true
-		    },
-			"permissions":{
-				"container.broadcast":{"*":false},
-				"container.bridge":{"*":false}
-			}
+		    	"ignore":true,
+		    	"containerPermissions":{
+					"container.broadcast":{"*":false},
+					"container.bridge":{"*":false}
+				}
+		    }
 		},
 		null,
 		this.appId)
@@ -732,7 +737,7 @@ export class ContainerTextInjector {
 		let descriptor = this.container.toSerializable(unit.id)
 		delete descriptor.id;
 		descriptor.innerHTML = rightText;
-		descriptor.permissions = textItemPerms
+		descriptor.data.containerPermissions = JSON.stringify(textItemPerms)
 
 		this.container.notifyUpdate(unit, this.appId)
 		let right = this.container.createFromSerializable(unit.parentNode.id, descriptor, unit.nextSibling, this.appId)	

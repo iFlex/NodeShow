@@ -69,9 +69,8 @@ export class ContainerSelect {
 			this.#enabled = false
 			this.#mouse.disable();
 			this.#keyboard.disable();
-			
-			this.clearSelection();
 			this.stop();
+			this.clearSelection();
 		}
 	}
 
