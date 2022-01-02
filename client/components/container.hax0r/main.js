@@ -1,7 +1,7 @@
 export class ContainerHax0r {
 	appId = 'container.hax0r'
 	container = null;
-	transactional = true
+	type = 'service'
 	modal = true
     displayName = "Hax0r"
 

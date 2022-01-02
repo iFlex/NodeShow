@@ -76,10 +76,8 @@ e.g. Permissions, Actions, etc.
 [TODO]: Work on solid encoding interpretation on content from server
 [TODO]: grouper color selection. pick color in a smart way rather than just black
 [TODO]: copy/paste style only (via context menu)
-[TODO]: make clipboard paste at current screen position
 [TODO]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
 [TODO]: make insert content via data b64 link work
-[TODO]: Notify user when selecting or grouping more than the limit. Notify them the operation will be capped.
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG][MUST-FIX]: Keyboard sticky keys. Some keys incorrectly are shown as pressed despite them not being pressed
 [TODO]: split container.create to not have the inner organisation interface and create new app container.content.arrange
