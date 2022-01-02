@@ -34,7 +34,7 @@ Current Prios:
 --------------------------------------------
 [TODO][L]: Aditing container at abstraction level should apply to abstraction level not root content.
 [TODO][L]: make text editor ignore invisible divs.
-
+[TODO]: go through all event emitting functions and add an option to not emit events
 [0. MUST-HAVE][XL]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
     - this should allow me to leave the project unattended for longer and work on other stuff as well.
 
@@ -58,7 +58,6 @@ e.g. Permissions, Actions, etc.
  - make it possible for apps to ask for exclusive access over an input event
     aquire/release
     
-[BUG]: some interface components are persisted...
 [BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes

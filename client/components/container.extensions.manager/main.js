@@ -92,7 +92,7 @@ export class ContainerExtensionsManager {
         let cloned = this.#componentModelDom.cloneNode(true)
         cloned.innerHTML = id
         
-        this.#container.addDomChild(this.#interface, cloned, this.appId)
+        this.#container.addDomChild(this.#interface, cloned, this.appId, false)
         this.#container.show(cloned)
         this.#componentTogglers[id] = cloned
 

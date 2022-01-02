@@ -869,7 +869,7 @@ export class Container {
         this.setSiblingPosition(sibling, pos + amount, callerId)
     }
 
-    addDomChild(parentId, domNode, callerId) {
+    addDomChild(parentId, domNode, callerId, emit) {
         Container.applyPreHooks(this, 'create', [parentId, domNode, callerId])
 
         let parent = Container.lookup(parentId);
@@ -883,12 +883,14 @@ export class Container {
             this.updateZindexLimits(domNode)
 
             this.CONTAINER_COUNT++;
-            this.emit(ACTIONS.create, {
-                presentationId: this.presentationId, 
-                parentId: parent.id,
-                callerId: callerId,
-                id: domNode.id
-            });
+            if (emit !== false) {
+                this.emit(ACTIONS.create, {
+                    presentationId: this.presentationId, 
+                    parentId: parent.id,
+                    callerId: callerId,
+                    id: domNode.id
+                });
+            }
         }
     }
 

@@ -68,8 +68,11 @@ class DelayedMutationFolderKeyValueStore {
 	step() {
 		if (this.fastStorage) {
 			for( let id of Object.keys(this.#changed)) {
-				let data = this.fastStorage.get(id)
-				this.persist(id, data)
+				if (this.#changed[id]) {
+					let data = this.fastStorage.get(id)
+					this.persist(id, data)
+					this.#changed[id] = false
+				}
 			}
 		}
 	}
