@@ -34,6 +34,8 @@ Current Prios:
 --------------------------------------------
 [TODO][L]: Aditing container at abstraction level should apply to abstraction level not root content.
 [TODO][L]: make text editor ignore invisible divs.
+
+[3. TODO][L]: evaluate event firing and how it should be done
 [TODO]: go through all event emitting functions and add an option to not emit events
 [0. MUST-HAVE][XL]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
     - this should allow me to leave the project unattended for longer and work on other stuff as well.
@@ -42,7 +44,6 @@ Current Prios:
 ! Any metadata about an object that is not mutated very frequently shall be stored in the dataset. This allows the current system to persist it by default without code change and requires registering a hook for loading from dataset whenever necessary
 e.g. Permissions, Actions, etc. 
 
-[3. TODO][L]: evaluate event firing and how it should be done
 
 [TODO][M]: Integrate user feedback in relevant apps
 

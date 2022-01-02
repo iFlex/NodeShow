@@ -36,7 +36,7 @@ export class UserDialogue {
 		alert(message)
 	}
 
-	stackMessage(message, options) {
+	addStackMessage(message, options) {
 		alert(message)
 	}
 }

@@ -129,12 +129,20 @@ export class ContainerGrouping {
 			
 			grouped++;
 			if (grouped >= this.MAX_GROUP_AT_ONCE) {
-				console.log(`Grouper reached maximum items to group at a time.`)
+				console.log(`${this.appId} reached maximum items to group at a time.`)
+				this.#tellUser(`Grouped only ${this.MAX_GROUP_AT_ONCE} items. Grouping more than this at once degrades performance`)
 				break;
 			}
 		}
 
 		this.#grouper = null;
 		this.#startPos = null;
+	}
+
+	#tellUser(msg) {
+		let userd = this.#container.getComponent('user.dialogue')
+		if (userd) {
+			userd.addStackMessage(msg)
+		}
 	}
 }

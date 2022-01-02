@@ -151,6 +151,7 @@ export class ContainerSelect {
 
 			if (this.#selection.length >= this.MAX_SELECTION_SIZE) {
 				console.log(`${this.appId} - Selection overflow`)
+				this.#tellUser(`Selected only ${this.MAX_SELECTION_SIZE} items. Selecting more than this at once degrades performance`)
 				break;
 			}
 		}
@@ -181,5 +182,12 @@ export class ContainerSelect {
 		}
 
 		this.#selection = []
+	}
+
+	#tellUser(msg) {
+		let userd = this.#container.getComponent('user.dialogue')
+		if (userd) {
+			userd.addStackMessage(msg)
+		}
 	}
 }
