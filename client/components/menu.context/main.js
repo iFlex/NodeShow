@@ -182,7 +182,7 @@ export class ContextMenu {
 	callAction(e, details) {
 		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
-	    	let selection = this.userOrMakeSelection(e)
+	    	let selection = getSelection(this.#container)
 
             let params = []
             //[TODO]: make a better system for determining what params the call will be made with

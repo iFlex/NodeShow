@@ -1,38 +1,37 @@
 import { Container } from '../../Container.js'
 import { getSelection } from '../utils/common.js'
 import { getCursorPosition } from '../utils/mouse.js'
+import { Clipboard } from "../utils/clipboard.js"
 
 export class ContainerClipboard {
 	appId = "container.clipboard"
 	type = 'background'
+
+	#clipboard = null;
 	#container = null;
 	#enabled = false
-	#handlers = {}
-
+	
 	constructor (container) {
 		this.#container = container;
 		container.registerComponent(this);
 
-		this.#handlers['paste'] = (event) => this.paste(event)
-		this.#handlers['copy'] = (event) => this.copy(event)
-		this.#handlers['cut'] = (event) => this.cut(event)	
+		this.#clipboard = new Clipboard(this.#container)
+		this.#clipboard.setAction('container.paste', (event) => this.paste(event.detail.originalEvent))
+		this.#clipboard.setAction('container.copy', (event) => this.copy(event.detail.originalEvent))
+		this.#clipboard.setAction('container.cut', (event) => this.cut(event.detail.originalEvent))
 	}
 
 	enable () {
 		if (!this.#enabled) {
 			this.#enabled = true
-			for (const [key, value] of Object.entries(this.#handlers)) {
-				document.addEventListener(key, value)
-			}
+			this.#clipboard.enable()
 		}
 	}
 
 	disable () {
 		if (this.#enabled) {
 			this.#enabled = false
-			for (const [key, value] of Object.entries(this.#handlers)) {
-				document.removeEventListener(key, value)
-			}
+			this.#clipboard.disable()
 		}
 	}
 
