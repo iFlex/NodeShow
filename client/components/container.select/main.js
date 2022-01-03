@@ -142,19 +142,7 @@ export class ContainerSelect {
 		}
 
 		let overlapped = this.#overlap.getOverlappingSiblings(this.#selector)
-		
-		this.clearSelection();
-		for (let entry of overlapped) {
-			this.#selection.push(entry.id)
-			let node = this.#container.lookup(entry.id)
-			$(node).addClass(this.selectedClass)
-
-			if (this.#selection.length >= this.MAX_SELECTION_SIZE) {
-				console.log(`${this.appId} - Selection overflow`)
-				this.#tellUser(`Selected only ${this.MAX_SELECTION_SIZE} items. Selecting more than this at once degrades performance`)
-				break;
-			}
-		}
+		this.makeSelection(overlapped)
 		
 		console.log(`${this.appId} selected ${this.#selection.length} items`)
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
@@ -182,6 +170,22 @@ export class ContainerSelect {
 		}
 
 		this.#selection = []
+	}
+
+	makeSelection(items) {
+		this.clearSelection();
+
+		for (let entry of items) {
+			this.#selection.push(entry.id)
+			let node = this.#container.lookup(entry.id)
+			$(node).addClass(this.selectedClass)
+
+			if (this.#selection.length >= this.MAX_SELECTION_SIZE) {
+				console.log(`${this.appId} - Selection overflow`)
+				this.#tellUser(`Selected only ${this.MAX_SELECTION_SIZE} items. Selecting more than this at once degrades performance`)
+				break;
+			}
+		}
 	}
 
 	#tellUser(msg) {

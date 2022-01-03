@@ -1,4 +1,5 @@
 import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
+import { clearSelection, getSelection, makeSelection } from '../utils/common.js'
 
 //ToDo: state based button text and action
 //ToDo: implement key bindings
@@ -13,6 +14,7 @@ export class ContextMenu {
 
 	#defaultActions = [
 		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click'},
+		{name: "Deselect", action: "menu.context.deselect", shortcut: 'Ctrl+d'},
 		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "deleteSparingChildren", shortcut:'End', icon:'ns-delete-icon'},
 		{name: "Text", action: "menu.context.editText", options:{forwardEvent:true}},
@@ -167,15 +169,27 @@ export class ContextMenu {
 		userd.toast(e)
 	}
 
+	userOrMakeSelection(e) {
+		let selection = getSelection(this.#container)
+		if (selection.length == 0) {
+			makeSelection(this.#container, e.target)
+			return getSelection(this.#container)
+		} 
+
+		return selection
+	}
+
 	callAction(e, details) {
 		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
+	    	let selection = this.userOrMakeSelection(e)
+
             let params = []
             //[TODO]: make a better system for determining what params the call will be made with
             if (details.options && details.options.forwardEvent) {
             	params.push(e)
             }
-            params.push(this.#target)
+            params.push(selection[0]) //params.push(this.#target)
             params.push(this.appId)
             
             if (details.params) {
@@ -201,5 +215,9 @@ export class ContextMenu {
 	editText(e) {
 		let textEditor = this.#container.getComponent('container.edit.text')
 		textEditor.start(this.#target, {top:e.pageY, left: e.pageX})
+	}
+
+	deselect(e) {
+		clearSelection(this.#container)
 	}
 }
