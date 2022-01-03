@@ -33,8 +33,9 @@ Client Features:
 Current Prios:
 --------------------------------------------
 [TODO][L]: Editing container at abstraction level should apply to abstraction level not root content.
-[TODO][]: Determine if content in abstraction level > 0 should be allowed to be abstracted.
 [TODO][L]: make text editor ignore invisible divs.
+
+[TODO][]: Determine if content in abstraction level > 0 should be allowed to be abstracted.
 
 [3. TODO][L]: evaluate event firing and how it should be done
 [TODO]: go through all event emitting functions and add an option to not emit events

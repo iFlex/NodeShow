@@ -1,5 +1,5 @@
 import { Keyboard } from '../utils/keyboard.js'
-//import { getSelection, clearSelection } from '../utils/common.js'
+import { getSelection, clearSelection } from '../utils/common.js'
 
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
@@ -82,7 +82,6 @@ export class ContainerCreator {
 			return;
 		}
 		console.log(`${this.appId} deleting: ${sid}`)
-		console.log(sid)	
 		try {
 			if (spareChildren) {
 				this.container.deleteSparingChildren(sid, this.appId);
@@ -95,15 +94,10 @@ export class ContainerCreator {
 	}
 
 	delete (spareChildren) {
-		if(this.target) {
-			this.deleteNode(this.target)
-
-			//[TODO]: check for stability, new feature
-			// let selection = getSelection();
-			// clearSelection();
-			// for (const sid of selection) {
-			// 	this.deleteNode(sid, spareChildren)
-			// }
+		let selection = getSelection(this.container);
+		clearSelection(this.container);
+		for (const sid of selection) {
+			this.deleteNode(sid, spareChildren)
 		}
 		this.target = null;
 	}
