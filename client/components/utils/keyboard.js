@@ -2,6 +2,7 @@ import { container } from "../../nodeshow.js"
 import { KeyboardManager } from "./KeyboardManager.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
 
+//[TODO][FIX]: in certian situations the keyboar will believe certain keys are still pressed when they are not.
 export const EVENTS = {
     'keydown':'container.keydown',
     'keyup':'container.keyup'
@@ -209,9 +210,9 @@ export class Keyboard {
             this.#onPrintable.handler.apply(this.#onPrintable.context, [e.key])
         }
 
-        console.log(`KEY DOWN ${e.key}`)
-        console.log(this.#pressedPrintables)
-        console.log(this.#pressedNonPrintables)
+        // console.log(`KEY DOWN ${e.key}`)
+        // console.log(this.#pressedPrintables)
+        // console.log(this.#pressedNonPrintables)
     }
 
     handleKeyUp(e) {

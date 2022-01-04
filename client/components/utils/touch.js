@@ -37,16 +37,16 @@ let lastClickTime = 0;
 //ignore multitouch for now
 //[TODO]: figure out why it doesn't work
 function handleStart(e) {
-	if (!container.owns(e.target)) {
+	let touch = e.touches[0]
+	if (!container.owns(touch.target)) {
 		console.log('Touch on not owned item')
 		console.log(e)
 		return null;
 	}
 
-	let touch = e.touches[0]
-
-	target = findActionableAnchestor(container, e.target, appId)
+	target = findActionableAnchestor(container, touch.target, appId)
 	if (target) {
+		e.preventDefault();
 		focusTarget = target
 		
 		targetMetadata['targetOx'] = touch.layerX / container.getWidth(target) 
@@ -62,13 +62,13 @@ function handleStart(e) {
 			targetOy: targetMetadata.targetOy,
 			originalEvent: e});
 		container.emit('container.blur', {});
-		e.preventDefault();
 	}
 }
 
 function handleMove(e) {
 	let touch = e.touches[0]
 	if (target) {
+		e.preventDefault();
 		let dx = touch.screenX - lastX;
 		let dy = touch.screenY - lastY;
 
@@ -85,7 +85,6 @@ function handleMove(e) {
 		});
 
 		container.emit('container.blur', {});
-		e.preventDefault();
 	}
 
 	lastX = touch.screenX;
@@ -98,6 +97,7 @@ function handleCancel(e) {
 
 function handleEnd(e) {
 	if (target) {
+		e.preventDefault();
 		container.emit(EVENTS.DRAG_END,{
 			id:target.id,
 			dx: 0, //ToDo: incorrect
@@ -118,9 +118,7 @@ function handleEnd(e) {
 			}
 			lastClickTime = dnow
 		}
-
 		target = null;
-		e.preventDefault();
 	}
 }
 
@@ -164,14 +162,16 @@ function actLikeMouse(evt) {
   touch.target.originalTarget.dispatchEvent(newEvt);
 }
 
-document.addEventListener("touchstart", actLikeMouse, false);
-document.addEventListener("touchend", actLikeMouse, false);
-document.addEventListener("touchmove", actLikeMouse, false);
+let eventRoot = document.getElementById('nodeshow-content')
 
-document.addEventListener("touchstart", handleStart, false);
-document.addEventListener("touchend", handleEnd, false);
-document.addEventListener("touchcancel", handleCancel, false);
-document.addEventListener("touchmove", handleMove, false);
+eventRoot.addEventListener("touchstart", actLikeMouse, false);
+eventRoot.addEventListener("touchend", actLikeMouse, false);
+eventRoot.addEventListener("touchmove", actLikeMouse, false);
+
+eventRoot.addEventListener("touchstart", handleStart, false);
+eventRoot.addEventListener("touchend", handleEnd, false);
+eventRoot.addEventListener("touchcancel", handleCancel, false);
+eventRoot.addEventListener("touchmove", handleMove, false);
 
 
 let TouchManager = new InputManager(InputAccessManager, EVENTS);

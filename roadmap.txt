@@ -32,15 +32,13 @@ Client Features:
 
 Current Prios:
 --------------------------------------------
-[IN_PROGRESS][L]: Fix clash between UI input fields and container.clipboard and container.edit.text
- - make it possible for apps to ask for exclusive access over an input event
-    aquire/release
- : requires changes in InputAccessManager and a Clipboard interface implementation
- [TODO]: tests for access granting
+[TODO]: Decouple input interfaces from nodeshow.js instance of container
+        - needs event separation (currently all events are listened for via document, they should be listened for via container.parent)
 
 [TODO]: Accomodate multiple Mouse & Touch instances for the same applicationId. Currently breaks pretty badly (affects routing of events)
 
 [TODO][L]: Editing container at abstraction level should apply to abstraction level not root content.
+
 [TODO][L]: make text editor ignore invisible divs.
 
 [TODO][]: Determine if content in abstraction level > 0 should be allowed to be abstracted.
@@ -64,6 +62,8 @@ e.g. Permissions, Actions, etc.
 [TODO]: Implement functionality to make container fit content (including abs pos content)
  - without harming non positioned elements? (can it be done?)
  : currently a shitty but relatively working implementation exists
+
+[TODO]: tests for InputAccessManager access granting
  
 [BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 
