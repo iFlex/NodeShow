@@ -31,7 +31,7 @@ export class ContainerLink {
             this.#enabled = true
             
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.#container.addEventListener(key, value)
             }
         }
     }
@@ -41,7 +41,7 @@ export class ContainerLink {
             this.#enabled = false
             
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.#container.removeEventListener(key, value)
             }
         }
     }

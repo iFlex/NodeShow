@@ -32,7 +32,7 @@ export class ContainerEditLinks {
             this.#mouse.enable();
 
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.#container.addEventListener(key, value)
             }
         }
     }
@@ -43,7 +43,7 @@ export class ContainerEditLinks {
             this.#mouse.disable();
             
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.#container.removeEventListener(key, value)
             }
         }
     }

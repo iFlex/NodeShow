@@ -44,6 +44,8 @@ Current Prios:
 [TODO][]: Determine if content in abstraction level > 0 should be allowed to be abstracted.
 
 [3. TODO][L]: evaluate event firing and how it should be done
+[4. TODO][L]: performance review the volume of events being sent by the presentation: especially by link maintenance
+
 [TODO]: go through all event emitting functions and add an option to not emit events
 [0. MUST-HAVE][XL]: Standardize Core. Add Tests [IN_PROGRESS]. Document [IN_PROGRESS]
     - this should allow me to leave the project unattended for longer and work on other stuff as well.

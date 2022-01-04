@@ -52,7 +52,7 @@ export class ContainerFeedback {
 		if (!this.#enabled) {
 			this.#enabled = true
 			for (const [ev, hndl] of Object.entries(this.#handlers)) {
-				document.addEventListener(ev, hndl)
+				this.#container.addEventListener(ev, hndl)
 			}
 		}
 	}
@@ -61,7 +61,7 @@ export class ContainerFeedback {
 		if (this.#enabled) {
 			this.#enabled = false
 			for (const [ev, hndl] of Object.entries(this.#handlers)) {
-				document.removeEventListener(ev, hndl)
+				this.#container.removeEventListener(ev, hndl)
 			}
 		}
 	}

@@ -41,7 +41,7 @@ export class ContainerLineage {
             this.#enabled = true;
             this.#mouse.enable();
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.container.addEventListener(key, value)
             }
             this.#keyboard.enable();
         }
@@ -52,7 +52,7 @@ export class ContainerLineage {
             this.#enabled = false;
             this.#mouse.disable();
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.container.removeEventListener(key, value)
             }
             this.#keyboard.disable();
         }

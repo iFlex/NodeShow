@@ -35,7 +35,7 @@ export class ContainerRepeller {
     enable() {
         if (!this.#enabled) {
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.#container.addEventListener(key, value)
             }
             this.#mouse.enable();
             this.#enabled = true
@@ -45,7 +45,7 @@ export class ContainerRepeller {
     disable() {
         if (this.#enabled) {
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.#container.removeEventListener(key, value)
             }
             this.#mouse.disable();
             this.#enabled = false

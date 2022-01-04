@@ -64,7 +64,7 @@ export class ContainerContent {
       if (!this.#enabled) {
         this.#enabled = true
         for (const [key, value] of Object.entries(this.#handlers)) {
-          document.addEventListener(key, value)
+          this.container.addEventListener(key, value)
         }
 
         this.onTextFieldFocus()	
@@ -79,7 +79,7 @@ export class ContainerContent {
 
         this.onTextFieldBlur()
         for (const [key, value] of Object.entries(this.#handlers)) {
-          document.removeEventListener(key, value)
+          this.container.removeEventListener(key, value)
         }
         this.container.hide(this.#interface, this.appId)
       }

@@ -1049,6 +1049,14 @@ export class Container {
     appEmit(appId, type, details) {
         this.emit(appId+'.'+type, details); 
     }
+
+    addEventListener(event, listener) {
+        this.parent.addEventListener(event, listener)
+    }
+
+    removeEventListener(event, listener) {
+        this.parent.removeEventListener(event, listener)
+    }
     //</events>
 }
 

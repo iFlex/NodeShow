@@ -188,7 +188,7 @@ export class ContainerTextInjector {
 	enable() {
 		if (!this.#enabled) {
 			for (const [key, value] of Object.entries(this.#handlers)) {
-				document.addEventListener(key, value)
+				this.container.addEventListener(key, value)
 			}
 			this.#enabled = true
 		}	
@@ -198,7 +198,7 @@ export class ContainerTextInjector {
 		if (this.#enabled) {
 			this.stop();
 			for (const [key, value] of Object.entries(this.#handlers)) {
-				document.removeEventListener(key, value)
+				this.container.removeEventListener(key, value)
 			}
 			this.container.hide(this.#interface, this.appId)
 			this.#enabled = false

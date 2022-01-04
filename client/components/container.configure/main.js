@@ -49,7 +49,7 @@ export class ContainerConfig {
 			this.#enabled = true
 
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
-				document.addEventListener(event, handler)
+				this.container.addEventListener(event, handler)
 			}
 
 			this.container.show(this.#interface, this.appId)
@@ -63,7 +63,7 @@ export class ContainerConfig {
 			this.#enabled = false
 
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
-				document.removeEventListener(event, handler)
+				this.container.removeEventListener(event, handler)
 			}
 
 			this.container.hide(this.#interface, this.appId)

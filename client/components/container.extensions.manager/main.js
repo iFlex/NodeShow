@@ -58,7 +58,7 @@ export class ContainerExtensionsManager {
     enable() {
         if (!this.#enabled) {
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.#container.addEventListener(key, value)
             }
             this.#container.show(this.#interface)
             this.#enabled = true
@@ -68,7 +68,7 @@ export class ContainerExtensionsManager {
     disable() {
         if (this.#enabled) {
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.#container.removeEventListener(key, value)
             }
             this.#container.hide(this.#interface)
             this.#enabled = false

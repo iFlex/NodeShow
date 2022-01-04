@@ -76,7 +76,7 @@ export class ContextMenu {
 		if (!this.#enabled) {
 			this.#enabled = true
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
-				document.addEventListener(event, handler)
+				this.#container.addEventListener(event, handler)
 			}
 			this.#touch.enable();
 		}
@@ -87,7 +87,7 @@ export class ContextMenu {
 			this.#enabled = false
 			this.#container.hide(this.#interface, this.appId)
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
-				document.removeEventListener(event, handler)
+				this.#container.removeEventListener(event, handler)
 			}
 			this.#touch.disable();
 			

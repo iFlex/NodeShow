@@ -59,7 +59,7 @@ export class ContainerEditAbstraction {
     enable() {
         if(!this.#enabled) {
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.#container.addEventListener(key, value)
             }
             this.#enabled = true
             this.#keyboard.enable();
@@ -69,7 +69,7 @@ export class ContainerEditAbstraction {
     disable() {
         if (this.#enabled) {
             for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.#container.removeEventListener(key, value)
             }
             this.#enabled = false
             this.#keyboard.disable();

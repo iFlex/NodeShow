@@ -104,7 +104,7 @@ export class ContainerEditOrchestrator {
 			this.onMouseMgmtChange();
 			
 			for (const [key, value] of Object.entries(this.#handlers)) {
-                document.addEventListener(key, value)
+                this.#container.addEventListener(key, value)
             }
 
 			this.#container.show(this.#interface, this.appId)
@@ -118,7 +118,7 @@ export class ContainerEditOrchestrator {
 			this.#keyboard.disable();
 			
 			for (const [key, value] of Object.entries(this.#handlers)) {
-                document.removeEventListener(key, value)
+                this.#container.removeEventListener(key, value)
             }
 
 			this.#container.hide(this.#interface, this.appId)
