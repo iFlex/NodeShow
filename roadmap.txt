@@ -35,6 +35,8 @@ Current Prios:
 [TODO]: Decouple input interfaces from nodeshow.js instance of container
         - needs event separation (currently all events are listened for via document, they should be listened for via container.parent)
 
+[TODO]: Make color picker with contrast and color profiles that can be used by any other app
+
 [TODO]: Accomodate multiple Mouse & Touch instances for the same applicationId. Currently breaks pretty badly (affects routing of events)
 
 [TODO][L]: Editing container at abstraction level should apply to abstraction level not root content.
