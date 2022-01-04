@@ -2,9 +2,6 @@ import { container } from "../../nodeshow.js"
 import { KeyboardManager } from "./KeyboardManager.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
 
-//[BUG]: pressedPrintables is unreliable: shift modifies that character code. need some map based translation.
-// e.g. SHIFT+/ = ? if you then lift shift before ? the next keyUp event will be / instead of ?
-    // -> fix: when SHIFT is de-pressed, remove all pressed uppercase characters
 export const EVENTS = {
     'keydown':'container.keydown',
     'keyup':'container.keyup'
