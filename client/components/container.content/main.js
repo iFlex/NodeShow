@@ -1,5 +1,7 @@
 import { getSelection } from '../utils/common.js'
 import { post } from '../utils/http.js'
+import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 export class ContainerContent {
     appId = 'container.content'
@@ -9,6 +11,7 @@ export class ContainerContent {
 
     contentURL = `https://${window.location.host}`
     
+    #clipboard = null
     #interface = null
     #handlers = {}
     #enabled = false
@@ -17,8 +20,15 @@ export class ContainerContent {
     constructor (container) {
 		  this.container = container;
 		  container.registerComponent(this);
+      
+      this.#clipboard = new Clipboard(this.appId);
+      for (let evid of Object.values(ClipboardEvents)) {
+        this.#clipboard.setAction(evid,
+          (event) => {},//noop
+          ACCESS_REQUIREMENT.EXCLUSIVE)  
+      }
     
-      this.loadInterface()  
+      this.loadInterface()
     }
 
     loadInterface() {
@@ -52,7 +62,9 @@ export class ContainerContent {
         this.#enabled = true
         for (const [key, value] of Object.entries(this.#handlers)) {
           document.addEventListener(key, value)
-        }	
+        }
+
+        this.onTextFieldFocus()	
         this.container.show(this.#interface, this.appId)
         this.container.bringToFront(this.#interface)
       }
@@ -62,9 +74,10 @@ export class ContainerContent {
       if (this.#enabled) {
         this.#enabled = false;
 
+        this.onTextFieldBlur()
         for (const [key, value] of Object.entries(this.#handlers)) {
           document.removeEventListener(key, value)
-        }	
+        }
         this.container.hide(this.#interface, this.appId)
       }
     }
@@ -140,7 +153,7 @@ export class ContainerContent {
     }
 
     createFromData(contentType, data) {
-      let selection = getSelection()
+      let selection = getSelection(this.container)
       let target = this.container.parent
       if (selection.length > 0) {
         target = selection[0]
@@ -230,5 +243,13 @@ export class ContainerContent {
       for (const file of e.target.files) {
         this.readFile(file)
       }
+    }
+
+    onTextFieldFocus() {
+      this.#clipboard.enable()
+    }
+
+    onTextFieldBlur() {
+      this.#clipboard.disable()
     }
 }

@@ -1,6 +1,9 @@
 import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
+import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+
 //import { getSelection } from '../utils/common.js'
 //ToDo:
 //delete via delete doesn't work well
@@ -35,6 +38,7 @@ export class ContainerTextInjector {
 	target = null;
 	#interface = null;
 	#keyboard = null;
+	#clipboard = null;
 
 	#enabled = false
 	#handlers = {};
@@ -129,13 +133,24 @@ export class ContainerTextInjector {
 		this.#keyboard = new Keyboard(this.appId);
 		this.initKeyboard();
 
+		this.#clipboard = new Clipboard(this.appId);
+		this.#clipboard.setAction(ClipboardEvents.paste,
+			(event) => this.paste(event.detail.originalEvent),
+			ACCESS_REQUIREMENT.EXCLUSIVE)
+
+		this.#clipboard.setAction(ClipboardEvents.cut,
+			(event) => this.cut(event.detail.originalEvent),
+			ACCESS_REQUIREMENT.EXCLUSIVE)
+
+		this.#clipboard.setAction(ClipboardEvents.copy,
+			(event) => {}, //noop
+			ACCESS_REQUIREMENT.EXCLUSIVE)
+
 		// this.#handlers['container.select.selected'] = (e) => {
 		// 	this.stop();
 		// 	this.tryFetchTarget(e.selection)
 		// }
 
-		this.#handlers['paste'] = (event) => this.paste(event)
-		this.#handlers['cut'] = (event) => this.cut(event)
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
 
 		//create interface holder
@@ -185,7 +200,6 @@ export class ContainerTextInjector {
 			for (const [key, value] of Object.entries(this.#handlers)) {
 				document.removeEventListener(key, value)
 			}
-			this.#keyboard.disable()
 			this.container.hide(this.#interface, this.appId)
 			this.#enabled = false
 		}
@@ -274,6 +288,7 @@ export class ContainerTextInjector {
 		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 		
 		this.#keyboard.enable();
+		this.#clipboard.enable();
 	}
 
 	stop () {
@@ -281,6 +296,7 @@ export class ContainerTextInjector {
 			console.log(`${this.appId} stop text editing`)
 			this.container.componentStoppedWork(this.appId)
 			this.#keyboard.disable()
+			this.#clipboard.disable()
 			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 			this.container.removeMetadata(this.target, 'text-editing')
 			
@@ -355,7 +371,7 @@ export class ContainerTextInjector {
 		}
 
 		this.deleteSelection();
-		event.preventDefault();
+		//event.preventDefault();
 	}
 	
 	isLine(elem) {

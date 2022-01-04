@@ -45,7 +45,7 @@ function handleStart(e) {
 
 	let touch = e.touches[0]
 
-	target = findActionableAnchestor(e.target, appId)
+	target = findActionableAnchestor(container, e.target, appId)
 	if (target) {
 		focusTarget = target
 		
@@ -129,6 +129,8 @@ function actLikeMouse(evt) {
     return;
 
   evt.preventDefault();
+  evt.stopPropagation();
+  
   var type = null;
   var touch = null;
 
@@ -159,7 +161,7 @@ function actLikeMouse(evt) {
   	button: 0
   }); 
   
-  evt.originalTarget.dispatchEvent(newEvt);
+  touch.target.originalTarget.dispatchEvent(newEvt);
 }
 
 document.addEventListener("touchstart", actLikeMouse, false);
@@ -184,7 +186,7 @@ export class Touch {
 
 	constructor(appId) {
 		console.log(`NEW Touch manager instance created for ${appId}`)
-		this.#appId = appId
+		this.#appId = appId//`${appId}-${Container.generateUUID()}`
 	}
 
 	enable() {

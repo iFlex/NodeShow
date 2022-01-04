@@ -68,7 +68,7 @@ export class ContainerStyler {
 	}
 
 	#applyChange(style) {
-		let selection = getSelection();
+		let selection = getSelection(this.container);
 		console.log(`${this.appId} got selection:`)
 		console.log(selection)
 		for ( const item of selection ) {
@@ -146,7 +146,7 @@ export class ContainerStyler {
 
 	changeWidthUnit (e) {
 		let unit = e.target.value;
-		let selection = getSelection();
+		let selection = getSelection(this.container);
 		for (const item of selection) {
 			try {
 				let widthPx = this.container.getWidth(item)
@@ -159,7 +159,7 @@ export class ContainerStyler {
 
 	changeHeightUnit (e) {
 		let unit = e.target.value;
-		let selection = getSelection();
+		let selection = getSelection(this.container);
 		for (const item of selection) {
 			try {
 				let widthPx = this.container.getHeight(item)
@@ -172,7 +172,7 @@ export class ContainerStyler {
 
 	changePosXUnit (e) {
 		let unit = e.target.value;
-		let selection = getSelection();
+		let selection = getSelection(this.container);
 		for (const item of selection) {
 			try {
 				let pos = this.container.getPosition(item)
@@ -186,7 +186,7 @@ export class ContainerStyler {
 
 	changePosYUnit (e) {
 		let unit = e.target.value;
-		let selection = getSelection();
+		let selection = getSelection(this.container);
 		for (const item of selection) {
 			try {
 				let pos = this.container.getPosition(item)

@@ -1,7 +1,7 @@
 import { getSelection } from '../utils/common.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
-import { Touch } from '../utils/touch.js'
+import { Touch, EVENTS as TouchEvents } from '../utils/touch.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
@@ -35,9 +35,9 @@ export class ContainerMover {
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#touch = new Touch(this.appId);
-		this.#touch.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
-		this.#touch.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
-		this.#touch.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#touch.setAction(TouchEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#touch.setAction(TouchEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#touch.setAction(TouchEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#handlers['dragStart'] = (e) => e.preventDefault()
 		//this.#handlers[ACTIONS.create] = (e) => this.markEditable(e.detail.id)
@@ -47,7 +47,7 @@ export class ContainerMover {
 		if (!this.#enabled) {
 			this.#enabled = true
 			this.#mouse.enable();
-
+			//this.#touch.enable();
 			//ToDo: forgot what this is for, document plz
 			$('*').on('dragstart', this.#handlers.dragStart);
 
@@ -63,7 +63,7 @@ export class ContainerMover {
 		if (this.#enabled) {
 			this.#enabled = false
 			this.#mouse.disable();
-			
+			//this.#touch.disable();
 			$('*').off('dragstart', this.#handlers.dragStart);
 
 			//checking shift and ctrl
@@ -103,7 +103,7 @@ export class ContainerMover {
 	start(id) {
 		this.target = this.container.lookup(id)
 		this.container.componentStartedWork(this.appId, {})
-		this.#selection = new Set(getSelection())
+		this.#selection = new Set(getSelection(this.container))
 	}
 
 	handleDragUpdate(e) {

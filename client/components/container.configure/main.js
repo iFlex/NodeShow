@@ -75,7 +75,7 @@ export class ContainerConfig {
 	}
 
 	onFocus(id) {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 	}
 
 	onUnfocus(e) {
@@ -83,46 +83,46 @@ export class ContainerConfig {
 	}
 
 	applyChanges() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 	}
 
 	lockPosition() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		for (const target of this.selection) {
 			this.container.setPermission(target, ACTIONS.setPosition, "*", false, this.appId)
 		}
 	}
 
 	unlockPosition() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setPosition, null, this.appId)
 		}
 	}
 
 	lockWidth() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		for (const target of this.selection) {
 			this.container.setPermission(target, ACTIONS.setWidth, "*", false, this.appId)
 		}
 	}
 
 	unlockWidth() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setWidth, null, this.appId)
 		}
 	}
 
 	lockHeight() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		for (const target of this.selection) {
 			this.container.setPermission(target, ACTIONS.setHeight, "*", false, this.appId)
 		}
 	}
 
 	unlockHeight() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setHeight, null, this.appId)
 		}

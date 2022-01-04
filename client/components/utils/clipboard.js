@@ -7,13 +7,12 @@ import { container } from "../../nodeshow.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
 import { InputManager } from "../utils/InputManager.js"
 
-//ToDo: ensure click and double click events take distance from origin point into account
 let appId = null; //Temporary, think this up
 
 export const EVENTS = {
-	'COPY':'container.copy',
-	'PASTE':'container.paste',
-	'CUT':'container.cut'
+	'copy':'container.copy',
+	'paste':'container.paste',
+	'cut':'container.cut'
 }
 
 function copy(e) {

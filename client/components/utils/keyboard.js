@@ -1,7 +1,6 @@
 //Caution: keyboard will be in incorrect state if window looses focus between keydown and keyup
-//BUG: pressedPrintables is unreliable: shift modifies that character code. need some map based translation.
+//[BUG]: pressedPrintables is unreliable: shift modifies that character code. need some map based translation.
 // e.g. SHIFT+/ = ? if you then lift shift before ? the next keyUp event will be / instead of ?
-//ToDo: when window loses focus, depress all keys
 /** @class
  *  @summary Component implementing consistent access to keyboard input. 
  *  @description TODO

@@ -77,7 +77,7 @@ export class ContainerJsonEdit {
 	}
 
 	onFocus(id) {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 		
 		if (this.selection.length > 0) {
 			console.log(`${this.appId} - onFocus() loading up actions and premissions for`)
@@ -102,7 +102,7 @@ export class ContainerJsonEdit {
 	}
 
 	applyChanges() {
-		this.selection = getSelection();
+		this.selection = getSelection(this.container);
 
 		let actions = {}
 		let perms   = {}

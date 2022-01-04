@@ -1,5 +1,4 @@
 import { ACTIONS } from "../../Container.js"
-import { container } from "../../nodeshow.js"
 
 //[TODO]: remove dependency on nodeshow.js
 export function clearSelection(container) {
@@ -16,7 +15,7 @@ export function makeSelection(container, items) {
 	}
 }
 
-export function getSelection() {
+export function getSelection(container) {
 	let selectorApp = container.getComponent('container.select')
 	if (!selectorApp) {
 		return []
@@ -25,7 +24,7 @@ export function getSelection() {
 	return selectorApp.getSelection() || []
 }
 
-export function findActionableAnchestor(target, appId) {
+export function findActionableAnchestor(container, target, appId) {
 	if (!target) {
 		return null;
 	}
@@ -50,6 +49,6 @@ export function findActionableAnchestor(target, appId) {
 		if (target === container.parent) {
 			return null;
 		}
-		return findActionableAnchestor(target.parentNode)
+		return findActionableAnchestor(container, target.parentNode, appId)
 	}
 }

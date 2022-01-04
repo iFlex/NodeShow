@@ -384,7 +384,7 @@ export class ContainerEditOrchestrator {
 	}
 
 	tryAddText (key) {
-		let sel = getSelection()
+		let sel = getSelection(this.#container)
 		if (sel.length == 1 ) {
 			try {
 				let textEditor = this.#container.getComponent('container.edit.text');

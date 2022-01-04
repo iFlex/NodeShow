@@ -8,7 +8,8 @@ import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessM
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
 
-//ToDo: ensure click and double click events take distance from origin point into account
+//[TODO]: ensure click and double click events take distance from origin point into account
+//[TODO]: double click should reset the timer, currently you can trigger double click incorrectly multiple times
 let appId = null; //Temporary, think this up
 
 let FOCUS_TRESHOLD = 5
@@ -43,7 +44,7 @@ function mouseDown(e) {
 		return null;
 	}
 	
-	target = findActionableAnchestor(e.target, appId)
+	target = findActionableAnchestor(container, e.target, appId)
 	if (target) {
 		focusTarget = target
 		
@@ -148,7 +149,7 @@ export class Mouse {
 	
 	constructor(appId) {
 		console.log(`NEW MOUSE handler instance created for ${appId}`)
-		this.#appId = appId
+		this.#appId = appId //`${appId}-${Container.generateUUID()}`
 	}
 
 	getId() {

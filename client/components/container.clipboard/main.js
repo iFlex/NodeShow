@@ -1,7 +1,7 @@
 import { Container } from '../../Container.js'
 import { getSelection } from '../utils/common.js'
 import { getCursorPosition } from '../utils/mouse.js'
-import { Clipboard } from "../utils/clipboard.js"
+import { Clipboard, EVENTS as ClipboardEvents } from "../utils/clipboard.js"
 
 export class ContainerClipboard {
 	appId = "container.clipboard"
@@ -15,10 +15,15 @@ export class ContainerClipboard {
 		this.#container = container;
 		container.registerComponent(this);
 
-		this.#clipboard = new Clipboard(this.#container)
-		this.#clipboard.setAction('container.paste', (event) => this.paste(event.detail.originalEvent))
-		this.#clipboard.setAction('container.copy', (event) => this.copy(event.detail.originalEvent))
-		this.#clipboard.setAction('container.cut', (event) => this.cut(event.detail.originalEvent))
+		this.#clipboard = new Clipboard(this.appId)
+		this.#clipboard.setAction(ClipboardEvents.paste, 
+			(event) => this.paste(event.detail.originalEvent))
+
+		this.#clipboard.setAction(ClipboardEvents.copy, 
+			(event) => this.copy(event.detail.originalEvent))
+
+		this.#clipboard.setAction(ClipboardEvents.cut, 
+			(event) => this.cut(event.detail.originalEvent))
 	}
 
 	enable () {
@@ -92,7 +97,7 @@ export class ContainerClipboard {
 	}
 
 	copy (e) {
-		let selection = getSelection()
+		let selection = getSelection(this.#container)
 		if (selection.length > 0) {
 			let clipboard = []
 			let travqueue = []
@@ -141,7 +146,7 @@ export class ContainerClipboard {
 
 	paste (e) {
 		let parent = this.#container.parent
-		let selection = getSelection()
+		let selection = getSelection(this.#container)
 		let cursorPos = getCursorPosition()
 
 		if (selection.length > 0) {
@@ -164,7 +169,7 @@ export class ContainerClipboard {
 	cut (e) {
 		this.copy(e)
 		console.log(`${this.appId} - cut`)
-		let selection = getSelection()
+		let selection = getSelection(this.#container)
 		for (const id of selection) {
 			this.#container.delete(id, this.appId)
 		}
