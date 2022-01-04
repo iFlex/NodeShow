@@ -2,9 +2,9 @@ import { container } from "../../nodeshow.js"
 import { KeyboardManager } from "./KeyboardManager.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
 
-//Caution: keyboard will be in incorrect state if window looses focus between keydown and keyup
 //[BUG]: pressedPrintables is unreliable: shift modifies that character code. need some map based translation.
 // e.g. SHIFT+/ = ? if you then lift shift before ? the next keyUp event will be / instead of ?
+    // -> fix: when SHIFT is de-pressed, remove all pressed uppercase characters
 export const EVENTS = {
     'keydown':'container.keydown',
     'keyup':'container.keyup'
@@ -29,8 +29,12 @@ export const keyboardManager = new KeyboardManager(InputAccessManager);
  * */
 export class Keyboard {
     
-    #pressedPrintables = new Set([])
-    #pressedNonPrintables = new Set([])
+    #pressedPrintables = new Set()
+    #pressedNonPrintables = new Set()
+    #toggled = new Set()
+
+    #toggleStyleKeys = new Set(['CapsLock'])
+    #uppsercaseTogglers = new Set(['Shift','CapsLock'])
     #keysPreventingPrintable = new Set(['Control'])
     #callerId = null;
     #accessMode = null;
@@ -78,12 +82,17 @@ export class Keyboard {
 
     onBlur(e) {
         console.log(`[KEYBOARD]: onBlur`)
-        this.#pressedPrintables = new Set([])
-        this.#pressedNonPrintables = new Set([])
+        this.#pressedPrintables = new Set()
+        this.#pressedNonPrintables = new Set()
+        this.#toggled = new Set()
     }
 
     isPrintable (key) {
         return key.length === 1
+    }
+
+    isUppercase (key) {
+        return key === key.toUpperCase()
     }
 
     setAction(keys, context, handler, preventDefault) {
@@ -149,6 +158,28 @@ export class Keyboard {
         return false;
     }
 
+    #isUppercaseEngaged() {
+        let uppercase = false
+        for (let key of this.#pressedNonPrintables) {
+            if (this.#uppsercaseTogglers.has(key)) {
+                uppercase = !uppercase
+            }
+        }
+
+        return uppercase;
+    }
+
+    #depressUppercaseIfNeeded () {
+        let isUppercaseEngaged = this.#isUppercaseEngaged()
+        if (!isUppercaseEngaged) {
+            for (const key of this.#pressedPrintables) {
+                if (this.isUppercase(key)) {
+                    this.#pressedPrintables.delete(key)
+                }
+            }
+        }
+    }
+
     #applyActionAndDefault(e, key, actionSet) {
         let action = actionSet[key]
         if (action && action.preventDefault) {
@@ -181,9 +212,9 @@ export class Keyboard {
             this.#onPrintable.handler.apply(this.#onPrintable.context, [e.key])
         }
 
-        // console.log(`KEY DOWN ${e.key}`)
-        // console.log(this.#pressedPrintables)
-        // console.log(this.#pressedNonPrintables)
+        console.log(`KEY DOWN ${e.key}`)
+        console.log(this.#pressedPrintables)
+        console.log(this.#pressedNonPrintables)
     }
 
     handleKeyUp(e) {
@@ -204,7 +235,19 @@ export class Keyboard {
         if (isPrintable) {
             this.#pressedPrintables.delete(e.key)
         } else {
-            this.#pressedNonPrintables.delete(e.key)
+            if (this.#toggleStyleKeys.has(e.key)) {
+                if (this.#toggled.has(e.key)) {
+                    //this is toggle off
+                    this.#toggled.delete(e.key)
+                    this.#pressedNonPrintables.delete(e.key)
+                } else {
+                    //this is a toggle on
+                    this.#toggled.add(e.key)
+                }
+            } else {
+                this.#pressedNonPrintables.delete(e.key)    
+            }
+            this.#depressUppercaseIfNeeded()
         }
 
         console.log(`KEY_UP(${this.#callerId}) ${e.key}`)
