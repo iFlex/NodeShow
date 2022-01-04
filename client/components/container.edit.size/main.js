@@ -14,17 +14,16 @@ export class ContainerSizer {
 
 	#presenveRatio = false
 	
-	constructor (ngps) {
-		this.container = ngps;
-		
-		ngps.registerComponent(this);
+	constructor (container) {
+		this.container = container;
+		container.registerComponent(this);
 
-		this.#mouse = new Mouse(this.appId);
+		this.#mouse = new Mouse(this.appId, container);
 		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
-		this.#keyboard = new Keyboard(this.appId);
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
 			this.#presenveRatio = true
 		}, true)

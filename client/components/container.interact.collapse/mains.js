@@ -1,4 +1,5 @@
 import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 export class ContainerCollapser {
     appId = 'container.interact.collapse'
@@ -14,7 +15,7 @@ export class ContainerCollapser {
         this.#container = container
         this.#container.registerComponent(this);
 
-        this.#keyboard = new Keyboard(this.appId)
+        this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
         this.#keyboard.setAction(new Set(["ArrowDown"]), this, (e) => this.collapse(), false);
         this.#keyboard.setAction(new Set(["ArrowUp"]), this, (e) => this.expand(), false);
         

@@ -1,6 +1,6 @@
 import { Keyboard } from '../utils/keyboard.js'
 import { getSelection, clearSelection } from '../utils/common.js'
-
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
 //ToDo: read style configuration from container.edit.style
@@ -28,11 +28,11 @@ export class ContainerCreator {
 		this.container = container;
 		container.registerComponent(this);
 
-		this.#keyboard = new Keyboard(this.appId)
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#keyboard.setAction(new Set(['Delete']), this, (e) => this.delete(false), false)
 		this.#keyboard.setAction(new Set(['End']), this, (e) => this.delete(true), true)
 		
-		this.#mouse = new Mouse(this.appId)
+		this.#mouse = new Mouse(this.appId, container)
 		this.#mouse.setAction(MouseEvents.DOUBLE_CLICK, (e) => this.onDoubleClick(e))
 		this.#mouse.setAction(MouseEvents.CLICK, (e) => this.focusOn(e.detail.id))
 	

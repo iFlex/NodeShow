@@ -1,6 +1,7 @@
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //quite problematic currently as it causes disappearings
 export class ContainerLineage {
@@ -24,10 +25,10 @@ export class ContainerLineage {
     constructor (container) {
         this.container = container;
         this.container.registerComponent(this);
-        this.#keyboard = new Keyboard(this.appId);
+        this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
         this.#overlap = new ContainerOverlap(container);
 
-        this.#mouse = new Mouse(this.appId);
+        this.#mouse = new Mouse(this.appId, container);
         this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.onDragEnd(e))
 
         // //todo update target

@@ -37,14 +37,14 @@ export class ContainerGrouping {
 		this.#container = container;
 		container.registerComponent(this);
 		
-		this.#overlap = new ContainerOverlap(container);
+		this.#overlap = new ContainerOverlap(container)
 
-		this.#mouse = new Mouse(this.appId);
+		this.#mouse = new Mouse(this.appId, container);
 		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
 		
-		this.#keyboard = new Keyboard(this.appId);
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT);
 	}
 
 	enable() {

@@ -24,10 +24,9 @@ export class ContainerMover {
 	lastX = 0;
 	lastY = 0;
 
-	constructor (ngps) {
-		this.container = ngps;
-		
-		ngps.registerComponent(this);
+	constructor (container) {
+		this.container = container;
+		container.registerComponent(this);
 
 		this.#mouse = new Mouse(this.appId);
 		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)

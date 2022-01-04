@@ -42,7 +42,7 @@ export class Clipboard {
 	#handlers = {}
 	#mmanager = Manager
 	
-	constructor(appId) {
+	constructor(appId, container) {
 		console.log(`NEW Clipboard handler instance created for ${appId}`)
 		this.#appId = appId
 	}

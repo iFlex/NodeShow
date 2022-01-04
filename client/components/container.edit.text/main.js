@@ -130,10 +130,10 @@ export class ContainerTextInjector {
 		}
 
 		this.cursor = new Cursor()
-		this.#keyboard = new Keyboard(this.appId);
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
 		this.initKeyboard();
 
-		this.#clipboard = new Clipboard(this.appId);
+		this.#clipboard = new Clipboard(this.appId, container);
 		this.#clipboard.setAction(ClipboardEvents.paste,
 			(event) => this.paste(event.detail.originalEvent),
 			ACCESS_REQUIREMENT.EXCLUSIVE)

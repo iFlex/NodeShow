@@ -196,13 +196,13 @@ export class InputAccessManager {
 			time: Date.now()
 		}
 
-		console.log(`INPUT_ACCESS_MANAGER: registered ${listenerId} for ${event} with ${accessReq} access`)
+		console.log(`INPUT_ACCESS_MANAGER: ${event} registered ${listenerId} with access mode ${accessReq}`)
 		this.recomputeState(event)
 	}
 
 	unregister(event, listenerId) {
 		delete this.#access[event][listenerId]
-		console.log(`INPUT_ACCESS_MANAGER: unregister ${listenerId} for ${event}.`)
+		console.log(`INPUT_ACCESS_MANAGER: ${event} unregistered ${listenerId}.`)
 		this.recomputeState(event)
 	}
 

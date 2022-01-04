@@ -147,7 +147,7 @@ export class Mouse {
 	#handlers = {}
 	#mmanager = MManager
 	
-	constructor(appId) {
+	constructor(appId, container) {
 		console.log(`NEW MOUSE handler instance created for ${appId}`)
 		this.#appId = appId //`${appId}-${Container.generateUUID()}`
 	}

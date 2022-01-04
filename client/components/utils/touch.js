@@ -184,7 +184,7 @@ export class Touch {
 	#appId = null
 	#handlers = {}
 
-	constructor(appId) {
+	constructor(appId, container) {
 		console.log(`NEW Touch manager instance created for ${appId}`)
 		this.#appId = appId//`${appId}-${Container.generateUUID()}`
 	}

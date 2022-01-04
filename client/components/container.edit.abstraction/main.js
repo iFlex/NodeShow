@@ -1,4 +1,5 @@
 import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //[TODO]: add cancel button to cancel creating abstraction level
 //        add function trigger editing existing abstraction level (call start())
@@ -24,7 +25,7 @@ export class ContainerEditAbstraction {
         this.#container = container
         this.#container.registerComponent(this);
 
-        this.#keyboard = new Keyboard(this.appId)
+        this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
         this.#keyboard.setAction(new Set(["ArrowDown"]), this, (e) => this.collapse(), false);
         this.#keyboard.setAction(new Set(["ArrowUp"]), this, (e) => this.expand(), false);
         

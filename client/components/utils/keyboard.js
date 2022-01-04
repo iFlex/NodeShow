@@ -1,6 +1,28 @@
+import { container } from "../../nodeshow.js"
+import { KeyboardManager } from "./KeyboardManager.js"
+import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
+
 //Caution: keyboard will be in incorrect state if window looses focus between keydown and keyup
 //[BUG]: pressedPrintables is unreliable: shift modifies that character code. need some map based translation.
 // e.g. SHIFT+/ = ? if you then lift shift before ? the next keyUp event will be / instead of ?
+export const EVENTS = {
+    'keydown':'container.keydown',
+    'keyup':'container.keyup'
+}
+
+function onKeyDown(e) {
+    container.emit(EVENTS.keydown,{ originalEvent: e});
+}
+
+function onKeyUp(e) {
+    container.emit(EVENTS.keyup, { originalEvent: e});
+}
+
+document.addEventListener("keydown", onKeyDown)
+document.addEventListener("keyup", onKeyUp)
+
+export const keyboardManager = new KeyboardManager(InputAccessManager);
+
 /** @class
  *  @summary Component implementing consistent access to keyboard input. 
  *  @description TODO
@@ -11,31 +33,47 @@ export class Keyboard {
     #pressedNonPrintables = new Set([])
     #keysPreventingPrintable = new Set(['Control'])
     #callerId = null;
+    #accessMode = null;
 
+    #handlers = {}
     #actions = {}
+    #windowBlur = null
     #actionsUp = {}
     #onPrintable = null
     #onPrintableUp = null
+    #manager = keyboardManager
 
-    constructor(appId) {
+    constructor(appId, container, accessMode) {
         console.log(`NEW KEYBOARD created by ${appId}`)
         this.#callerId = appId;
+        this.#accessMode = accessMode
 
-        window.addEventListener('blur', (e) => this.onBlur(e));
-        this.onKeyUp = (e) => this.handleKeyUp(e)
-        this.onKeyDown = (e) => this.handleKeydown(e)
+        this.#windowBlur = (e) => this.onBlur(e)
+        this.#handlers["keyup"] = (e) => this.handleKeyUp(e)
+        this.#handlers["keydown"] = (e) => this.handleKeydown(e)
     }
     
-    enable () {
-        document.addEventListener("keydown", this.onKeyDown)
-        document.addEventListener("keyup", this.onKeyUp)
+    getId () {
+        return this.#callerId
     }
 
-    disable () {
+    getAccessMode () {
+        return this.#accessMode
+    }
+
+    getHandlers () {
+        return this.#handlers
+    }
+
+    enable() {
+        window.addEventListener('blur', this.#windowBlur);
+        this.#manager.register(this)
+    }
+
+    disable() {
+        window.removeEventListener('blur', this.#windowBlur);
         this.onBlur()
-        
-        document.removeEventListener("keydown", this.onKeyDown)
-        document.removeEventListener("keyup", this.onKeyUp)
+        this.#manager.unregister(this)
     }
 
     onBlur(e) {

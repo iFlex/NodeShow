@@ -1,6 +1,7 @@
 import { getSelection } from '../utils/common.js'
 import { post } from '../utils/http.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
+import { Keyboard } from '../utils/keyboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 export class ContainerContent {
@@ -12,6 +13,7 @@ export class ContainerContent {
     contentURL = `https://${window.location.host}`
     
     #clipboard = null
+    #keyboard = null
     #interface = null
     #handlers = {}
     #enabled = false
@@ -27,7 +29,8 @@ export class ContainerContent {
           (event) => {},//noop
           ACCESS_REQUIREMENT.EXCLUSIVE)  
       }
-    
+
+      this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
       this.loadInterface()
     }
 
@@ -247,9 +250,11 @@ export class ContainerContent {
 
     onTextFieldFocus() {
       this.#clipboard.enable()
+      this.#keyboard.enable()
     }
 
     onTextFieldBlur() {
       this.#clipboard.disable()
+      this.#keyboard.disable()
     }
 }

@@ -3,6 +3,7 @@ import { EVENTS as MouseEvents, MiceManager } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { InputAccessManagerInstance } from '../utils/inputAccessManager.js'
 import { getSelection } from '../utils/common.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 let lastY = 0
 let lastX = 0
@@ -33,7 +34,7 @@ export class ContainerEditOrchestrator {
 		this.#container = container;
 		container.registerComponent(this);	
 		
-		this.#keyboard = new Keyboard(this.appId);
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#keyboard.onPritable(this, (e) => this.tryAddText(e), false)
 		this.#keyboard.setAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
 		this.#keyboard.setAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
