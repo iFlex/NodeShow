@@ -15,8 +15,8 @@ export class ContextMenu {
 	#defaultActions = [
 		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click'},
 		{name: "Deselect", action: "menu.context.deselect", shortcut: 'Ctrl+d'},
-		{name: "Delete", action: "delete", shortcut:'Delete', icon:'ns-delete-icon'},
-		{name: "Delete Sparing", action: "deleteSparingChildren", shortcut:'End', icon:'ns-delete-icon'},
+		{name: "Delete", action: "container.create.delete", shortcut:'Delete', icon:'ns-delete-icon'},
+		{name: "Delete Sparing", action: "container.create.delete", params:[true], shortcut:'End', icon:'ns-delete-icon'},
 		{name: "Text", action: "menu.context.editText", options:{forwardEvent:true}},
 		{name: "ParentDown", action: "container.lineage.parentDown", shortcut:'Shift+<'},
 		{name: "ParentUp", action: "container.lineage.parentUp", shortcut:'Shift+>'},

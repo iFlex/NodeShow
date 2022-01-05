@@ -48,7 +48,9 @@ export class ContainerSelect {
 		this.#overlap = new ContainerOverlap(container);
 		
 		this.#mouse = new Mouse(this.appId, container);
-		this.#mouse.setAction(MouseEvents.CLICK, (e) => this.singleSelect(e.detail.id))
+		this.#mouse.setAction(MouseEvents.CLICK, (e) => {
+			this.singleSelect(e.detail.id, e.detail.originalEvent.button != 0)
+		})
 		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.handleDragStart(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.handleDragEnd(e), ACCESS_REQUIREMENT.DEFAULT)
@@ -150,12 +152,22 @@ export class ContainerSelect {
 		this.#startPos = null;
 	}
 
-	singleSelect (id) {
-		this.clearSelection();
-
+	singleSelect (id, modifyExisting) {
+		if (!modifyExisting) {
+			this.clearSelection();
+			this.#selection = []
+		}
+		
 		let target = this.#container.lookup(id)
 		$(target).addClass(this.selectedClass)
-		this.#selection = [target]
+
+		for (const existing of this.#selection) {
+			if (id == existing) {
+				return;
+			}
+		}
+		
+		this.#selection.push(target)
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
 	}
 
