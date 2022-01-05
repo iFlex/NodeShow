@@ -153,13 +153,13 @@ export class ContainerEditOrchestrator {
 		}, false)
 
 
-		this.#keyboard.setAction(new Set(['Tab']), this, (e) => {
+		this.#keyboard.setAction(new Set(['Alt']), this, (e) => {
 			this.#previousRoutes[MouseEvents.DRAG_START] = InputAccessManagerInstance.getGrant(MouseEvents.DRAG_START)
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.select')
 			this.updateMenu()
 		}, false)
 
-		this.#keyboard.setKeyUpAction(new Set(['Tab']), this, (e) => {
+		this.#keyboard.setKeyUpAction(new Set(['Alt']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.#previousRoutes[MouseEvents.DRAG_START])
 			this.updateMenu()
 		}, false)
@@ -379,7 +379,7 @@ export class ContainerEditOrchestrator {
 			return 'Shift'
 		}
 		if (id == 'container.select') {
-			return 'Tab'
+			return 'Alt'
 		}
 		return ""
 	}

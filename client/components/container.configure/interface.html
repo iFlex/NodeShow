@@ -7,7 +7,7 @@ Unlock
 </button>
 <select id="ns-width-unit" 
 	  name="ns-width-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeWidthUnit","params":[]}}'	   
+	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changeWidthUnit","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -24,7 +24,7 @@ Unlock
 	</button>
 <select id="ns-height-unit" 
 	  name="ns-height-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeHeightUnit","params":[]}}'
+	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changeHeightUnit","params":[]}}'
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -41,10 +41,42 @@ Lock
 Unlock
 </button>
 
+Type
+<select id="ns-pos-type" 
+	  name="ns-pos-type"
+	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changePosType","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	<option value="absolute" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	absolute</option>
+	
+	<option value="relative" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	relative</option>
+
+	<option value="static" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	static</option>
+
+	<option value="fixed" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	fixed</option>
+
+	<option value="sticky" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	sticky</option>
+
+	<option value="inherit" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	inherit</option>
+
+	<option value="initial" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	initial</option>
+
+	<option value="revert" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	revert</option>
+
+	<option value="unset" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	unset</option>
+</select>
+
 Horizontal
 <select id="ns-pos-y-unit" 
 	  name="ns-pos-y-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePosXUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changePosXUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
 	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
@@ -53,9 +85,28 @@ Horizontal
 Vertical
 <select id="ns-pos-x-unit" 
 	  name="ns-pos-x-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePosYUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changePosYUnit","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
 	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
+</select>
+
+
+<h3>Content Layout</h3>
+<select id="ns-content-layout" 
+	  name="ns-content-layout"
+	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changeContentLayout","params":[]}}'data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	
+	<option value="none" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	none</option>
+
+	<option value="horizontal-list" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	Horizontal List</option>
+
+	<option value="vertical-list" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	Vertical List</option>
+
+	<option value="grid" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	Grid</option>
 </select>

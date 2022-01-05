@@ -50,6 +50,8 @@ let ACTIONS_CHAIN = {}
     ACTIONS_CHAIN[ACTIONS.setPermission] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.removePermission] = [ACTIONS.update]
 
+let SUPPORTED_MEASURING_UNITS = new Set(['px','%','el'])
+
 /** @class */
 export class Container {
 	//[TODO]: integrate hook callers wherever relevant
@@ -646,15 +648,63 @@ export class Container {
     }
     //</nesting>
 
+    #getPercentage(total, fraction) {
+        return fraction/total*100
+    }
+
+    #convertPixelHeight(node, height, unit) {
+        if (unit == '%') {
+            if (!node.parentNode) {
+                throw `Cannot convert to % height for a container with no parentNode`
+            }
+            return this.#getPercentage(this.getHeight(node.parentNode), height)
+        } else {
+            //[TODO]
+            return height
+        }
+    }
+
+    #convertPixelWidth(node, width, unit) {
+        if (unit == '%') {
+            if (!node.parentNode) {
+                throw `Cannot convert to % width for a container with no parentNode`
+            }
+            return this.#getPercentage(this.getWidth(node.parentNode), width)
+        } else {
+            //[TODO]
+            return width
+        }
+    }
+
+    #convertPixelPos(node, pos, unit) {
+        if (unit == '%') {
+            if (!node.parentNode) {
+                throw `Cannot convert to % position for a container with no parentNode`
+            }
+            let parentPos = this.getPosition(node.parentNode)
+            return {
+                top:this.#getPercentage(parentPos.top, pos.top),
+                left:this.#getPercentage(parentPos.left, pos.left)
+            }
+        } else {
+            //[TODO]
+            return pos
+        }
+    }
+
     //<size>
     //contextualise width and height based on type of element and wrapping
-    //[DOC] width is always a number and expressed in pixels
-	setWidth(id, width, callerId, unitOverride, emit) {
+    //[DOC] width is always expressed in pixels. If a unitOverride is provided, a conversion from pixels to the provided unit will be carried out before setting the result.
+	setWidth(id, width, callerId, emit) {
         let elem = Container.lookup(id)
         this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
         
         let prevWidth = this.getWidth(id);
-        jQuery(elem).css({width: `${width}px`});
+        let unit = elem.dataset.widthUnit || 'px'
+        if (unit !== 'px') {
+            width = this.#convertPixelWidth(elem, width, unit)    
+        }
+        jQuery(elem).css({width: `${width}${unit}`});
 
         if (emit != false) {
             this.emit(ACTIONS.setWidth, {
@@ -666,12 +716,40 @@ export class Container {
         }
 	}
 
-	setHeight(id, height, callerId, unitOverride, emit) {
+    setUnit(id, property, unit) {
+        if (!unit) {
+            return;
+        }
+
+        let elem = this.lookup(id)
+        if (!SUPPORTED_MEASURING_UNITS.has(unit)) {
+            throw `Unsupported measuring unit ${unit}`
+        }
+        elem.dataset[property] = unit
+    }
+
+    setWidthUnit(id, unit, callerId) {
+        this.setUnit(id, "widthUnit", unit)
+        let measurement = this.getWidth(id)
+        this.setWidth(id, measurement, callerId)
+    }
+
+    setHeightUnit(id, unit, callerId) {
+        this.setUnit(id, "heightUnit", unit)
+        let measurement = this.getHeight(id)
+        this.setHeight(id, measurement, callerId)
+    }
+
+	setHeight(id, height, callerId, emit) {
         let elem = Container.lookup(id);
         this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
         
         let prevHeight = this.getHeight(elem);
-        jQuery(elem).css({height: `${height}px`});
+        let unit = elem.dataset.heightUnit || 'px'
+        if (unit !== 'px') {
+            height = this.#convertPixelHeight(elem, height, unit)    
+        }
+        jQuery(elem).css({height: `${height}${unit}`});
         if (emit != false) {
             this.emit(ACTIONS.setHeight, {
                 id: elem.id, 
@@ -766,8 +844,13 @@ export class Container {
         return bbox;
     }
 
+    //[TODO][WARNING]Highly experimental!
     fitVisibleContent(id, emit) {
         let node = Container.lookup(id)
+        if (node === this.parent) {
+            return;
+        }
+
         let bounding = {
             bottom: 0,
             right: 0,
@@ -791,10 +874,10 @@ export class Container {
         let w = bounding.right - ppos.left;
         let h = bounding.bottom - ppos.top;
 
-        this.setWidth(node, w, emit)
-        this.setHeight(node, h, emit)
+        //use min width for content fit
+        this.styleChild(node, {"min-width": `${w}px`, "min-height":`${h}px`}, emit)
     }
-
+    //[TODO]: permissions
     styleChild(child, style, callerId, emit) {
         Container.applyPreHooks(this, 'style', [child, style, callerId, emit])
         let computedStyle = window.getComputedStyle(child)
@@ -811,6 +894,20 @@ export class Container {
         if(emit != false) {
             this.emit(ACTIONS.update, {id:child.id, changes:{"computedStle":style}, callerId:callerId})
         }
+    }
+
+    //[TODO]: permissions
+    removeStyle(child, style, callerId, emit) {
+        if (typeof style !== 'object') {
+            return;
+        }
+
+        for (const [tag, value] of Object.entries(style)) {
+            let currentValue = child.style.getPosition(tag)
+            if (value == null || value == currentValue) {
+                child.style.removeProperty(tag)
+            }
+        }        
     }
 
     getChildAt(parentId, index) {

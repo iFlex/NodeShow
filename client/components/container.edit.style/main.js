@@ -1,4 +1,7 @@
 import { getSelection } from '../utils/common.js'
+import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
+import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 export class ContainerStyler {
 	appId = 'container.edit.style'
@@ -10,6 +13,8 @@ export class ContainerStyler {
 	#enabled = false
 	#interface = null;
 	#handlers = {}
+	#clipboard = null
+    #keyboard = null
 	
 	stateKeys = ["background-color","border-color","border-style","border-width","border-radius"]
 
@@ -36,6 +41,15 @@ export class ContainerStyler {
 		this.appId)
 		this.container.hide(this.#interface, this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+
+		this.#clipboard = new Clipboard(this.appId);
+		for (let evid of Object.values(ClipboardEvents)) {
+			this.#clipboard.setAction(evid,
+			  (event) => {},//noop
+			  ACCESS_REQUIREMENT.EXCLUSIVE)
+		}
+
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
 	}
 
 	enable() {
@@ -54,11 +68,11 @@ export class ContainerStyler {
 	disable() {
 		if (this.#enabled) {
 			this.#enabled = false
+			this.onTextFieldBlur()
 
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
 				this.container.removeEventListener(event, handler)
 			}
-
 			this.container.hide(this.#interface, this.appId)
 		}
 	}
@@ -144,59 +158,33 @@ export class ContainerStyler {
 		this.changeBorderType(e);
 	}
 
-	changeWidthUnit (e) {
-		let unit = e.target.value;
-		let selection = getSelection(this.container);
-		for (const item of selection) {
-			try {
-				let widthPx = this.container.getWidth(item)
-				this.container.setWidth(item, widthPx, this.appId, unit)
-			} catch( e ){
-				console.error(`${this.appId} failed to change width unit to ${unit}`)
-			}
-		}
-	}
+	// changePosXUnit (e) {
+	// 	let unit = e.target.value;
+	// 	let selection = getSelection(this.container);
+	// 	for (const item of selection) {
+	// 		try {
+	// 			let pos = this.container.getPosition(item)
+	// 			pos['leftUnit'] = unit
+	// 			this.container.setPosition(item, pos, this.appId)
+	// 		} catch( e ){
+	// 			console.error(`${this.appId} failed to change x-axis unit to ${unit}`)
+	// 		}
+	// 	}
+	// }
 
-	changeHeightUnit (e) {
-		let unit = e.target.value;
-		let selection = getSelection(this.container);
-		for (const item of selection) {
-			try {
-				let widthPx = this.container.getHeight(item)
-				this.container.setHeight(item, widthPx, this.appId, unit)
-			} catch( e ){
-				console.error(`${this.appId} failed to change height unit to ${unit}`)
-			}
-		}
-	}
-
-	changePosXUnit (e) {
-		let unit = e.target.value;
-		let selection = getSelection(this.container);
-		for (const item of selection) {
-			try {
-				let pos = this.container.getPosition(item)
-				pos['leftUnit'] = unit
-				this.container.setPosition(item, pos, this.appId)
-			} catch( e ){
-				console.error(`${this.appId} failed to change x-axis unit to ${unit}`)
-			}
-		}
-	}
-
-	changePosYUnit (e) {
-		let unit = e.target.value;
-		let selection = getSelection(this.container);
-		for (const item of selection) {
-			try {
-				let pos = this.container.getPosition(item)
-				pos['topUnit'] = unit
-				this.container.setPosition(item, pos, this.appId)
-			} catch( e ){
-				console.error(`${this.appId} failed to change y-axis unit to ${unit}`)
-			}
-		}
-	}
+	// changePosYUnit (e) {
+	// 	let unit = e.target.value;
+	// 	let selection = getSelection(this.container);
+	// 	for (const item of selection) {
+	// 		try {
+	// 			let pos = this.container.getPosition(item)
+	// 			pos['topUnit'] = unit
+	// 			this.container.setPosition(item, pos, this.appId)
+	// 		} catch( e ){
+	// 			console.error(`${this.appId} failed to change y-axis unit to ${unit}`)
+	// 		}
+	// 	}
+	// }
 
 	changePadding (e) {
 
@@ -209,4 +197,14 @@ export class ContainerStyler {
 	getStyleKeys() {
 		return this.stateKeys
 	}
+
+	onTextFieldFocus() {
+    this.#clipboard.enable()
+    this.#keyboard.enable()
+  }
+
+  onTextFieldBlur() {
+    this.#clipboard.disable()
+    this.#keyboard.disable()
+  }
 }

@@ -1,9 +1,8 @@
 import { Keyboard } from '../utils/keyboard.js'
-import { getSelection, clearSelection } from '../utils/common.js'
+import { getSelection, clearSelection, lookupStyleRules } from '../utils/common.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
-//ToDo: read style configuration from container.edit.style
 export class ContainerCreator {
 	appId = 'container.create'
 	type = 'background'
@@ -13,16 +12,7 @@ export class ContainerCreator {
 	
 	#keyboard = null;
 	#mouse = null;
-	#interface = null;
 	#enabled = false
-	#nodeStyleTypeToChildStyle = {
-		"ns-horizontal-list":"ns-horizontal-list-unit ",
-		"ns-horizontal-list-unit":"",
-		"ns-vertical-list":"ns-vertical-list-unit ",
-		"ns-vertical-list-unit":"",
-		"ns-grid":"ns-grid-unit",
-		"ns-grid-unit":""
-	}
 
 	constructor (container) {
 		this.container = container;
@@ -35,26 +25,6 @@ export class ContainerCreator {
 		this.#mouse = new Mouse(this.appId, container)
 		this.#mouse.setAction(MouseEvents.DOUBLE_CLICK, (e) => this.onDoubleClick(e))
 		this.#mouse.setAction(MouseEvents.CLICK, (e) => this.focusOn(e.detail.id))
-	
-		this.#interface = this.container.createFromSerializable(document.body, {
-			"nodeName":"div",
-			"computedStyle":{
-				"top":"0px",
-				"left":"0px",
-				"position":"absolute"
-			},
-			"data":{
-		    	"ignore":true,
-		    	"containerPermissions":{
-					"container.broadcast":{"*":false},
-					"container.bridge":{"*":false}
-				}
-		    }
-		},
-		null,
-		this.appId)
-		this.container.hide(this.#interface, this.appId)
-		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 	}
 
 	enable() {
@@ -115,6 +85,11 @@ export class ContainerCreator {
 			'padding': '5px',
 			'background-color': this.pickColor()	
 		}
+		let div = {
+			"nodeName":"div",
+			"computedStyle": childStyle
+		}
+
 		this.overrideStyleWithStylerSettings(childStyle)
 
 		let parentSuggestion = this.target.getAttribute("data-child-style")
@@ -126,12 +101,7 @@ export class ContainerCreator {
 			}
 		}
 		
-		let div = {
-			"nodeName":"div",
-			"computedStyle": childStyle
-		}
 		let node = this.container.createFromSerializable(this.target.id, div, null, this.appId)
-		this.setChildStyleSuggestion(node)
 		if (x != undefined && y!= undefined) {
 			console.log(`Creating new container @abspos{${x}x${y}}`)
 			console.log(node)
@@ -140,53 +110,14 @@ export class ContainerCreator {
 			console.log(this.container.getPosition(node.id))
 		}
 	}
-
-	setChildStyleSuggestion(node) {
-		let classes = node.className.split(" ")
-		let suggestions = {}
-		
-		for (const cls of classes) {
-			let ccls = this.#nodeStyleTypeToChildStyle[cls]
-			if (ccls) {
-				suggestions = this.lookupStyleRules(ccls.trim())
-			}
-		}
-		console.log("suggestions")
-		console.log(suggestions)
-		node.setAttribute("data-child-style", JSON.stringify(suggestions))
-	}
-
-	lookupStyleRules(className) {
-		className = `.${className}`
-		var styleDirectives = [];
-		for (var i = 0 ; i < document.styleSheets.length; ++i) {
-			console.log(document.styleSheets[i])
-			let classes = document.styleSheets[i].cssRules
-			for (var x = 0; x < classes.length; x++) {    
-				if (classes[x].selectorText == className) {
-					styleDirectives.push(classes[x].style)
-				}         
-			}
-		}
-
-		var result = {}
-		for (const directive of styleDirectives) {
-			for(let  i = 0 ; i < directive.length; ++i) {
-				let name = directive.item(i)
-				let value = directive.getPropertyValue(name)
-				result[name] = value
-			}
-		}
-		return result;
-	}
 	
 	changeType(e) {
 		let cls = e.target.className;
 		if (this.target) {
-			let rules = this.lookupStyleRules(cls)
+			let rules = lookupStyleRules(cls)
 			$(this.target).addClass(cls)
 			this.container.styleChild(this.target, rules, this.appId)
-			this.setChildStyleSuggestion(this.target)
+			//this.setChildStyleSuggestion(this.target)
 		}
 	}
 

@@ -52,3 +52,27 @@ export function findActionableAnchestor(container, target, appId) {
 		return findActionableAnchestor(container, target.parentNode, appId)
 	}
 }
+
+export function lookupStyleRules(className) {
+	className = `.${className}`
+	var styleDirectives = [];
+	for (var i = 0 ; i < document.styleSheets.length; ++i) {
+		console.log(document.styleSheets[i])
+		let classes = document.styleSheets[i].cssRules
+		for (var x = 0; x < classes.length; x++) {    
+			if (classes[x].selectorText == className) {
+				styleDirectives.push(classes[x].style)
+			}         
+		}
+	}
+
+	var result = {}
+	for (const directive of styleDirectives) {
+		for(let  i = 0 ; i < directive.length; ++i) {
+			let name = directive.item(i)
+			let value = directive.getPropertyValue(name)
+			result[name] = value
+		}
+	}
+	return result;
+}

@@ -54,8 +54,7 @@ ToDo: fix bug where absolute % doesn't work - caused by the height % being calcu
     - seems like the page width and height that % calculations use are based on maybe viewport percentages rather than the actual document.body
     - the bug behaves differently depending on the final size of document.body (parent)
 ToDo: support more position types
- Absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower)
- 
+ Absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower) 
  * @param {string} id - The id (or DOM Reference) of the DOM Object 
  * @param {object} position - object describing the new intended position
  * @param {string} callerId - the name of the caller of this method
@@ -78,8 +77,8 @@ Container.prototype.setPosition = function(id, position, callerId) {
     position.left -= (position.originX || 0) * this.getWidth(elem)
     position.top -= (position.originY || 0) * this.getHeight(elem)
 
-    let xUnit = position.leftUnit || this.detectUnit(elem.style.left) || this.detectUnit(elem.style.right) || 'px'
-    let yUnit = position.topUnit || this.detectUnit(elem.style.top) || this.detectUnit(elem.style.bottom) || 'px'
+    let xUnit = elem.dataset.leftUnit || 'px'
+    let yUnit = elem.dataset.topUnit  || 'px'
     
     if (xUnit == '%') {
         position.left = parseFloat(position.left) / this.getWidth(elem.parentNode || this.parent)*100
@@ -129,5 +128,12 @@ Container.prototype.move = function(id, dx, dy, callerId) {
     let pos = this.getPosition(id)
     pos.top += dy;
     pos.left += dx;
+    this.setPosition(id, pos, callerId)
+}
+
+Container.prototype.setPositionUnits = function(id, units, callerId) {
+    this.setUnit(id, "topUnit", units.top)
+    this.setUnit(id, "leftUnit", units.left)
+    let pos = this.getPosition(id)
     this.setPosition(id, pos, callerId)
 }

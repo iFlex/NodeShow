@@ -3,6 +3,11 @@ import { KeyboardManager } from "./KeyboardManager.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
 
 //[TODO][FIX]: in certian situations the keyboar will believe certain keys are still pressed when they are not.
+//[TODO]: different press modes. 
+// e.g. trigger action when a,b,c and only those are pressed //mode:strict
+//      trigger action when a is press regardless of any other keys //mode:default
+//      trigger action when a,b,c are pressed regardless of any others //mode:default
+//      onKeyUp should trigger per single key as there is no way to depress simultaneously
 export const EVENTS = {
     'keydown':'container.keydown',
     'keyup':'container.keyup'
@@ -93,7 +98,7 @@ export class Keyboard {
         return key === key.toUpperCase()
     }
 
-    setAction(keys, context, handler, preventDefault) {
+    setAction(keys, context, handler, preventDefault, strict) {
         this.#actions[this.setToKey(keys)] = {
             context: context,
             handler: handler, 

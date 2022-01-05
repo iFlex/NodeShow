@@ -1,4 +1,7 @@
 import { getSelection } from '../utils/common.js'
+import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
+import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //[BUG]: unsetting actions and permissions dones't work
 export class ContainerJsonEdit {
@@ -16,6 +19,8 @@ export class ContainerJsonEdit {
 	#enabled = false
 	
 	#interface = null;
+	#keyboard = null;
+	#clipboard = null;
 	#handlers = {}
 
 	constructor (container) {
@@ -44,6 +49,14 @@ export class ContainerJsonEdit {
 		this.appId)
 		this.container.hide(this.#interface, this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+
+		this.#clipboard = new Clipboard(this.appId);
+		for (let evid of Object.values(ClipboardEvents)) {
+			this.#clipboard.setAction(evid,
+				(event) => {},//noop
+				ACCESS_REQUIREMENT.EXCLUSIVE)  
+		}
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
 	}
 
 	enable() {
@@ -63,6 +76,7 @@ export class ContainerJsonEdit {
 	disable() {
 		if (this.#enabled) {
 			this.#enabled = false
+			this.onTextFieldBlur();
 
 			for ( const [event, handler] of Object.entries(this.#handlers)) {
 				this.container.removeEventListener(event, handler)
@@ -153,4 +167,14 @@ export class ContainerJsonEdit {
 			}
 		}
 	}
+
+	onTextFieldFocus() {
+    this.#clipboard.enable()
+    this.#keyboard.enable()
+  }
+
+  onTextFieldBlur() {
+    this.#clipboard.disable()
+    this.#keyboard.disable()
+  }
 }

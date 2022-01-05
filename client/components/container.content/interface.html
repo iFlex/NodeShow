@@ -12,7 +12,8 @@ data-container-permissions='{"container.edit":{"*":false},"container.broadcast":
 <input 
     id="ns-content-url" 
     type="text" 
-    name="url" 
+    name="url"
+    data-container-actions='[{"trigger":"focus","call":"container.content.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.content.onTextFieldBlur","params":[]}]'
     data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 <button
     type="button"

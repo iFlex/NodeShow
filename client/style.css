@@ -38,13 +38,15 @@
 }
 
 .ns-grid {
-  background-color: lightcoral;
+  height: auto;
+  min-height: 100px;
 }
 
 .ns-grid-unit {
   position: static;
   float: left;
 }
+
 /* Content Management */
 .ns-viewport {
   overflow-x: scroll;
