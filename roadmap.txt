@@ -26,7 +26,7 @@ Client Features:
     - edit links
     - interact with links
 
-13  Configure Container: (order, child style, positioning, etc):: container.configure
+13  Configure Container: (sibling order, child style, positioning, etc):: container.configure
 --------------------------------------------
 
 
@@ -110,7 +110,7 @@ e.g. Permissions, Actions, etc.
 
 [BUG]: Main menu can get burried under content. (not critical: reload fixes it)
  - tentative fix via listening for container created events. Should probably listen to bring to front as well
-
+[TODO]: consolidate all keyboard shortcuts and ensure they work
 -----------------------------------------------------------------------
 - [must have] Proper Authentication
 - [nice to have] Create Aligner

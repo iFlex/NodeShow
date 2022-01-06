@@ -5,14 +5,17 @@ import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //import { getSelection } from '../utils/common.js'
-//ToDo:
-//delete via delete doesn't work well
+//TODO:
+//new line comprehension in addPrintable and when serializing text units
+//forward delete doesn't work well (via delete key)
 //font and letter size tracking
 //transparent text boxes that are draggable from text
 //better line comprehension in text manipulation:
 //  - fixed line heights
 //span compaction (combine if style is identical)
-//unicode support
+//unicode & escaped character support
+//serialize text units as rich text
+
 
 //wrapping - add in logic to support:
 /*
@@ -369,9 +372,12 @@ export class ContainerTextInjector {
 		if (!this.target) {
 			return;
 		}
-
+		let selection = this.getSelected()
+		if ( selection ) {
+			event.clipboardData.setData("text/plain", this.serializeTextUnits(selection.units))
+			event.preventDefault();
+		} 
 		this.deleteSelection();
-		//event.preventDefault();
 	}
 	
 	isLine(elem) {
@@ -394,6 +400,15 @@ export class ContainerTextInjector {
 			unit = unit.parentNode
 		}
 		return false;
+	}
+
+	serializeTextUnits(units) {
+		let result = ""
+		for (const unit of units) {
+			result += unit.innerHTML
+		}
+
+		return result
 	}
 
 	cursorUp () {
@@ -627,7 +642,6 @@ export class ContainerTextInjector {
 		// }
 	}
 
-	//ToDo: deal with reversed selections
 	getSelected () {
 		let docSelect = document.getSelection();
 		
@@ -763,11 +777,11 @@ export class ContainerTextInjector {
 
 	deleteSelection() {
 		let selection = this.getSelected();
+		this.clearSelection()
 		if (selection && selection.units && selection.units.size > 0) {
 			this.deleteTextUnits(selection.units, true);
 			return true;
 		}
-		this.clearSelection()
 		return false;
 	}
 
