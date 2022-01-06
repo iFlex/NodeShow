@@ -967,6 +967,7 @@ export class Container {
             position: index,
             callerId: callerId
         })
+        this.notifyUpdate(sibling, callerId)
     }
 
     changeSiblingPosition(siblingId, amount, callerId) {
