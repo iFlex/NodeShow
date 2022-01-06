@@ -1127,9 +1127,9 @@ export class Container {
     }
 
     //<events>
-    notifyUpdate(id, callerId) {
+    notifyUpdate(id, callerId, subset) {
         let node = (id) ? Container.lookup(id) : this.parent
-        this.emit(ACTIONS.update, {id:node.id, callerId:callerId})
+        this.emit(ACTIONS.update, {id:node.id, callerId:callerId, subset:subset})
     }
 
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
