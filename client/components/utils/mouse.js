@@ -113,8 +113,9 @@ function mouseUp(e) {
 			if (dnow - lastClickTime <= dblClickTreshold) {
 				container.emit('container.dblclick', {id:target.id, originalEvent:e})
 				lastClickTime = 0;
+			} else {
+				lastClickTime = dnow
 			}
-			lastClickTime = dnow
 		}
 
 		target = null;
