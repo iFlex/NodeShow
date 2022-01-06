@@ -112,6 +112,7 @@ function mouseUp(e) {
 			let dnow = Date.now()
 			if (dnow - lastClickTime <= dblClickTreshold) {
 				container.emit('container.dblclick', {id:target.id, originalEvent:e})
+				lastClickTime = 0;
 			}
 			lastClickTime = dnow
 		}
