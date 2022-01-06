@@ -168,7 +168,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
     return child;
 }
 
-Container.prototype.toSerializableStyle = function(id, snapshot) {
+Container.prototype.toSerializableStyle = function(id, snapshot, subset) {
     let elem = Container.lookup(id);
     let computedStyle = elem.style;
     if (snapshot) {
@@ -183,21 +183,28 @@ Container.prototype.toSerializableStyle = function(id, snapshot) {
     return result;
 }
 
-Container.prototype.toSerializable = function(id) {
+Container.prototype.toSerializable = function(id, snapshot, subset) {
     let basicProps = ['id','nodeName', 'src']
 
     let elem = Container.lookup(id);
     
     let serialize = {}
+    //NOTE: the basic properties will always be present in a serialization result
     for (const tag of basicProps) {
         serialize[tag] = elem[tag];
     }
-    serialize['className'] = stripClassName(elem.className, getKeysToIgnore(this, 'className'))
 
+    if (!subset || subset['className']) {
+        serialize['className'] = stripClassName(elem.className, getKeysToIgnore(this, 'className'))    
+    }
+    
     //only save inner html if leaf node
     if (!elem.children || elem.children.length == 0) {
-        serialize['innerHTML'] = elem.innerHTML
+        if (!subset || subset['className']) {
+            serialize['innerHTML'] = elem.innerHTML
+        }
     } else {
+        //NOTE: child nodes will always be presend in a serialized descriptor
         serialize['childNodes'] = []
         for (const child of elem.childNodes) {
             if(!child.id) {
@@ -213,15 +220,22 @@ Container.prototype.toSerializable = function(id) {
     }
 
     //[TODO]: figure out if cssText is needed
-    serialize['cssText'] = elem.style.cssText
-    serialize['computedStyle'] = this.toSerializableStyle(id);
-    
+    if (!subset || subset['cssText']) {
+        serialize['cssText'] = elem.style.cssText    
+    }
+    if (!subset || subset['computedStyle']) {
+        serialize['computedStyle'] = this.toSerializableStyle(id, snapshot);
+    }
     //save data- tags
-    serialize['data'] = {}
-    let dataIgnore = getKeysToIgnore(this, 'data')
-    for (let [key, value] of Object.entries(elem.dataset)) {
-        if (!dataIgnore.has(key)) {
-            serialize.data[key] = value
+    if (!subset || subset['data']) {
+        serialize['data'] = {}
+        let dataIgnore = getKeysToIgnore(this, 'data')
+        for (let [key, value] of Object.entries(elem.dataset)) {
+            if (!dataIgnore.has(key)) {
+                if (!subset || subset['data'] == true || subset['data'][key]) {
+                    serialize.data[key] = value
+                }
+            }
         }
     }
 

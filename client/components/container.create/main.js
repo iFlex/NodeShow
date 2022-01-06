@@ -1,7 +1,7 @@
 import { Keyboard } from '../utils/keyboard.js'
 import { getSelection, clearSelection, lookupStyleRules } from '../utils/common.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
-import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
+import { EVENTS as MouseEvents, Mouse, getCursorPosition } from '../utils/mouse.js'
 
 export class ContainerCreator {
 	appId = 'container.create'
@@ -75,6 +75,11 @@ export class ContainerCreator {
 	create (x, y) {
 		if (!this.target) {
 			this.target = this.container.parent
+		}
+		if (x == undefined || y == undefined) {
+			let pos = getCursorPosition()
+			x = pos.x
+			y = pos.y
 		}
 		
 		let childStyle = {

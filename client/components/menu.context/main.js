@@ -9,11 +9,11 @@ export class ContextMenu {
 	#enabled = false
 	#handlers = {}
 	#interface = null
-
+	#triggerEvent = null
 	#touch = null
 
 	#defaultActions = [
-		{name: "New[X]", action: "menu.context.stop", shortcut: 'Double Click'},
+		{name: "New", action: "container.create.create", params:[], shortcut: 'Double Click'},
 		{name: "Deselect", action: "menu.context.deselect", shortcut: 'Ctrl+d'},
 		{name: "Delete", action: "container.create.delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "container.create.delete", params:[true], shortcut:'End', icon:'ns-delete-icon'},
@@ -23,8 +23,10 @@ export class ContextMenu {
 		{name: "Collapse", action: "container.edit.abstraction.collapse", shortcut: 'Ctrl+Down'},
 		{name: "Expand", action: "container.edit.abstraction.expand", shortcut: 'Ctrl+Up'},
 		{name: "Arrange[X]", action: ""},
-		{name: "Copy[X]", action: "", icon:"ns-copy-icon", shortcut:'Ctrl+C'},
-		{name: "Paste[X]", action: "", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
+		{name: "Copy Style[X]", action: "container.clipboard.doCopy", params:[{computedStyle:true}], icon:"ns-copy-icon", shortcut:'Ctrl+C+S'},
+		{name: "Copy", action: "container.clipboard.doCopy", icon:"ns-copy-icon", shortcut:'Ctrl+C'},
+		{name: "Cut", action: "container.clipboard.doCut", icon:"ns-cut-icon", shortcut:'Ctrl+X'},
+		{name: "Paste[X]", action: "container.clipboard.doPaste", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
 		{name: "Send To Front", action: "bringToFront", shortcut:'Ctrl+}'},
 		{name: "Send To Back", action: "sendToBottom", shortcut:'Ctrl+{'}
 	]
@@ -103,6 +105,7 @@ export class ContextMenu {
 		console.log(e)
 		this.#container.componentStartedWork(this.appId, {})
 		e.preventDefault()
+		this.#triggerEvent = e
 		this.#target = e.target
 		this.#container.setPosition(this.#interface, {
 			top: e.pageY,
@@ -115,6 +118,7 @@ export class ContextMenu {
 
 	stop () {
 		this.unsetMenuActions();
+		this.#triggerEvent = null;
 		this.#container.hide(this.#interface, this.appId)
 		this.#container.componentStoppedWork(this.appId)
 	}
@@ -150,6 +154,7 @@ export class ContextMenu {
 			button.innerHTML += `<span>${details.shortcut}</span>`
 		}
 
+		//[TODO]: pass in trigger event rather than click event
 		button.addEventListener('click', (e) => this.callAction(e, details))	
 	}
 
@@ -208,16 +213,12 @@ export class ContextMenu {
 	    this.stop();
 	}
 
-	createContainerWrapper(e) {
-		
-	}
-
-	editText(e) {
+	editText() {
 		let textEditor = this.#container.getComponent('container.edit.text')
-		textEditor.start(this.#target, {top:e.pageY, left: e.pageX})
+		textEditor.start(this.#target, {top:this.#triggerEvent.pageY, left: this.#triggerEvent.pageX})
 	}
 
-	deselect(e) {
+	deselect() {
 		clearSelection(this.#container)
 	}
 }

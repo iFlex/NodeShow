@@ -1,14 +1,16 @@
 import { Container } from '../../Container.js'
-import { getSelection } from '../utils/common.js'
+import { getSelection, clearSelection } from '../utils/common.js'
 import { getCursorPosition } from '../utils/mouse.js'
 import { Clipboard, EVENTS as ClipboardEvents } from "../utils/clipboard.js"
 
+//[TODO]: integrate nagivator.clipboard API as well
 export class ContainerClipboard {
 	appId = "container.clipboard"
 	type = 'background'
 
 	#clipboard = null;
 	#container = null;
+	#DOMbuffer = null;
 	#enabled = false
 	
 	constructor (container) {
@@ -17,13 +19,24 @@ export class ContainerClipboard {
 
 		this.#clipboard = new Clipboard(this.appId)
 		this.#clipboard.setAction(ClipboardEvents.paste, 
-			(event) => this.paste(event.detail.originalEvent))
+			(event) => this.onPaste(event.detail.originalEvent))
 
 		this.#clipboard.setAction(ClipboardEvents.copy, 
-			(event) => this.copy(event.detail.originalEvent))
+			(event) => this.onCopy(event.detail.originalEvent))
 
 		this.#clipboard.setAction(ClipboardEvents.cut, 
-			(event) => this.cut(event.detail.originalEvent))
+			(event) => this.onCut(event.detail.originalEvent))
+
+		this.#DOMbuffer = this.#container.createFromSerializable(document.body, {
+			nodeName:"TEXTAREA",
+			"data":{
+		    	"ignore":true,
+		    	"containerPermissions":{
+					"container.broadcast":{"*":false},
+					"container.bridge":{"*":false}
+				}
+		    }
+		}, null, this.appId)
 	}
 
 	enable () {
@@ -96,7 +109,7 @@ export class ContainerClipboard {
 		return roots
 	}
 
-	copy (e) {
+	copy (subset) {
 		let selection = getSelection(this.#container)
 		if (selection.length > 0) {
 			let clipboard = []
@@ -104,7 +117,7 @@ export class ContainerClipboard {
 			for (const id of selection) {
 				try {
 					let container = this.#container.lookup(id)
-					let descriptor = this.#container.toSerializable(container)
+					let descriptor = this.#container.toSerializable(container, false, subset)
 					descriptor.parentId = null
 
 					clipboard.push(descriptor)
@@ -122,7 +135,7 @@ export class ContainerClipboard {
 			let i = 0
 			while ( i < travqueue.length ) {
 				let node = travqueue[i]
-				let descriptor = this.#container.toSerializable(node)
+				let descriptor = this.#container.toSerializable(node, false, subset)
 				descriptor.parentId = node.parentNode.id
 
 				clipboard.push(descriptor)
@@ -136,15 +149,12 @@ export class ContainerClipboard {
 			
 			let data = JSON.stringify(clipboard)
 			console.log(`${this.appId} - copy ${data.length}B`)
-			console.log(data)
-			e.clipboardData.setData("text/plain", data)
-			//[TODO]Warning: this will prevent regular execution.
-			//Figure out how to integrate with text editor and input fields
-			e.preventDefault()
+			return data
 		}
+		return undefined
 	}
 
-	paste (e) {
+	paste (data) {
 		let parent = this.#container.parent
 		let selection = getSelection(this.#container)
 		let cursorPos = getCursorPosition()
@@ -153,10 +163,9 @@ export class ContainerClipboard {
 			parent = selection[0]
 		}
 
-		let paste = (e.clipboardData || window.clipboardData).getData('text');
-	 	console.log(`${this.appId} - paste ${paste.length}B`)
+	 	console.log(`${this.appId} - paste ${data.length}B`)
 
-	 	let toBuild = JSON.parse(paste)
+	 	let toBuild = JSON.parse(data)
 	 	this.translateIds(toBuild)
 
 	 	for (const desc of toBuild) {
@@ -166,12 +175,62 @@ export class ContainerClipboard {
 	 	this.normalizePositions(this.getRoots(toBuild), cursorPos.x, cursorPos.y)
 	 }
 
-	cut (e) {
-		this.copy(e)
-		console.log(`${this.appId} - cut`)
+	//[TODO]: consider if subset should be supported in cutting too
+	cut () {
+		let data = this.copy()
+		console.log(`${this.appId} - cut ${data.length}B`)
+		
 		let selection = getSelection(this.#container)
+		clearSelection(this.#container)
 		for (const id of selection) {
 			this.#container.delete(id, this.appId)
+		}
+		return data
+	}
+
+	onCopy(e) {
+		let data = this.copy()
+		if (data) {
+			e.clipboardData.setData("text/plain", data)
+			e.preventDefault()
+		}
+	}
+
+	onPaste(e) {
+		let data = (e.clipboardData || window.clipboardData).getData('text')
+		if (data) {
+			this.paste(data)
+		}
+	}
+
+	onCut(e) {
+		let data = this.cut()
+		if (data) {
+			e.clipboardData.setData("text/plain", data)
+			e.preventDefault()
+		}
+	}
+
+	doCopy(subset) {
+		let data = this.copy(subset)
+		if (data) {
+			this.#DOMbuffer.value = data
+			this.#DOMbuffer.select();
+			document.execCommand("copy");
+		}
+	}
+
+	doPaste(subset) {
+		this.#DOMbuffer.focus();
+		document.execCommand("paste");
+	}
+
+	doCut(subset) {
+		let data = this.cut(subset)
+		if (data) {
+			this.#DOMbuffer.value = data
+			this.#DOMbuffer.select();
+  			document.execCommand("cut");
 		}
 	}
 }
