@@ -2,6 +2,7 @@
  * Container Framework Module
  * @module Container 
  */
+import { convert, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
@@ -49,8 +50,6 @@ let ACTIONS_CHAIN = {}
     ACTIONS_CHAIN[ACTIONS.setSiblingPosition] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.setPermission] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.removePermission] = [ACTIONS.update]
-
-let SUPPORTED_MEASURING_UNITS = new Set(['px','%','el'])
 
 /** @class */
 export class Container {
@@ -659,8 +658,7 @@ export class Container {
             }
             return this.#getPercentage(this.getHeight(node.parentNode), height)
         } else {
-            //[TODO]
-            return height
+            return convert(height, 'px', unit)
         }
     }
 
@@ -671,8 +669,7 @@ export class Container {
             }
             return this.#getPercentage(this.getWidth(node.parentNode), width)
         } else {
-            //[TODO]
-            return width
+            return convert(width, 'px', unit)
         }
     }
 

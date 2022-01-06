@@ -1,4 +1,3 @@
-import { ACCESS_REQUIREMENT } from "./inputAccessManager.js"
 import { EVENTS } from "./keyboard.js"
 
 /** @class
