@@ -6,6 +6,7 @@ import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //import { getSelection } from '../utils/common.js'
 //TODO:
+//fix reverse selection (sometimes it is smaller than it should be)
 //new line comprehension in addPrintable and when serializing text units
 //forward delete doesn't work well (via delete key)
 //font and letter size tracking
@@ -33,7 +34,6 @@ textItemPerms[ACTIONS.create] = {"*":false}
 const textLinePerms = {}
 textLinePerms[ACTIONS.setPosition] = {"*":false}
 
-//[BUG]: clicking on a text unit doesn't pop up the editor anymore. :D fix plz
 export class ContainerTextInjector {
 	appId = "container.edit.text"
 	
@@ -185,9 +185,6 @@ export class ContainerTextInjector {
 		this.container.hide(this.#cursorDiv, this.appId)
 	}
 
-	/*
-		Maybe these 2 could be done automatically by core code
-	*/
 	enable() {
 		if (!this.#enabled) {
 			for (const [key, value] of Object.entries(this.#handlers)) {
@@ -500,51 +497,6 @@ export class ContainerTextInjector {
 		return {textUnit: result, skippedLines: skippedLines}
 	}
 
-	/*
-		Inclusive set of text units from start to end
-		//deprecate...
-		ToDo: deal with situatoin when start is after end
-	*/
-	findBetweenTextUnits (start, end, stopAtEOL) {
-		if (!start && !end) {
-			return {lines:new Set([]), units: new Set([])}
-		}
-		if (!end) {
-			end = start.parentNode.lastChild
-		}
-		if (!start) {
-			start = end.parentNode.firstChild;
-		}
-		
-		let units = new Set([])
-		let lines = new Set([])
-		var currentLine = start.parentNode
-		var currentTextUnit = start
-			
-		while (currentLine) {
-			if (!currentTextUnit) {
-				currentTextUnit = currentLine.firstChild
-			}
-
-			lines.add(currentLine)
-			while (currentTextUnit) {
-				if (this.isTextUnit(currentTextUnit)){
-					units.add(currentTextUnit)
-					if (currentTextUnit == end) {
-						units.add(end)
-						return {lines:lines, units:units}
-					}
-				}
-				currentTextUnit = currentTextUnit.nextSibling
-			}
-			if (stopAtEOL) {
-				break;
-			}
-			currentLine = currentLine.nextSibling
-		}
-		return {lines:lines, units:units}
-	}
-
 	findBetween (start, end, stopAtEOL) {
 		if (!start && !end) {
 			return {lines:new Set([]), units: new Set([])}
@@ -693,7 +645,7 @@ export class ContainerTextInjector {
 					this.cursor.putOn(endSplit[1], 0)
 				}
 
-				return this.findBetweenTextUnits(startNode, endNode)			
+				return this.findBetween(startNode, endNode)			
 			}
 		}
 		return null;
@@ -844,7 +796,7 @@ export class ContainerTextInjector {
 		if (curStat.textUnit) {
 			let split = this.splitTextUnit(curStat.textUnit, curStat.localCharNumber)
 			if (split[1]) {
-				moveToNewLine = this.findBetweenTextUnits(split[1]).units
+				moveToNewLine = this.findBetween(split[1]).units
 			}
 		}
 		//make new line and pull in items
@@ -859,8 +811,6 @@ export class ContainerTextInjector {
 	}
 
 	//ToDo: remove lines rendered empty	
-	//BUG: sometimes removing in between text units creates ghost text units
-	//BUG: sometimes this doesn't delete anyting... 
 	//BUG: fix forward deletion
 	removePrintable(count) {
 		if (!this.target) {
