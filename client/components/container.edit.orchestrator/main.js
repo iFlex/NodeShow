@@ -54,11 +54,12 @@ export class ContainerEditOrchestrator {
 
 		this.#interface = this.#container.createFromSerializable(document.body, {
 			"nodeName":"div",
+			"id":"root-interface",
 			"computedStyle":{
 				"top":"0px",
 				"left":"0px",
 				"position":"fixed",
-                "width":"48px",
+                "width":"auto",
                 "height":"100%"
 			},
 			"data":{
@@ -109,6 +110,7 @@ export class ContainerEditOrchestrator {
 
 			this.#container.show(this.#interface, this.appId)
 			this.#container.bringToFront(this.#interface, this.appId)
+			positionVerticalMenu(this.#container, this.#interface, this.appId)
 		}
 	}
 

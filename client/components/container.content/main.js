@@ -1,4 +1,4 @@
-import { getSelection } from '../utils/common.js'
+import { getSelection, positionVerticalMenu } from '../utils/common.js'
 import { post } from '../utils/http.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/keyboard.js'
@@ -70,6 +70,7 @@ export class ContainerContent {
 
       this.container.show(this.#interface, this.appId)
       this.container.bringToFront(this.#interface)
+      positionVerticalMenu(this.container, this.#interface, this.appId)
     }
   }
 

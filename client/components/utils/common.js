@@ -76,3 +76,16 @@ export function lookupStyleRules(className) {
 	}
 	return result;
 }
+
+//TEMPORARY & EXPERIMENTAL
+export function positionVerticalMenu(container, interfNode, appId) {
+	try {
+		let w = container.getWidth(container.lookup('ns-orchestrator-menu-container'))
+		container.setPosition(interfNode, {
+			top:0,
+			left: w
+		}, appId)
+	} catch(e) {
+		//nevermind
+	}
+}

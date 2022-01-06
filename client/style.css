@@ -72,6 +72,7 @@
 } 
 
 .ns-vertical-slice-interface {
+  position: fixed;
   max-width: 10cm;
   max-height: 20cm;
   overflow-x: wrap;

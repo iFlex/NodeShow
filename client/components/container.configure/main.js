@@ -1,5 +1,5 @@
 import { ACTIONS } from '../../Container.js'
-import { getSelection, lookupStyleRules } from '../utils/common.js'
+import { getSelection, lookupStyleRules, positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
@@ -51,7 +51,7 @@ export class ContainerConfig {
 			"className":"ns-vertical-slice-interface",
 			"computedStyle":{
 				"top":"0px",
-				"left":"128px",
+				"left":"0px",
 				"position":"fixed"
 			},
 			"data":{
@@ -94,6 +94,7 @@ export class ContainerConfig {
 			this.container.show(this.#interface, this.appId)
 			this.container.bringToFront(this.#interface, this.appId)
 			this.onFocus()
+			positionVerticalMenu(this.container, this.#interface, this.appId)
 		}
 	}
 
