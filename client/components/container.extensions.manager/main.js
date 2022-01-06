@@ -27,7 +27,7 @@ export class ContainerExtensionsManager {
     
         this.#interface = this.#container.createFromSerializable(document.body, {
 			"nodeName":"div",
-			"computedStyle":{
+            "computedStyle":{
 				"top":"0px",
 				"left":"250px",
 				"position":"fixed",

@@ -90,19 +90,23 @@ e.g. Permissions, Actions, etc.
 [TODO][L]: copy/paste style only (via context menu)
 [TODO]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
 [TODO]: make insert content via data b64 link work
-[TODO]: implement undo/redo
+[SHOULD-HAVE]: implement undo/redo
+[TODO]: make all UI interfaces fit screen and scroll (maybe with css)
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
 [BUG]: Repell component sometimes goes beserk, interface gets moved
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
+[SHOULD-HAVE][M]: Make container.edit.style and container.config settings apply to newly created containers? (currently doing that for borders and colour)
+
 [SHOULD-HAVE][L]: copy/paste triggered via context menu. (copy and cut works, paste doesn't)
 [SHOULD-HAVE][CORE] when creating within a parent, or changing parents - have the child conform to parent rules by default. Currently applied on creation, not parent change yet 
 (e.g. respect parent stylign suggestionts)
 
 [SHOULD-HAVE]: load presentations via HTML rather than event stream. Large prezzos will slow down the server.
 [NICE-TO-HAVE]: clone an existing NodeShow using server side UI
-[NICE-TO_HAVE]: resize selection? is it really needed? 
+[NICE-TO_HAVE]: resize selection? is it really needed?
+[NICE-TO-HAVE]: set width, height, position to exact values ? maybe? 
 [SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
 [TODO]: add oAuth & roles for users. Robots should be configurable - currently using hardcoded PSK
 [NICE-TO-HAVE][MAYBE]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:

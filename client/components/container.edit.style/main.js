@@ -24,10 +24,11 @@ export class ContainerStyler {
 		
 		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
+			"className":"ns-vertical-slice-interface",
 			"computedStyle":{
 				"top":"0px",
 				"left":"64px",
-				"position":"absolute"
+				"position":"fixed"
 			},
 			"data":{
 		    	"ignore":true,
@@ -35,7 +36,7 @@ export class ContainerStyler {
 					"container.broadcast":{"*":false},
 					"container.bridge":{"*":false}
 				}
-		    }
+		  }
 		},
 		null,
 		this.appId)
@@ -159,11 +160,21 @@ export class ContainerStyler {
 	}
 
 	changePadding (e) {
+		let value = document.getElementById('ns-padding').value
+		let unit       = document.getElementById('ns-padding-unit').value
+		let toset       = `${value}${unit}`
 
+		this.container.setMetadata(null, 'padding', toset)
+		this.#applyChange({'padding':toset})
 	}
 
 	changeMargin (e) {
+		let value = document.getElementById('ns-margin').value
+		let unit       = document.getElementById('ns-margin-unit').value
+		let toset       = `${value}${unit}`
 
+		this.container.setMetadata(null, 'margin', toset)
+		this.#applyChange({'margin':toset})
 	}
 	
 	getStyleKeys() {

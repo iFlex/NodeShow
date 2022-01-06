@@ -48,6 +48,7 @@ export class ContainerConfig {
 
 		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
+			"className":"ns-vertical-slice-interface",
 			"computedStyle":{
 				"top":"0px",
 				"left":"128px",

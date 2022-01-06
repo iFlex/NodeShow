@@ -71,6 +71,17 @@
     background-color: lawngreen;
 } 
 
+.ns-vertical-slice-interface {
+  max-width: 10cm;
+  max-height: 20cm;
+  overflow-x: wrap;
+  overflow-y: scroll;
+}
+
+.ns-modal-interface {
+
+}
+
 /* Experimental */
 .nodeshow-content {
   position: absolute;
