@@ -110,3 +110,10 @@ Vertical
 	<option value="grid" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	Grid</option>
 </select>
+
+<h5>Order</h5>
+<input 
+type="text" 
+id="ns-sibling-index" 
+name="ns-sibling-index" 
+data-container-actions='[{"trigger":"change","call":"container.configure.changeSiblingIndex","params":[]},{"trigger":"input","call":"container.configure.changeSiblingIndex","params":[]},{"trigger":"focus","call":"container.configure.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.configure.onTextFieldBlur","params":[]}]'>

@@ -14,7 +14,7 @@ export class ContainerStyler {
 	#interface = null;
 	#handlers = {}
 	#clipboard = null
-    #keyboard = null
+	#keyboard = null
 	
 	stateKeys = ["background-color","border-color","border-style","border-width","border-radius"]
 
@@ -157,34 +157,6 @@ export class ContainerStyler {
 	changeShape (e) {
 		this.changeBorderType(e);
 	}
-
-	// changePosXUnit (e) {
-	// 	let unit = e.target.value;
-	// 	let selection = getSelection(this.container);
-	// 	for (const item of selection) {
-	// 		try {
-	// 			let pos = this.container.getPosition(item)
-	// 			pos['leftUnit'] = unit
-	// 			this.container.setPosition(item, pos, this.appId)
-	// 		} catch( e ){
-	// 			console.error(`${this.appId} failed to change x-axis unit to ${unit}`)
-	// 		}
-	// 	}
-	// }
-
-	// changePosYUnit (e) {
-	// 	let unit = e.target.value;
-	// 	let selection = getSelection(this.container);
-	// 	for (const item of selection) {
-	// 		try {
-	// 			let pos = this.container.getPosition(item)
-	// 			pos['topUnit'] = unit
-	// 			this.container.setPosition(item, pos, this.appId)
-	// 		} catch( e ){
-	// 			console.error(`${this.appId} failed to change y-axis unit to ${unit}`)
-	// 		}
-	// 	}
-	// }
 
 	changePadding (e) {
 

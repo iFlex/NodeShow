@@ -1,5 +1,8 @@
 import { ACTIONS } from '../../Container.js'
 import { getSelection, lookupStyleRules } from '../utils/common.js'
+import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
+import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 //ToDo: implement. 
 //importance: this allows determining how content is arranged, setting overflow rules, how to position elements
@@ -14,6 +17,8 @@ export class ContainerConfig {
 
 	#enabled = false
 	#interface = null;
+	#clipboard = null
+	#keyboard = null
 	#handlers = {}
 	layouts = {
 		"none":{
@@ -66,6 +71,15 @@ export class ContainerConfig {
 			entry.parentStyle = lookupStyleRules(entry.parentClassName)
 			entry.childStyle = lookupStyleRules(entry.childClassName)
 		}
+
+		this.#clipboard = new Clipboard(this.appId);
+		for (let evid of Object.values(ClipboardEvents)) {
+			this.#clipboard.setAction(evid,
+			  (event) => {},//noop
+			  ACCESS_REQUIREMENT.EXCLUSIVE)
+		}
+
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
 	}
 
 	enable() {
@@ -167,15 +181,36 @@ export class ContainerConfig {
 		}
 	}
 
-	setParentLayout(parent, parentStyle) {
+	removeParentLayout(node) {
 		for (let config of Object.entries(this.layouts)) {
 			let style = config.parentStyle || lookupStyleRules(config.parentClassName)
-			this.container.removeStyle(parent, style, this.appId)
+			this.container.removeStyle(node, style, this.appId)
 			config.parentStyle = style
 		}
+	}
+	
+	removeChildLayout(node) {
+		for (let config of Object.entries(this.layouts)) {
+			let style = config.childStyle || lookupStyleRules(config.childClassName)
+			this.container.removeStyle(node, style, this.appId)
+			config.childStyle = style
+		}
+	}
+
+	setChildrenLayouts(parent, layout) {
+		for (const child of parent.children) {
+			this.removeChildLayout(child)
+			this.container.styleChild(child, layout, this.appId)
+		}
+	}
+
+	setParentLayout(parent, parentStyle) {
+		this.removeParentLayout(parent)
 		this.container.styleChild(parent, parentStyle, this.appId)
 	}
 
+	//[TODO]: make this more efficient: currently when setting a new layout, 
+	//all layouts are iterated and removed from the parent and 1st level children and then the desired ones are applied
 	changeContentLayout() {
 		let type = document.getElementById('ns-content-layout').value
 		let layoutConfig = this.layouts[type]
@@ -187,6 +222,7 @@ export class ContainerConfig {
 			let node = this.container.lookup(target)
 			node.setAttribute("data-child-style", JSON.stringify(layoutConfig.childStyle))
 			this.setParentLayout(node, layoutConfig.parentStyle)
+			this.setChildrenLayouts(node, layoutConfig.childStyle)
 		}
 	}
 
@@ -224,5 +260,27 @@ export class ContainerConfig {
 		for (const target of this.selection) {	
 			this.container.setPositionUnits(target, {left:newUnit}, this.appId)
 		}
+	}
+
+	changeSiblingIndex() {
+		let newIndex = document.getElementById('ns-sibling-index').value
+		if (newIndex && newIndex.length > 0) {
+			newIndex = parseInt(newIndex)
+			
+			this.selection = getSelection(this.container)
+			for (const target of this.selection) {	
+				this.container.setSiblingPosition(target, newIndex, this.appId)
+			}
+		}
+	}
+
+	onTextFieldFocus() {
+		this.#clipboard.enable()
+		this.#keyboard.enable()
+	}
+
+	onTextFieldBlur() {
+		this.#clipboard.disable()
+		this.#keyboard.disable()
 	}
 }	

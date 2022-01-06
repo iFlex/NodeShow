@@ -18,15 +18,15 @@ Client Features:
                     Ample note 3
         state: tracks at what levels of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous levels. The first levels being the full content of the container.
+12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
+    [TODO]: make it a bit more advanced: e.g. read status from target, show sliders, etc?
 ------------------------------------------------------------------------------
-12  [IN_PROGRESS] !Link Containers ::container.link
+13  [IN_PROGRESS] !Link Containers ::container.link
     - [DONE] create links
     - [DONE] persist / load / maintain links
     - delete links (delete any linkUnit should cause the whole link to be deleted)
     - edit links
     - interact with links
-
-13  Configure Container: (sibling order, child style, positioning, etc):: container.configure
 --------------------------------------------
 
 
@@ -36,6 +36,9 @@ Current Prios:
 
 [TODO]: support auto values for height and width. E.g. if you set width:auto then it will fit static content? & maybe implement content fit on child add and remove?
      -> set rules of how this should work.
+[TODO]: Implement functionality to make container fit content (including abs pos content)
+ - without harming non positioned elements? (can it be done?)
+ : currently a shitty but relatively working implementation exists
 
 [TODO]: Decouple input interfaces from nodeshow.js instance of container
         - needs event separation (currently all events are listened for via document, they should be listened for via container.parent)
@@ -66,11 +69,7 @@ e.g. Permissions, Actions, etc.
 
 [TODO][FIX]: Broadcasting abstraction level stats. Currently broken:
     . all works well with no collaborators
-    . when more collaborators are added, an event inifinte loop appears.
-
-[TODO]: Implement functionality to make container fit content (including abs pos content)
- - without harming non positioned elements? (can it be done?)
- : currently a shitty but relatively working implementation exists
+    . when more collaborators are added, an event inifinte loop appears
 
 [TODO]: tests for InputAccessManager access granting
  
@@ -88,7 +87,7 @@ e.g. Permissions, Actions, etc.
 [TODO]: Revise and make robust Mouse & Keyboard
 [TODO]: Work on solid encoding interpretation on content from server
 [TODO]: grouper color selection. pick color in a smart way rather than just black
-[TODO]: copy/paste style only (via context menu)
+[TODO][L]: copy/paste style only (via context menu)
 [TODO]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
 [TODO]: make insert content via data b64 link work
 [TODO]: implement undo/redo
@@ -97,9 +96,10 @@ e.g. Permissions, Actions, etc.
 [BUG]: Repell component sometimes goes beserk, interface gets moved
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
-[SHOULD-HAVE]: copy/paste triggered via context menu
-[SHOULD-HAVE][CORE] when creating within a parent, or changing parents - have the child conform to parent rules by default 
+[SHOULD-HAVE][L]: copy/paste triggered via context menu. (copy and cut works, paste doesn't)
+[SHOULD-HAVE][CORE] when creating within a parent, or changing parents - have the child conform to parent rules by default. Currently applied on creation, not parent change yet 
 (e.g. respect parent stylign suggestionts)
+
 [SHOULD-HAVE]: load presentations via HTML rather than event stream. Large prezzos will slow down the server.
 [NICE-TO-HAVE]: clone an existing NodeShow using server side UI
 [NICE-TO_HAVE]: resize selection? is it really needed? 
