@@ -673,20 +673,30 @@ export class Container {
         }
     }
 
-    #convertPixelPos(node, pos, unit) {
-        if (unit == '%') {
+    convertPixelPos(node, pos, units) {
+        let result = {
+            top:0,
+            left:0
+        }
+
+        if (units.top == '%' || units.left == '%') {
             if (!node.parentNode) {
                 throw `Cannot convert to % position for a container with no parentNode`
             }
-            let parentPos = this.getPosition(node.parentNode)
-            return {
-                top:this.#getPercentage(parentPos.top, pos.top),
-                left:this.#getPercentage(parentPos.left, pos.left)
-            }
-        } else {
-            //[TODO]
-            return pos
         }
+    
+        if (units.top == '%') {
+            result.top = this.#getPercentage(this.getHeight(node.parentNode), pos.top)    
+        } else {
+            result.top = convert(pos.top, 'px', units.top)
+        }
+        
+        if (units.left == '%') {
+            result.left = this.#getPercentage(this.getWidth(node.parentNode), pos.left)
+        } else {
+            result.left = convert(pos.left, 'px', units.left)
+        } 
+        return result
     }
 
     //<size>

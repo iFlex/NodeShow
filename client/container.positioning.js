@@ -77,17 +77,11 @@ Container.prototype.setPosition = function(id, position, callerId) {
     position.left -= (position.originX || 0) * this.getWidth(elem)
     position.top -= (position.originY || 0) * this.getHeight(elem)
 
-    let xUnit = elem.dataset.leftUnit || 'px'
-    let yUnit = elem.dataset.topUnit  || 'px'
-    
-    if (xUnit == '%') {
-        position.left = parseFloat(position.left) / this.getWidth(elem.parentNode || this.parent)*100
-    }
-    if (yUnit == '%') {
-        position.top = parseFloat(position.top) / this.getHeight(elem.parentNode || this.parent)*100
-    }
+    let leftUnit = elem.dataset.leftUnit || 'px'
+    let topUnit = elem.dataset.topUnit  || 'px'
+    position = this.convertPixelPos(elem, position, {top:topUnit, left:leftUnit})
 
-    jQuery(elem).css({top: `${position.top}${yUnit}`, left: `${position.left}${xUnit}`});
+    jQuery(elem).css({top: `${position.top}${topUnit}`, left: `${position.left}${leftUnit}`});
     this.emit(ACTIONS.setPosition, {
         id: elem.id, 
         position: position,
