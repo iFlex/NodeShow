@@ -30,10 +30,16 @@ export class UserDialogue {
 
 	confirm(message, onComplete) {
 		let result = confirm(message)
+		if (typeof onComplete === 'function') {
+			onComplete(result)
+		}
 	}
 
 	alert(message, onClose) {
 		alert(message)
+		if (typeof onClose === 'function') {
+			onClose();
+		}
 	}
 
 	addStackMessage(message, options) {

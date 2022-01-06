@@ -169,7 +169,7 @@ export class ContainerClipboard {
 	 	this.translateIds(toBuild)
 
 	 	for (const desc of toBuild) {
-	 		let node = this.#container.createFromSerializable(desc.parentId || parent, desc, null, this.appId)
+	 		this.#container.createFromSerializable(desc.parentId || parent, desc, null, this.appId)
 	 	}
 
 	 	this.normalizePositions(this.getRoots(toBuild), cursorPos.x, cursorPos.y)

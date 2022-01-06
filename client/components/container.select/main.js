@@ -1,6 +1,3 @@
-//responsible with grouping containers in parent or making a selection
-// This may be unnecessary
-import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
@@ -166,7 +163,7 @@ export class ContainerSelect {
 				return;
 			}
 		}
-		
+
 		this.#selection.push(target)
 		this.#container.appEmit(this.appId, 'selected', {selection: this.#selection})
 	}
