@@ -276,6 +276,32 @@ export class ContainerConfig {
 		}
 	}
 
+	setExplicitWidth () {
+		let value = document.getElementById('ns-width').value
+		let unit = document.getElementById('ns-width-unit').value
+		if (value && value.length > 0) {
+			value = parseInt(value)
+			
+			this.selection = getSelection(this.container)
+			for (const target of this.selection) {	
+				this.container.setExplicitWidth(target, value, unit, this.appId)
+			}
+		}
+	}
+
+	setExplicitHeight () {
+		let value = document.getElementById('ns-height').value
+		let unit = document.getElementById('ns-height-unit').value
+		if (value && value.length > 0) {
+			value = parseInt(value)
+
+			this.selection = getSelection(this.container)
+			for (const target of this.selection) {	
+				this.container.setExplicitHeight(target, value, unit, this.appId)
+			}
+		}
+	}
+
 	onTextFieldFocus() {
 		this.#clipboard.enable()
 		this.#keyboard.enable()

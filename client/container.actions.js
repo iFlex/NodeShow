@@ -75,10 +75,10 @@ Container.prototype.saveActions = function(node, actions) {
     node.setAttribute("data-container-actions", JSON.stringify(actions))
 }
 
-Container.prototype.lookupMethod = function(method) {
-    let chain = method.split('.')
+Container.prototype.lookupMethod = function(methodName) {
+    let chain = methodName.split('.')
     if (!chain) {
-        throw `CORE: invalid method name ${method}`
+        throw `CORE: invalid method name ${methodName}`
     }
 
     let context = this
@@ -113,7 +113,7 @@ Container.prototype.lookupMethod = function(method) {
         }
     }
     
-    throw `Could not find method ${method}`
+    throw `Could not find method ${methodName}`
 }
 
 Container.prototype.detachAction = function(node, actionDescriptor) {

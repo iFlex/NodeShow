@@ -8,7 +8,7 @@ Client Features:
 7.  Style Container  (shape, color, border, etc) ::container.style [CRUDE]
 8   Copy/Paste within presentation and accross presentations ::container.clipboard
 9   Content Insertion (img, video, svg, etc) ::container.content (works for images)
-10  Display Order Change
+10  Display Order Change & Sibling Order Change
 11  Abstract away complexity. [PROBS_MOST_IMPORTANT] 
     A means of sumarizing a container's content by making it much smaller and displaying a summary of what it contains. 
     => Collapsing should be done in levels/stages.
@@ -18,15 +18,20 @@ Client Features:
                     Ample note 3
         state: tracks at what levels of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous levels. The first levels being the full content of the container.
+        [TODO]: allow each abstraction layer to impose a different style on the container +store it in the DOM
 12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
-    [TODO]: make it a bit more advanced: e.g. read status from target, show sliders, etc?
+    [NICE-TO-HAVE]: make it a bit more advanced?: e.g. read status from target, show sliders, etc?
 ------------------------------------------------------------------------------
 13  [IN_PROGRESS] !Link Containers ::container.link
+Link are currently a performance issue - they seem to slow down the server
     - [DONE] create links
     - [DONE] persist / load / maintain links
     - delete links (delete any linkUnit should cause the whole link to be deleted)
     - edit links
     - interact with links
+    - optimize drawing: stop sending update events on every link unit, let the client do the redrawing
+
+14. Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
 --------------------------------------------
 
 
@@ -36,6 +41,8 @@ Current Prios:
 
 [TODO]: support auto values for height and width. E.g. if you set width:auto then it will fit static content? & maybe implement content fit on child add and remove?
      -> set rules of how this should work.
+     -> maybe we don't need a fitContent function to be integrated in core but rather offered on demand + good integration with width:auto/inherit height:same
+
 [TODO]: Implement functionality to make container fit content (including abs pos content)
  - without harming non positioned elements? (can it be done?)
  : currently a shitty but relatively working implementation exists
@@ -93,6 +100,7 @@ e.g. Permissions, Actions, etc.
 [SHOULD-HAVE]: implement undo/redo
 [TODO]: investigate slow load time
 [TODO]: fix all exceptions caused at load time. There should be none
+[ISSUE]: copy/pasting links will not translate IDs in their descriptors. Needs fix
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
 [BUG]: Repell component sometimes goes beserk, interface gets moved
@@ -161,6 +169,10 @@ SERVER
 
 [todo]0. Optimize serving content: e.g. blob, static content, etc. Currently searching for this content folder by folder.
 [nice-to-have]: maybe use a framwork for the frontend like Angular. Something that won't be as manual as the vanilla JS in the UI
+
+[todo]: set cache times on resources
+[todo]: simplify endpoints to not need .html extension
+[todo]: collect performance metrics?
 
 0. Filter out all forms of scripts from beamed html
 1. Socket management

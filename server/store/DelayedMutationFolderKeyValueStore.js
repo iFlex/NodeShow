@@ -98,7 +98,7 @@ class DelayedMutationFolderKeyValueStore {
 	}
 
 	static getAllVersions(dir) {
-		return fs.readdirSync(dir);
+		return fs.readdirSync(dir)
 	}
 
 	static getLatestWrittenFile(dir) {

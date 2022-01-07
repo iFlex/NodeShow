@@ -704,15 +704,22 @@ export class Container {
     //[DOC] width is always expressed in pixels. If a unitOverride is provided, a conversion from pixels to the provided unit will be carried out before setting the result.
 	setWidth(id, width, callerId, emit) {
         let elem = Container.lookup(id)
-        this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
-        
-        let prevWidth = this.getWidth(id);
         let unit = elem.dataset.widthUnit || 'px'
         if (unit !== 'px') {
             width = this.#convertPixelWidth(elem, width, unit)    
         }
-        jQuery(elem).css({width: `${width}${unit}`});
 
+        this.setExplicitWidth(elem, width, unit, callerId, emit)        
+	}
+
+    setExplicitWidth(elem, width, unit, callerId, emit) {
+        this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
+        let prevWidth = this.getWidth(elem);
+        
+        if (unit == 'auto') {
+            width = ''
+        }
+        jQuery(elem).css({width: `${width}${unit}`});
         if (emit != false) {
             this.emit(ACTIONS.setWidth, {
                 id: elem.id, 
@@ -721,7 +728,7 @@ export class Container {
                 callerId: callerId
             });
         }
-	}
+    }
 
     setUnit(id, property, unit) {
         if (!unit) {
@@ -749,12 +756,21 @@ export class Container {
 
 	setHeight(id, height, callerId, emit) {
         let elem = Container.lookup(id);
-        this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
-        
-        let prevHeight = this.getHeight(elem);
+
         let unit = elem.dataset.heightUnit || 'px'
         if (unit !== 'px') {
             height = this.#convertPixelHeight(elem, height, unit)    
+        }
+
+        this.setExplicitHeight(elem, height, unit, callerId, emit)
+    }
+
+    setExplicitHeight(elem, height, unit, callerId, emit) {
+        this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
+        
+        let prevHeight = this.getHeight(elem);
+        if (unit == 'auto') {
+            height = ''
         }
         jQuery(elem).css({height: `${height}${unit}`});
         if (emit != false) {
@@ -967,7 +983,8 @@ export class Container {
             position: index,
             callerId: callerId
         })
-        this.notifyUpdate(sibling, callerId)
+        //Child order is stored in the parent
+        this.notifyUpdate(sibling.parentNode, callerId)
     }
 
     changeSiblingPosition(siblingId, amount, callerId) {

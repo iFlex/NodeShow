@@ -65,19 +65,7 @@ function mouseDown(e) {
 	}	
 }
 
-let lastMouseMove = undefined
-let deltaSum = 0;
-let deltaDuration = 0;
-let count = 0;
 function mouseMove(e) {
-	let start = Date.now()
-	if (lastMouseMove) {
-		let delta = start - lastMouseMove
-		deltaSum += delta
-		count ++;	
-	} 
-	lastMouseMove = start
-
 	lastPageX = e.pageX;
 	lastPageY = e.pageY;
 
@@ -103,15 +91,7 @@ function mouseMove(e) {
 
 	lastX = e.screenX;
 	lastY = e.screenY;
-	deltaDuration += (Date.now() - start)
 }
-
-setInterval(function(){
-	let interval = deltaSum/count
-	let hz = 1000/interval
-	let duration = deltaDuration/count
-	console.log(`Interval between mouse moves: ${deltaSum/count}ms = ${hz}hz Avg handler duration:${duration}ms`)
-},1000)
 
 function mouseUp(e) {	
 	if (target) {

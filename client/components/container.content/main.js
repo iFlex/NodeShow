@@ -57,7 +57,6 @@ export class ContainerContent {
 
     this.container.hide(this.#interface, this.appId)
     //load interface style and html
-    this.container.loadStyle("style.css", this.appId)
     this.container.loadHtml(this.#interface, "interface.html", this.appId)
   }
 

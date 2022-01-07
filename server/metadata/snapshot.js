@@ -1,46 +1,24 @@
 const puppeteer = require('puppeteer');
 
-function imageSnapshot() {
-
-}
-
-function htmlSnapshot() {
-
-}
-
-async function login (page, browser) {
-  await page.type('[name="identifier"]', "");
-  await page.type('[name="password"]', "");
+async function login (nodeShow) {
+  const browser = await puppeteer.launch({ignoreHTTPSErrors: true});
+  let page = await browser.newPage();
+  await page.goto(`${nodeShow}/login.html`,{ waitUntil: 'networkidle2'});
+  await page.type('[name="identifier"]', "Livache");
+  await page.type('[name="password"]', "test");
   await page.click('[value="Login"]')//.then(() => page.waitForNavigation({waitUntil: 'load'}));
   await page.waitFor(1000); // await for 1s
-  const pc = (await browser.pages()).length
-  return (await browser.pages())[pc - 1]
+  
+  return browser
 }
 
-(async () => {
-
-  // 1. Launch the browser
-  const browser = await puppeteer.launch();
-
-  // 2. Open a new page
+async function imageSnapshot(prezId, nodeShow, saveAs, headers) {
+  const browser = await puppeteer.launch({ignoreHTTPSErrors: true});
   let page = await browser.newPage();
-
-  // 3. Navigate to URL
-  await page.goto('https://mfs.milorad.net:8080/home.html',
-    { waitUntil: 'networkidle2' });
+  page.setExtraHTTPHeaders(headers)
   
-  if (page.url().includes('/login')) {
-    //need to login, damn it
-    page = await login(page, browser);
-    if (!page) {
-      console.log("Login failed")
-      await browser.close();
-      return;
-    }
-  }
-  
-  await page.goto('https://mfs.milorad.net:8080/view.html?pid=RAU5N',
-    { waitUntil: 'networkidle2' });
+  await page.goto(`${nodeShow}/view.html?pid=${prezId}`,
+    { waitUntil: 'networkidle2'});
   
   const desiredWidth = 1920;
   const desiredHeight = 1080;
@@ -52,7 +30,13 @@ async function login (page, browser) {
       deviceScaleFactor: sf,
   });
 
-  await page.screenshot({path: 'screenshot.png'});
-
+  await page.screenshot({path: saveAs});
+  console.log(`Snapshot saved ${saveAs}`)
   await browser.close();
-})();
+}
+
+function htmlSnapshot() {
+
+}
+
+exports.imageSnapshot = imageSnapshot;

@@ -144,8 +144,7 @@ export class ContextMenu {
 				icon.style.display = "block"
 				button.appendChild(icon.cloneNode(true))	
 			} catch (e) {
-				console.log(`${this.appId} failed to lookup icon ${details.icon}`)
-				console.error(e)
+				console.log(`${this.appId}[WARNING] failed to lookup icon ${details.icon}`)
 			}
 			
 		}

@@ -94,7 +94,9 @@ export class LiveBridge {
         }
         let targetId = e.detail.id;
         if (!targetId) {
-            console.error("Attempted to send update about undefined ID... Aborting")
+            if (this.debug) {
+                console.error("Attempted to send update about undefined ID... Aborting")
+            }
             return;
         }
 
@@ -103,8 +105,12 @@ export class LiveBridge {
         let raw = null
         if (eventType != 'container.delete') {
             raw = this.container.toSerializable(targetId);
-            this.container.isOperationAllowed(ACTIONS.bridge, this.container.lookup(targetId), e.detail.callerId)
-
+            try {
+                this.container.isOperationAllowed(ACTIONS.bridge, this.container.lookup(targetId), e.detail.callerId)    
+            } catch (e) {
+                return;
+            }
+            
             let pid = Container.lookup(targetId).parentNode.id
             if (pid && pid != parentId) {
                 parentId = pid

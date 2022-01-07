@@ -5,6 +5,13 @@ Lock
 <button data-container-actions='{"0":{"trigger":"click","call":"container.configure.unlockWidth","params":[]}}'>
 Unlock
 </button>
+<br/>
+<input 
+type="text" 
+id="ns-width" 
+name="ns-width" 
+data-container-actions='[{"trigger":"change","call":"container.configure.setExplicitWidth","params":[]},{"trigger":"input","call":"container.configure.setExplicitWidth","params":[]},{"trigger":"focus","call":"container.configure.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.configure.onTextFieldBlur","params":[]}]'>
+
 <select id="ns-width-unit" 
 	  name="ns-width-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changeWidthUnit","params":[]}}'	   
@@ -13,6 +20,8 @@ Unlock
 	px</option>
 	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
+	<option value="auto" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	auto</option>
 </select>
 
 <h3>Height<h3> 
@@ -22,6 +31,13 @@ Unlock
 	<button data-container-actions='{"0":{"trigger":"click","call":"container.configure.unlockHeight","params":[]}}'>
 	Unlock
 	</button>
+<br/>
+<input 
+type="text" 
+id="ns-height" 
+name="ns-height" 
+data-container-actions='[{"trigger":"change","call":"container.configure.setExplicitHeight","params":[]},{"trigger":"input","call":"container.configure.setExplicitHeight","params":[]},{"trigger":"focus","call":"container.configure.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.configure.onTextFieldBlur","params":[]}]'>
+
 <select id="ns-height-unit" 
 	  name="ns-height-unit"
 	data-container-actions='{"0":{"trigger":"change","call":"container.configure.changeHeightUnit","params":[]}}'
@@ -30,6 +46,8 @@ Unlock
 	px</option>
 	<option value="%" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	%</option>
+	<option value="auto" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+	auto</option>
 </select>
 
 <h3>Position</h3>

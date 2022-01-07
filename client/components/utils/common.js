@@ -57,7 +57,6 @@ export function lookupStyleRules(className) {
 	className = `.${className}`
 	var styleDirectives = [];
 	for (var i = 0 ; i < document.styleSheets.length; ++i) {
-		console.log(document.styleSheets[i])
 		let classes = document.styleSheets[i].cssRules
 		for (var x = 0; x < classes.length; x++) {    
 			if (classes[x].selectorText == className) {

@@ -29,6 +29,7 @@
               transition: 0.3s;
               margin: 5px;
               width: 200px;
+              padding: 5px;
             }
 
             /* On mouse-over, add a deeper shadow */
@@ -151,7 +152,7 @@
                     newNode.id = `${item.id}:${newNode.id}`
 
                     item['prez_link'] = `/experimental.html?pid=${item.id}`
-                    item['preview_link'] = `https://wcs.smartdraw.com/software/img/diagram-software-example.png`
+                    item['preview_link'] = `${item.id}.png`
                     item['created'] = formatDate(item['created'])
                     item['last_updated'] = formatDate(item['last_updated'])
 

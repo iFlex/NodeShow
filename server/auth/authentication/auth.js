@@ -15,15 +15,12 @@ class Authenticator {
 	}
 
 	verifyToken(userId, token) {
-		let trusted = this.#reg[userId];
+		let trusted = this.#reg[userId]; 
 		if (!trusted) {
 			return false;
 		}
 
-		if (trusted == token) {
-			return true;
-		}
-		return false;
+		return trusted === token
 	}
 
 	newToken(user) {

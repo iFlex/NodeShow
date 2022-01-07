@@ -498,6 +498,7 @@ function verifyRequest(request, response) {
     if (response) {
       redirect('/login.html', response)
     }
+    console.log('Unauthorised')
     throw `Unauthorised request`
   }
 }

@@ -3,9 +3,9 @@
     "formidable": "*",
     "httpdispatcher": "^2.1.2",
     "mime": "^2.5.2",
+    "puppeteer": "*",
     "socket.io": "^4.3.1",
-    "strip-js": "*",
-    "puppeteer": "*"
+    "strip-js": "*"
   },
   "devDependencies": {
     "jsdoc": "^3.6.7"

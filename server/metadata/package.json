@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "geckodriver": "*",
-    "puppeteer": "*",
-    "selenium-webdriver": "*"
-  }
-}
