@@ -110,7 +110,6 @@ export class ContainerEditOrchestrator {
 
 			this.#container.show(this.#interface, this.appId)
 			this.#container.bringToFront(this.#interface, this.appId)
-			positionVerticalMenu(this.#container, this.#interface, this.appId)
 		}
 	}
 

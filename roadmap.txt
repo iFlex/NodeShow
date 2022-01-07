@@ -105,7 +105,8 @@ e.g. Permissions, Actions, etc.
 [SHOULD-HAVE][CORE] when creating within a parent, or changing parents - have the child conform to parent rules by default. Currently applied on creation, not parent change yet 
 (e.g. respect parent stylign suggestionts)
 
-[SHOULD-HAVE]: load presentations via HTML rather than event stream. Large prezzos will slow down the server.
+[SHOULD-HAVE]: load presentations via HTML rather than event stream. Large prezzos will slow down the server. Or use shadow-dom with events
+
 [NICE-TO-HAVE]: clone an existing NodeShow using server side UI
 [NICE-TO_HAVE]: resize selection? is it really needed?
 [NICE-TO-HAVE]: set width, height, position to exact values ? maybe? 
@@ -206,3 +207,9 @@ containers kept disappearing randomly - setting me back
 server persist failed without feedback on screen. e.g. couldn't import beteala.png at all - setting me back
 couldn't change display order (had to edit json) - setting me back
 couldn't change actions (had to edit json) - setting me back
+
+
+Performance Notes:
+mouseMove as of current implementation:
+Avg handler duration: 3.5ms
+MouseMove frequency: max 50hz
