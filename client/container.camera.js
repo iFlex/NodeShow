@@ -45,8 +45,8 @@ export class Camera {
 
 	focusOn(id, options) {
 		let pos = this.#container.getPosition(id)
-		//pos.left += this.#container.getWidth(node) * 0.5
-		//pos.top += this.#container.getHeight(node) * 0.5
+		pos.left += this.#container.getWidth(id) * 0.5
+		pos.top += this.#container.getHeight(id) * 0.5
 
 		let viewPortTop = this.#camNode.scrollTop
 		let viewPortLeft = this.#camNode.scrollLeft
@@ -58,18 +58,31 @@ export class Camera {
 
 	}
 
-	move(dx, dy) {
-		this.#camNode.scrollTop += dy
-		this.#camNode.scrollLeft += dx
+	move(dx, dy, options) {
+		if(!options) {
+			options = {speed:0}
+		}
+
+		$(this.#camNode).animate({
+			scrollTop: this.#camNode.scrollTop + dy,
+			scrollLeft: this.#camNode.scrollLeft + dx
+		}, options.speed)
 	}
 
 	setPosition(x, y, options) {
 		if(!options) {
 			options = {speed:0}
 		}
-		console.log(this.#camNode)
-		this.#camNode.scrollTop = x
-		this.#camNode.scrollLeft = y
+
+		let viewPortW = this.#container.getWidth(this.#camNode)
+		let viewPortH = this.#container.getHeight(this.#camNode)
+		
+		//this.#camNode.scrollTop = x - viewPortW/2
+		//this.#camNode.scrollLeft = y - viewPortH/2
+		$(this.#camNode).animate({
+			scrollTop: y - viewPortH/2,
+			scrollLeft: x - viewPortW/2
+		}, options.speed)
 	}
 
 	zoom(level, ox, oy, speed) {
