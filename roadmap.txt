@@ -99,7 +99,6 @@ e.g. Permissions, Actions, etc.
 [TODO]: make insert content via data b64 link work
 [SHOULD-HAVE]: implement undo/redo
 [TODO]: investigate slow load time
-[TODO]: fix all exceptions caused at load time. There should be none
 [ISSUE]: copy/pasting links will not translate IDs in their descriptors. Needs fix
 [BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
@@ -132,15 +131,19 @@ e.g. Permissions, Actions, etc.
 - [nice to have] Create Aligner
 - [nice to have] Minimap
 - [nice to have] Collaborators & Follow
+- [nice to have] Drawer app
 - [should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 - [nice to have] should be allowed to add container actions that trigger only in presentation mode or on preview.
 
 Current purpose:
 [OK] Serve as a view controller for my newsstand application. It receives updates in the form of HTML news bits which will get displayed on screen & presisted for later view.
 [MEH] Create interactive cards (christmas, new year, birthday, etc)
+Import HTML pages and edit them - used to take notes and abstract away detail in books / articles / etc
 
 Next Purpose:
 Create Spatial documents / diagrams. E.g. Take DnD notes. Diagram a System
+ -> make easy 2D rectangular diagrams with auto width/height and positioning
+ -> make it mix easily with absolute positioning
 
 Stretch purpose:
 Create 'living' diagrams (that can update themselves with status information)
@@ -203,22 +206,6 @@ HTTP Server -------- Users
                                                 - etc
 
                             permissions   ---- Authorization Engine
-
-
-
-
-From making Don's christmas card:
-* change ownership of elements
-* change container actions per element
-* find out containerIDs
-* change permissions on container
-* !change draw order of containers!
-
-Most annoying:
-containers kept disappearing randomly - setting me back
-server persist failed without feedback on screen. e.g. couldn't import beteala.png at all - setting me back
-couldn't change display order (had to edit json) - setting me back
-couldn't change actions (had to edit json) - setting me back
 
 
 Performance Notes:

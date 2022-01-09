@@ -10,7 +10,6 @@ const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../storage/prezzos'
 const BLOB_STORE = process.env.BLOB_STORAGE || '../storage/blobs'
 const DEBUG_MODE = process.env.DEBUG_MODE || false;
 const STATIC_CONTENT = './static'
-const UPLOADS = './static/'
 //ToDo: Handle content lookup by link rather than try each folder until something is found...
 
 console.log(`Configured NodeShow server with`)
@@ -24,6 +23,7 @@ const url = require('url');
 const fs = require('fs');
 const formidable = require('formidable')
 const utils = require('./common.js')
+const robotUploader = require('./metadata/beamer.js')
 
 if (!process.env.TLS_CERT_KEY || !process.env.TLS_CERT) {
   console.log("Please provide environment variables for the HTTPS server TLS config")
@@ -211,7 +211,7 @@ function handleUpload(request, response) {
 }
 
 function handlePost(url, request, response) {
-  var form = new formidable.IncomingForm({uploadDir:UPLOADS});
+  var form = new formidable.IncomingForm({uploadDir:BLOB_STORE});
   form.parse(request, function(err, fields, files) {
       if (err) {
         console.log(`Failed to parse post request`)
@@ -246,7 +246,7 @@ function handlePost(url, request, response) {
         response.writeHead(200, {'content-type': 'text/plain'});
         console.log(`User Uploaded:`)
         console.log(data)
-        //ToDo: submit this to a headless browser which can then beam the contents over to everyone (via this server ofc)
+        robotUploader.beam(fields.pid, files.file.newFilename)
       }
       response.end();
   });
@@ -356,6 +356,7 @@ io.on('connection', function (socket) {
  
   socket.on("disconnect", (e) => {
     console.log(`Connection closed:${e}`);
+    console.log(e)
     let prezzo = socket2prezzo[socket];
     delete socket2prezzo[socket];
 

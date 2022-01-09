@@ -982,21 +982,39 @@ export class ContainerTextInjector {
 	setFontSize (fontSize) {
 		let selection = this.getSelected()
 		if (!selection || selection.units.size == 0) {
-			selection = {units:this.getAllTextUnits()}
+			//selection = {units:this.getAllTextUnits()}
+			return;
 		}
 		this.styleTextUnits({"font-size": fontSize}, selection.units)
 
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
+	uiSelectFontSize() {
+		let fsize = document.getElementById('ns-text-editor-font-select').value
+		this.setFontSize(`${fsize}px`)
+	}
+
 	fontUp (e) {
 		e.preventDefault();
 		this.changeFontSize(1)
+		try {
+			let prevVal = document.getElementById('ns-text-editor-font-select').value
+			document.getElementById('ns-text-editor-font-select').value = parseInt(prevVal) + 1
+		} catch (e) {
+			
+		}
 	}
 
 	fontDown (e) {
 		e.preventDefault();
 		this.changeFontSize(-1)
+		try {
+			let prevVal = document.getElementById('ns-text-editor-font-select').value
+			document.getElementById('ns-text-editor-font-select').value = parseInt(prevVal) - 1
+		} catch (e) {
+			
+		}
 	}
 
 	setFont(fontFam) {

@@ -30,6 +30,7 @@ export class LiveBridge {
     host = window.location.host;
     port = window.location.port;
 
+    #ready = false
     #retryQueue = {}
 
     metrics = {
@@ -64,7 +65,6 @@ export class LiveBridge {
                 value.send.apply(this, [e])
             });
         }
-
 	}
 
     //no caller id, current user or component
@@ -154,7 +154,7 @@ export class LiveBridge {
      */
 	registerSocketIo() {
 		console.log(`Registering Live Bridge via SocketIo ${this.host}`);
-		this.socket = io(`https://${this.host}`)
+		this.socket = io(`https://${this.host}`, {rejectUnauthorized: true})
 		this.socket.emit('register', {"presentationId":this.container.presentationId});
 
 		this.socket.on('register', d => {
@@ -162,6 +162,7 @@ export class LiveBridge {
 		  	this.userId = d.userId;
             this.sessionId = d.sessionId;
 		 	console.log(d);
+            this.#ready = true
 		});
 
 		this.socket.on('update', d => this.handleUpdate(d))
@@ -272,7 +273,11 @@ export class LiveBridge {
     }
     
 	//TESTING
-	beam() {	
+	beam() {
+        if (!this.#ready) {
+            throw `LiveBridge not ready yet`
+        }
+
 		let queue = [this.container.parent]
 		var index = 0
 		var count = 0;
@@ -285,8 +290,7 @@ export class LiveBridge {
 			}
 
 			if (item.id) {
-				let raw = this.container.toSerializable(item.id);
-                console.log(raw)
+				let raw = this.container.toSerializable(item.id, true);
                 
                 let jsndata = {
                     presentationId: this.container.presentationId,
@@ -297,7 +301,7 @@ export class LiveBridge {
                         descriptor:raw
                     }
                 }
-
+                console.log(jsndata)
 				this.socket.emit("update", jsndata);
 			}
 
