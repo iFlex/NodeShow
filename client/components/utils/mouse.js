@@ -107,9 +107,7 @@ function mouseUp(e) {
 		});
 
 		if (moved <= FOCUS_TRESHOLD) {
-			container.emit('container.focus', {id:target.id})
 			container.emit('container.click', {id:target.id, originalEvent:e})
-			//was click
 			let dnow = Date.now()
 			if (dnow - lastClickTime <= dblClickTreshold && e.button == lastClickedButton) {
 				container.emit('container.dblclick', {id:target.id, originalEvent:e})

@@ -150,8 +150,9 @@ export class ContainerSelect {
 	}
 
 	singleSelect (id, modifyExisting) {
-		this.start();
 		if (!modifyExisting) {
+			//[TODO]: check if it makes semantic sense to have this.start() only here
+			this.start();
 			this.clearSelection();
 			this.#selection = []
 		}
