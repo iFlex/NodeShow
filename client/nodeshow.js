@@ -4,6 +4,7 @@ import "./container.positioning.js";
 import "./container.staticcontent.js";
 import "./container.actions.js";
 import "./container.summarize.js";
+import "./container.camera.js";
 
 import {LiveBridge} from "./LiveBridge.js";
 
@@ -15,6 +16,7 @@ if (!root) {
 
 let container = new Container(root, false);
 container.init();
+container.makeCamera();
 
 let bridge = new LiveBridge(container, false);
 bridge.registerSocketIo();

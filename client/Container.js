@@ -852,7 +852,7 @@ export class Container {
     getContentBoundingBox(id) {
         let node = Container.lookup(id)
         let result = this.getPosition(node)
-        result.right = result.left + node.scrollWidth //warning: scroll width and height are integers not fractions 
+        result.right = result.left + node.scrollWidth 
         result.bottom = result.top + node.scrollHeight
         result.bbox = node.getBoundingClientRect();
         return result;
@@ -868,35 +868,12 @@ export class Container {
     //[TODO][WARNING]Highly experimental!
     fitVisibleContent(id, expandOnly, emit) {
         let node = Container.lookup(id)
-        if (node === this.parent || node.children.length == 0) {
-            return;
-        }
-
-        let bounding = {
-            bottom: 0,
-            right: 0,
-        }
-
-        for (let child of node.children) {
-            let pos = this.getPosition(child)
-            let w = this.getWidth(child) + pos.left
-            let h = this.getHeight(child) + pos.top
-
-            if (bounding.bottom < h) {
-                bounding.bottom = h
-            }
-
-            if (bounding.right < w) {
-                bounding.right = w
-            }            
-        }
-
         let computedStyle = window.getComputedStyle(node)
         let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
         let paddingBottom = convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
-        let ppos = this.getPosition(node)
-        let w = bounding.right - ppos.left + paddingRight;
-        let h = bounding.bottom - ppos.top + paddingBottom;
+        
+        let w = node.scrollWidth + paddingRight
+        let h = node.scrollHeight + paddingBottom
 
         //use min width for content fit
         //this.styleChild(node, {"min-width": `${w}px`, "min-height":`${h}px`}, emit)

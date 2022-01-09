@@ -150,6 +150,7 @@ export class ContainerSelect {
 	}
 
 	singleSelect (id, modifyExisting) {
+		this.start();
 		if (!modifyExisting) {
 			this.clearSelection();
 			this.#selection = []

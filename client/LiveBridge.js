@@ -273,7 +273,7 @@ export class LiveBridge {
     }
     
 	//TESTING
-	beam() {
+	beam(snapshot) {
         if (!this.#ready) {
             throw `LiveBridge not ready yet`
         }
@@ -290,8 +290,7 @@ export class LiveBridge {
 			}
 
 			if (item.id) {
-				//let raw = this.container.toSerializable(item.id, true);
-                let raw = this.container.toSerializable(item.id);
+				let raw = this.container.toSerializable(item.id, snapshot);
 
                 let jsndata = {
                     presentationId: this.container.presentationId,

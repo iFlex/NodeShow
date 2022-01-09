@@ -27,7 +27,7 @@ async function beam(pid, htmlFile) {
 	});
 	
 	//[TODO]: make this wait for some sort of event
-	await page.waitFor(20000);
+	await page.waitFor(5000); //5s
 	await browser.close();
 }
 

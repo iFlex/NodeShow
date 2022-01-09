@@ -30,9 +30,10 @@ Link are currently a performance issue - they seem to slow down the server
     - edit links
     - interact with links
     - optimize drawing: stop sending update events on every link unit, let the client do the redrawing
+    [BUG]: some links don't update at all untill you move one of the linked containers
 
 14. Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
-15. Camera implementation
+15. Camera implementation: focus, move, zoom
 --------------------------------------------
 
 

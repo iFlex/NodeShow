@@ -93,6 +93,6 @@
   padding: 0px;
   border-width: 0px;
 
-  width: 8000px;
-  height: 8000px;
+  width: 100vw;
+  height: 100vh;
 }

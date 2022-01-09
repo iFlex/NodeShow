@@ -25,6 +25,7 @@ let lastPageY = 0;
 
 let dblClickTreshold = 300;
 let lastClickTime = 0;
+let lastClickedButton = null;
 
 export const EVENTS = {
 	'DOWN':'mouse.down',
@@ -110,7 +111,7 @@ function mouseUp(e) {
 			container.emit('container.click', {id:target.id, originalEvent:e})
 			//was click
 			let dnow = Date.now()
-			if (dnow - lastClickTime <= dblClickTreshold) {
+			if (dnow - lastClickTime <= dblClickTreshold && e.button == lastClickedButton) {
 				container.emit('container.dblclick', {id:target.id, originalEvent:e})
 				lastClickTime = 0;
 			} else {
@@ -121,6 +122,7 @@ function mouseUp(e) {
 		target = null;
 		e.preventDefault();
 	}
+	lastClickedButton = e.button
 }
 
 export function getCursorPosition() {

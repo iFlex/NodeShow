@@ -15,11 +15,11 @@
       width: 1000px;
       height: 1500px;"></div>
   </body>
-  <script type="module" src="../../nodeshow.js"></script>
-  <script type="module" src="../../components/container.edit.pos/main.js"></script>
-  <script type="module" src="../../components/container.edit.text/main.js"></script> 
   <script type="module">
-    import {texter} from "../../components/container.edit.text/main.js"
+    import { assertEquals, assertTrue, TestRunner } from "./jsunit.js";
+    import { container } from "./test_core_setup.js";
+    import { ACTIONS } from '../Container.js'
+    import { texter } from "../components/container.edit.text/main.js"
     
     function makeAuthToken(length){
       let token = "";

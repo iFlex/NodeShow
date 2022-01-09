@@ -13,7 +13,8 @@ export class ContextMenu {
 	#touch = null
 
 	#defaultActions = [
-		{name: "New", action: "container.create.create", params:[], shortcut: 'Double Click'},
+		{name: "FocusOn", action: "menu.context.tmpFocusOn", shortcut: ''},
+		{name: "New", action: "container.create.create", shortcut: 'Double Click'},
 		{name: "Deselect", action: "menu.context.deselect", shortcut: 'Ctrl+d'},
 		{name: "Delete", action: "container.create.delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "container.create.delete", params:[true], shortcut:'End', icon:'ns-delete-icon'},
@@ -219,5 +220,9 @@ export class ContextMenu {
 
 	deselect() {
 		clearSelection(this.#container)
+	}
+
+	tmpFocusOn(target) {
+		this.#container.camera.focusOn(target)
 	}
 }
