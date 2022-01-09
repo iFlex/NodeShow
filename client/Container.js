@@ -2,7 +2,7 @@
  * Container Framework Module
  * @module Container 
  */
-import { convert, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
+import { convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
@@ -283,8 +283,7 @@ export class Container {
     */
     //ToDo: make this regex
     detectUnit(val) {
-        let units = ['px','%']
-        for (const unit of units) {
+        for (const unit of SUPPORTED_MEASURING_UNITS) {
             if (val.endsWith(unit)) {
                 return unit
             }
@@ -293,8 +292,7 @@ export class Container {
     }
     //</utils>
 
-    //<hooks>
-
+    //<hooks>   
     /**
     * @summary Registers a method to be called before the normal operation of a setter method from core functionality.
     * @param {string} setter - setter name
@@ -868,9 +866,9 @@ export class Container {
     }
 
     //[TODO][WARNING]Highly experimental!
-    fitVisibleContent(id, emit) {
+    fitVisibleContent(id, expandOnly, emit) {
         let node = Container.lookup(id)
-        if (node === this.parent) {
+        if (node === this.parent || node.children.length == 0) {
             return;
         }
 
@@ -893,13 +891,30 @@ export class Container {
             }            
         }
 
+        let computedStyle = window.getComputedStyle(node)
+        let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
+        let paddingBottom = convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
         let ppos = this.getPosition(node)
-        let w = bounding.right - ppos.left;
-        let h = bounding.bottom - ppos.top;
+        let w = bounding.right - ppos.left + paddingRight;
+        let h = bounding.bottom - ppos.top + paddingBottom;
 
         //use min width for content fit
-        this.styleChild(node, {"min-width": `${w}px`, "min-height":`${h}px`}, emit)
+        //this.styleChild(node, {"min-width": `${w}px`, "min-height":`${h}px`}, emit)
+        if (expandOnly == true) {
+            let oldW = this.getWidth(node)
+            if (oldW < w) {
+                this.setWidth(node, w)    
+            }
+            let oldH = this.getHeight(node)
+            if (oldH < h) {
+                this.setHeight(node, h)
+            }
+        } else {
+            this.setWidth(node, w)
+            this.setHeight(node, h)
+        }
     }
+
     //[TODO]: permissions
     styleChild(child, style, callerId, emit) {
         Container.applyPreHooks(this, 'style', [child, style, callerId, emit])

@@ -299,5 +299,5 @@ function updateDisplayedAbstractionLevel(ctx, node, lvl) {
         }
     }
 
-    ctx.fitVisibleContent(node)
+    ctx.fitVisibleContent(node, false)
 }
