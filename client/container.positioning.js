@@ -131,3 +131,9 @@ Container.prototype.setPositionUnits = function(id, units, callerId) {
     let pos = this.getPosition(id)
     this.setPosition(id, pos, callerId)
 }
+
+const POSITIONABLE = new Set(['absolute','relative','fixed'])
+Container.prototype.canPosition = function(id) {
+    let node = this.lookup(id)
+    return POSITIONABLE.has(node.style.position)
+}

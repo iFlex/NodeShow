@@ -290,8 +290,9 @@ export class LiveBridge {
 			}
 
 			if (item.id) {
-				let raw = this.container.toSerializable(item.id, true);
-                
+				//let raw = this.container.toSerializable(item.id, true);
+                let raw = this.container.toSerializable(item.id);
+
                 let jsndata = {
                     presentationId: this.container.presentationId,
                     sessionId: this.sessionId,

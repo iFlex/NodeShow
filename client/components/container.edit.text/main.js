@@ -986,13 +986,13 @@ export class ContainerTextInjector {
 			return;
 		}
 		this.styleTextUnits({"font-size": fontSize}, selection.units)
-
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	uiSelectFontSize() {
 		let fsize = document.getElementById('ns-text-editor-font-select').value
-		this.setFontSize(`${fsize}px`)
+		this.state.fontSize = `${fsize}px`
+		this.setFontSize(this.state.fontSize)
 	}
 
 	fontUp (e) {

@@ -1,6 +1,5 @@
 import { ACTIONS } from "../../Container.js"
 
-//[TODO]: remove dependency on nodeshow.js
 export function clearSelection(container) {
 	let selectorApp = container.getComponent('container.select')
 	if (selectorApp) {
@@ -24,6 +23,7 @@ export function getSelection(container) {
 	return selectorApp.getSelection() || []
 }
 
+//TODO get rid of this
 export function findActionableAnchestor(container, target, appId) {
 	if (!target) {
 		return null;
@@ -51,6 +51,35 @@ export function findActionableAnchestor(container, target, appId) {
 		}
 		return findActionableAnchestor(container, target.parentNode, appId)
 	}
+}
+
+//TODO: use just for drag event
+export function findDraggableAncestor(container, target, appId) {
+	if (!target) {
+		return null;
+	}
+
+	//ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
+	if (container.getMetadata(target, 'text-editing')) {
+		return null;
+	}
+	
+	if (!container.canPosition(target)) {
+		return findDraggableAncestor(container, target.parentNode, appId)
+	}
+	try {
+		container.isOperationAllowed(ACTIONS.setPosition, target, appId)
+		return target
+	} catch (e) {
+		if (target === container.parent) {
+			return null;
+		}
+		return findDraggableAncestor(container, target.parentNode, appId)
+	}
+}
+
+export function findClickableAncestor(container, target, appId) {
+	//TODO
 }
 
 export function lookupStyleRules(className) {
