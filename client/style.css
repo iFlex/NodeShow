@@ -83,7 +83,6 @@
 
 }
 
-/* Experimental */
 .nodeshow-content {
   position: absolute;
   left:  0px;
@@ -95,4 +94,9 @@
 
   width: 100vw;
   height: 100vh;
+}
+
+body {
+  width:  100vw;
+  height:  100vh;
 }

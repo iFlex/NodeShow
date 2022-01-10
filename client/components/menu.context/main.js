@@ -223,6 +223,6 @@ export class ContextMenu {
 	}
 
 	tmpFocusOn(target) {
-		this.#container.camera.focusOn(target)
+		this.#container.camera.focusOn(target, {speed:150})
 	}
 }

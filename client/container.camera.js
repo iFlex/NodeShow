@@ -77,21 +77,21 @@ export class Camera {
 		let viewPortW = this.#container.getWidth(this.#camNode)
 		let viewPortH = this.#container.getHeight(this.#camNode)
 		
-		//this.#camNode.scrollTop = x - viewPortW/2
-		//this.#camNode.scrollLeft = y - viewPortH/2
 		$(this.#camNode).animate({
 			scrollTop: y - viewPortH/2,
 			scrollLeft: x - viewPortW/2
 		}, options.speed)
 	}
 
-	zoom(level, ox, oy, speed) {
-		// $(this.#camNode).animate({
-		// 	scaleX:level,
-		// 	scaleY:level,
-		// 	transformOrigin:((ox*100)+"% "+(oy*100)+"%")
-		// }, speed)
+	zoom(level, options) {
+		if (!options) {
+			options = {speed:0}
+		}
+
 		this.#camNode.style.transform = `scale(${level})`
+		this.#camNode.style.transformOrigin = `${options.ox || "50%"} ${options.oy || "50%"}`
+		this.#camNode.style.transitionDuration = `${options.speed}s`
+		this.#camNode.style.transitionFunction= options.function || 'linear'
 	}
 
 	getPosition() {
