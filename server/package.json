@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "code-to-graph": "^1.0.15",
     "formidable": "*",
     "httpdispatcher": "^2.1.2",
     "mime": "^2.5.2",

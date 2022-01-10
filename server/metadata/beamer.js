@@ -8,7 +8,7 @@ const SECRET = 'thisisfordemoonly'
 //other than NodeShow host
 async function beam(pid, htmlFile) {
 	console.log(`Creating robot instance in NodeShow:${pid} to upload file ${htmlFile}`)
-	const browser = await puppeteer.launch({ignoreHTTPSErrors: true, headless:true});
+	const browser = await puppeteer.launch({ignoreHTTPSErrors: true, headless:false});
     const page = await browser.newPage();
     page.setExtraHTTPHeaders({'Authorization':`${SECRET}`})
 
@@ -28,7 +28,7 @@ async function beam(pid, htmlFile) {
 	
 	//[TODO]: make this wait for some sort of event
 	await page.waitFor(5000); //5s
-	await browser.close();
+	//await browser.close();
 }
 
 module.exports.beam = beam
