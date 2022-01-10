@@ -1,5 +1,5 @@
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { Keyboard } from '../utils/keyboard.js'
 
 export class ContainerSizer {

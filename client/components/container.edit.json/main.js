@@ -1,7 +1,7 @@
 import { getSelection, positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //[BUG]: unsetting actions and permissions dones't work
 export class ContainerJsonEdit {

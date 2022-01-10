@@ -4,7 +4,7 @@
  */
 
 import { container } from "../../nodeshow.js"
-import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
+import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessManager.mjs"
 import { InputManager } from "../utils/InputManager.js"
 
 let appId = null; //Temporary, think this up

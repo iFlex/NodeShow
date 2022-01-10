@@ -1,7 +1,7 @@
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //quite problematic currently as it causes disappearings
 export class ContainerLineage {

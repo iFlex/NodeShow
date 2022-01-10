@@ -2,7 +2,7 @@ import { ACTIONS } from '../../Container.js'
 import { getSelection, lookupStyleRules, positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //ToDo: implement. 
 //importance: this allows determining how content is arranged, setting overflow rules, how to position elements

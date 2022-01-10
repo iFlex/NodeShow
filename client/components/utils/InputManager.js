@@ -1,4 +1,4 @@
-import { ACCESS_REQUIREMENT } from "./inputAccessManager.js"
+import { ACCESS_REQUIREMENT } from "./InputAccessManager.mjs"
 
 /** @class
  *  @summary Component managing simultaneous access to user input devices. 

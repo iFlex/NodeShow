@@ -1,5 +1,5 @@
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 export class ContainerEditLinks {
     appId = 'container.edit.links'

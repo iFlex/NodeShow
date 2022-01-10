@@ -1,7 +1,7 @@
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { ContainerOverlap } from '../utils/overlap.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //[BUG]: selecting upwards no longer works - fix plz :(
 export class ContainerSelect {

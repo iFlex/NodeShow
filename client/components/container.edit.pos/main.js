@@ -2,7 +2,7 @@ import { getSelection } from '../utils/common.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Touch, EVENTS as TouchEvents } from '../utils/touch.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
 //happens because events stop firing

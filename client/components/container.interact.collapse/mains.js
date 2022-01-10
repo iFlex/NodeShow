@@ -1,5 +1,5 @@
 import { Keyboard } from '../utils/keyboard.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 export class ContainerCollapser {
     appId = 'container.interact.collapse'

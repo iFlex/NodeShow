@@ -3,7 +3,7 @@
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //[TODO]: select upwards no longer works :( - fix it
 export class ContainerGrouping {

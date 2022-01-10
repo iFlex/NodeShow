@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "directories": {
+    "test": "./test"
+  },
+  "author": "Milorad Liviu Felix"
+}

@@ -4,7 +4,7 @@
  */
 
 import { container } from "../../nodeshow.js"
-import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
+import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessManager.mjs"
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
 
@@ -14,6 +14,7 @@ let appId = null; //Temporary, think this up
 
 let FOCUS_TRESHOLD = 5
 let focusTarget = null;
+let clickTarget = null;
 let target = null
 let targetMetadata = {};
 
@@ -45,6 +46,7 @@ function mouseDown(e) {
 		return null;
 	}
 	
+	clickTarget = e.target
 	target = findActionableAnchestor(container, e.target, appId)
 	if (target) {
 		focusTarget = target
@@ -94,8 +96,9 @@ function mouseMove(e) {
 	lastY = e.screenY;
 }
 
-function mouseUp(e) {	
+function mouseUp(e) {
 	if (target) {
+		clickTarget = target
 		container.emit('drag.end',{
 			id:target.id,
 			dx: 0, //ToDo: incorrect
@@ -106,19 +109,21 @@ function mouseUp(e) {
 			originalEvent: e
 		});
 
+		target = null;
+		e.preventDefault();
+	}
+
+	if (clickTarget){
 		if (moved <= FOCUS_TRESHOLD) {
-			container.emit('container.click', {id:target.id, originalEvent:e})
+			container.emit('container.click', {id:clickTarget.id, originalEvent:e})
 			let dnow = Date.now()
 			if (dnow - lastClickTime <= dblClickTreshold && e.button == lastClickedButton) {
-				container.emit('container.dblclick', {id:target.id, originalEvent:e})
+				container.emit('container.dblclick', {id:clickTarget.id, originalEvent:e})
 				lastClickTime = 0;
 			} else {
 				lastClickTime = dnow
 			}
 		}
-
-		target = null;
-		e.preventDefault();
 	}
 	lastClickedButton = e.button
 }

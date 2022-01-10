@@ -1,6 +1,6 @@
 import { container } from "../../nodeshow.js"
 import { KeyboardManager } from "./KeyboardManager.js"
-import { InputAccessManagerInstance as InputAccessManager } from "./inputAccessManager.js"
+import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessManager.mjs"
 
 //[TODO][FIX]: in certian situations the keyboar will believe certain keys are still pressed when they are not.
 //[TODO]: different press modes. 

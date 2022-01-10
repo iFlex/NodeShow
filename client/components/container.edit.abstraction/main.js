@@ -1,5 +1,5 @@
 import { Keyboard } from '../utils/keyboard.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //[TODO]: add cancel button to cancel creating abstraction level
 //        add function trigger editing existing abstraction level (call start())

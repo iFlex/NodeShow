@@ -2,7 +2,7 @@ import { ACTIONS } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //import { getSelection } from '../utils/common.js'
 //TODO:

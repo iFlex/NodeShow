@@ -1,6 +1,6 @@
 import { Keyboard } from '../utils/keyboard.js'
 import { getSelection, clearSelection, lookupStyleRules } from '../utils/common.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { EVENTS as MouseEvents, Mouse, getCursorPosition } from '../utils/mouse.js'
 
 export class ContainerCreator {

@@ -1,9 +1,8 @@
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, MiceManager } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
-import { InputAccessManagerInstance } from '../utils/inputAccessManager.js'
+import { InputAccessManagerInstance, ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { getSelection } from '../utils/common.js'
-import { ACCESS_REQUIREMENT } from '../utils/inputAccessManager.js'
 
 let lastY = 0
 let lastX = 0
