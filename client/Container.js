@@ -51,6 +51,9 @@ let ACTIONS_CHAIN = {}
     ACTIONS_CHAIN[ACTIONS.setPermission] = [ACTIONS.update]
     ACTIONS_CHAIN[ACTIONS.removePermission] = [ACTIONS.update]
 
+//[TODO]: use WeakSet to account for deallocations -> allow GC to collect the container ref
+export const INSTANCES = new Set()//new WeakSet([])
+
 /** @class */
 export class Container {
 	//[TODO]: integrate hook callers wherever relevant
@@ -129,6 +132,8 @@ export class Container {
 		this.presentationId = Container.getQueryVariable("pid")
         this.debug = debug
         Container.applyPostHooks(this, 'new', [])
+
+        INSTANCES.add(this)
     }
 
     //<utils>
