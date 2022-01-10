@@ -28,6 +28,17 @@ Container.registerPostSetterHook('create', function(parentId, node) {
 	}
 })
 
+//[TODO]: clearly define options and parameters and standardise
+/*
+options: {
+	speed: duration in seconds
+	targetOriginX:, 
+	targetOriginY:,
+	camOriginX:,
+	camOriginY:,
+	function: transition method name
+}
+*/
 export class Camera {
 	#container = null
 	#camNode = null
@@ -43,10 +54,10 @@ export class Camera {
 		return JSON.stringify(this.#options)
 	}
 
-	focusOn(id, options) {
+	focusOn(id, options = {}) {
 		let pos = this.#container.getPosition(id)
-		pos.left += this.#container.getWidth(id) * 0.5
-		pos.top += this.#container.getHeight(id) * 0.5
+		pos.left += this.#container.getWidth(id) * (options.targetOriginX || 0.5)
+		pos.top += this.#container.getHeight(id) * (options.targetOriginY || 0.5)
 
 		let viewPortTop = this.#camNode.scrollTop
 		let viewPortLeft = this.#camNode.scrollLeft
@@ -58,36 +69,24 @@ export class Camera {
 
 	}
 
-	move(dx, dy, options) {
-		if(!options) {
-			options = {speed:0}
-		}
-
+	move(dx, dy, options = {speed:0}) {
 		$(this.#camNode).animate({
 			scrollTop: this.#camNode.scrollTop + dy,
 			scrollLeft: this.#camNode.scrollLeft + dx
 		}, options.speed)
 	}
 
-	setPosition(x, y, options) {
-		if(!options) {
-			options = {speed:0}
-		}
-
+	setPosition(x, y, options = {speed:0}) {
 		let viewPortW = this.#container.getWidth(this.#camNode)
 		let viewPortH = this.#container.getHeight(this.#camNode)
 		
 		$(this.#camNode).animate({
-			scrollTop: y - viewPortH/2,
-			scrollLeft: x - viewPortW/2
+			scrollTop: y - (viewPortH * (options.camOriginY || 0.5)),
+			scrollLeft: x - (viewPortW * (options.camOriginX || 0.5))
 		}, options.speed)
 	}
 
-	zoom(level, options) {
-		if (!options) {
-			options = {speed:0}
-		}
-
+	zoom(level, options = {speed:0}) {
 		this.#camNode.style.transform = `scale(${level})`
 		this.#camNode.style.transformOrigin = `${options.ox || "50%"} ${options.oy || "50%"}`
 		this.#camNode.style.transitionDuration = `${options.speed}s`
