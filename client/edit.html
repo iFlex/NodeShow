@@ -5,28 +5,79 @@
     <script src="libs/socket-io.js"></script>
     <script src="libs/jquery.js"></script>
     <link rel="stylesheet" href="style.css">
-    <title>Node Show Edit</title>
+    <title>Node Show Experimental</title>
   </head>
-  <body style="height: auto; width: auto;">
+  <body>
+    <div id="nodeshow-interface" class="nodeshow-interface"></div>
     <div id="nodeshow-content" class="nodeshow-content"></div>
   </body>
   <!-- CORE -->
   <script type="module" src="nodeshow.js"></script>
   
   <!-- Extensions -->
-  <script type="module" src="components/container.create/main.js"></script>
-  <script type="module" src="components/container.select/main.js"></script>
-  <script type="module" src="components/container.edit.pos/main.js"></script>
-  <script type="module" src="components/container.edit.size/main.js"></script>
-  <script type="module" src="components/container.edit.text/main.js"></script>
-  <script type="module" src="components/container.edit.style/main.js"></script>
-  <script type="module" src="components/container.content/main.js"></script>
-  <script type="module" src="components/container.interact.collapse/main.js"></script>
-  <script type="module" src="components/container.link/main.js"></script>
-  <script type="module" src="components/container.lineage/main.js"></script>
-  <script type="module" src="components/container.repell/main.js"></script>
-  <script type="module" src="components/container.grouping/main.js"></script>
-  <script type="module" src="components/container.edit.orchestrator/main.js"></script>
-  <script type="module" src="components/menu.context/main.js"></script>
-  <script type="module" src="components/container.extensions.manager/main.js"></script>
+  <script type="module">
+    import { ContainerFeedback }          from "./components/container.feedback/main.js"
+    import { ContainerCreator }           from "./components/container.create/main.js"
+    import { ContainerSelect }            from "./components/container.select/main.js"
+    import { ContainerMover }             from "./components/container.edit.pos/main.js"
+    import { ContainerSizer }             from "./components/container.edit.size/main.js"
+    import { ContainerConfig }            from "./components/container.configure/main.js"
+    import { ContainerTextInjector }      from "./components/container.edit.text/main.js"
+    import { ContainerStyler }            from "./components/container.edit.style/main.js"
+    import { ContainerContent }           from "./components/container.content/main.js"
+    import { ContainerEditAbstraction }   from "./components/container.edit.abstraction/main.js"
+    import { ContainerLink }              from "./components/container.link/main.js"
+    import { ContainerEditLinks }         from "./components/container.edit.links/main.js"
+    import { ContainerLineage }           from "./components/container.lineage/main.js"
+    import { ContainerRepeller }          from "./components/container.repell/main.js"
+    import { ContainerGrouping }          from "./components/container.grouping/main.js"
+    import { ContainerJsonEdit }          from "./components/container.edit.json/main.js"
+    import { ContainerEditOrchestrator }  from "./components/container.edit.orchestrator/main.js"
+    import { ContextMenu }                from "./components/menu.context/main.js"
+    import { ContainerClipboard }         from "./components/container.clipboard/main.js"
+    import { UserDialogue }               from "./components/user.dialogue/main.js"
+    import { ContainerHax0r }             from "./components/container.hax0r/main.js"
+    import { ContainerExtensionsManager } from "./components/container.extensions.manager/main.js"
+
+    import { container } from "./nodeshow.js"
+    
+    //start components
+    new ContainerContent(container)
+    new ContainerStyler(container)
+    new ContainerConfig(container)
+    new ContainerJsonEdit(container)
+    new ContainerLineage(container)
+    new ContainerRepeller(container)
+    new ContainerExtensionsManager(container)
+    new ContainerEditAbstraction(container)
+    new UserDialogue(container)
+    new ContainerHax0r(container)
+
+    let clinker = new ContainerLink(container)
+    let cmover = new ContainerMover(container)
+    let ccreator = new ContainerCreator(container)
+    let editlinks = new ContainerEditLinks(container)
+    let orchestrator = new ContainerEditOrchestrator(container)
+    let csizer = new ContainerSizer(container)
+    let ctexter = new ContainerTextInjector(container, false)
+    let cfeedback = new ContainerFeedback(container)
+    let cgrouper = new ContainerGrouping(container)
+    let cselect = new ContainerSelect(container)
+    let contextMenu = new ContextMenu(container)
+    let clipboard = new ContainerClipboard(container)
+    
+
+    clinker.enable()
+    cmover.enable()
+    csizer.enable()
+    editlinks.enable()
+    cgrouper.enable()
+    cselect.enable()
+    cfeedback.enable()
+    ctexter.enable()
+    ccreator.enable()
+    contextMenu.enable()
+    orchestrator.enable()
+    clipboard.enable()
+  </script>
 </html>

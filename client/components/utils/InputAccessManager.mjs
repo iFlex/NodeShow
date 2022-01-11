@@ -34,7 +34,6 @@ export const ACCESS_REQUIREMENT = {
  *       Then when it is disabled, it releases the exlusive access and the service receives further paste events.
  * 
  *  Currently this can be achieved by registering and unregistering a new listener with EXCLUSIVE access mode.
- 	[TODO]: maintain order of registering, so when someone registers with EXCLUSIVE access - the latest such register gets the access. then when they unregister the one registered before it gets the access and so on.
  * */ 
 export class InputAccessManager {
 	#access = {}
