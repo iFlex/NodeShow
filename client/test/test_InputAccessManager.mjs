@@ -96,21 +96,68 @@ describe('InputAccessManager', function() {
     iam.unregister('event','listener6')
     expect(iam.getAllowed('event')).to.deep.equal(['listener5'])
     iam.unregister('event','listener5')
+    expect(iam.getAllowed('event').length).to.equal(0)
   })  
 
-  it('unregister grants to the correct remaining acces_requirement', function() {
-    // iam.register('event','listener1', ACCESS_REQUIREMENT.SET_INCLUSIVE)
-    // iam.register('event','listener2', ACCESS_REQUIREMENT.SET_INCLUSIVE)
-    // iam.register('event','listener3', ACCESS_REQUIREMENT.EXCLUSIVE)
-    // iam.register('event','listener4', ACCESS_REQUIREMENT.SET_EXCLUSIVE)
-    // iam.register('event','listener5', ACCESS_REQUIREMENT.SET_EXCLUSIVE)
-    // iam.register('event','listener6', ACCESS_REQUIREMENT.SET_EXCLUSIVE)
-    // iam.register('event','listener7')
-    // iam.register('event','listener8')
-
-    // let allowed = iam.getAllowed('event')
-    // expect(allowed.length).to.equal(1);
-    // expect(allowed).to.deep.equal(['listener3'])    
+  it('grant assings access to the right set of listeners', function() {
+    iam.register('event','listener1', ACCESS_REQUIREMENT.SET_INCLUSIVE);sleep(2);
+    iam.register('event','listener2', ACCESS_REQUIREMENT.SET_INCLUSIVE);sleep(2);
+    iam.register('event','listener3', ACCESS_REQUIREMENT.EXCLUSIVE);sleep(2);
+    iam.register('event','listener4', ACCESS_REQUIREMENT.SET_EXCLUSIVE);sleep(2);
+    iam.register('event','listener5', ACCESS_REQUIREMENT.SET_EXCLUSIVE);sleep(2);
+    iam.register('event','listener6', ACCESS_REQUIREMENT.SET_EXCLUSIVE);sleep(2);
+    iam.register('event','listener7')
+    iam.register('event','listener8')
+    iam.register('event','listener9', ACCESS_REQUIREMENT.EXCLUSIVE)
+    
+    expect(iam.getAllowed('event')).to.deep.equal(['listener9'])
+    iam.grant('event', 'listener8')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener7','listener8'])
+    iam.grant('event', 'listener2')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener1','listener2'])
+    iam.grant('event','listener9')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener9'])
+    iam.grant('event','listener5')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener1','listener2', 'listener5'])
+    iam.grant('event','listener1')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener1','listener2'])
+    iam.grant('event','listener3')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener3'])
   })
 
+
+  it('revoke assings access to the right set of listeners', function() {
+    iam.register('event','listener1', ACCESS_REQUIREMENT.DEFAULT);sleep(2);       //1
+    iam.register('event','listener2', ACCESS_REQUIREMENT.SET_EXCLUSIVE);sleep(2); //  2
+    iam.register('event','listener3', ACCESS_REQUIREMENT.SET_INCLUSIVE);sleep(2); //    3
+    iam.register('event','listener4', ACCESS_REQUIREMENT.EXCLUSIVE);sleep(2);     //      4
+    iam.register('event','listener5', ACCESS_REQUIREMENT.SET_INCLUSIVE);sleep(2); //    5 
+    iam.register('event','listener6', ACCESS_REQUIREMENT.SET_EXCLUSIVE);sleep(2); //  6
+    iam.register('event','listener7', ACCESS_REQUIREMENT.DEFAULT);sleep(2);       //7
+    iam.register('event','listener8', ACCESS_REQUIREMENT.EXCLUSIVE);sleep(2);     //      8
+    
+    expect(iam.getAllowed('event')).to.deep.equal(['listener8'])
+    iam.grant('event', 'listener7') //grant lowest
+    expect(iam.getAllowed('event')).to.deep.equal(['listener1','listener7'])
+    iam.revoke('event')             //then revoke - should default back last to exclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener8'])
+    iam.grant('event', 'listener3') //grant set inclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener3','listener5'])
+    iam.unregister('event','listener8') //unregister exclusive, grant should still hold on set_exclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener3','listener5'])
+    iam.revoke() //revoke grant -> should now go to first exclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener4'])
+    iam.unregister('event', 'listener4') //unregister exclusive, should go to set inclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener3','listener5'])
+    iam.unregister('event','listener5') //unregister one of set inclusive, access should stay on the other set_inclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener3'])
+    iam.grant('event','listener6') //grant set_exclusive
+    expect(iam.getAllowed('event')).to.deep.equal(['listener1','listener7','listener6'])
+    iam.unregister('event', 'listener1') //unregister first default
+    expect(iam.getAllowed('event')).to.deep.equal(['listener7','listener6'])
+    iam.revoke('event')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener3'])
+    iam.unregister('event','listener3')
+    expect(iam.getAllowed('event')).to.deep.equal(['listener7','listener6'])
+  })
 })
