@@ -42,7 +42,10 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
-[BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two receivers rather than just one.
+[BUG]: positioning goes nuts when away from origin....
+[BUG]: Fit content seems to not work corretly on collapse/expand
+[BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two 
+receivers rather than just one.
 
 [TODO]: support auto values for height and width. E.g. if you set width:auto then it will fit static content? & maybe implement content fit on child add and remove?
      -> set rules of how this should work.
@@ -51,6 +54,8 @@ Current Prios:
 [TODO]: Implement functionality to make container fit content (including abs pos content)
  - without harming non positioned elements? (can it be done?)
  : currently a shitty but relatively working implementation exists
+
+[TODO]: Text editor with configurable auto sizing of the text box.
 
 [TODO]: Decouple input interfaces from nodeshow.js instance of container
         - needs event separation (currently all events are listened for via document, they should be listened for via container.parent)

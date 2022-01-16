@@ -21,10 +21,8 @@ import {Container, ACTIONS} from "./Container.js"
  * Test removal functions
  */
 
-//[TODO]: integrate with other functions to reflect abstraction level. e.g. adding content / set parent / etc to respect abstraction
 //[TODO]: think about styling and padding
 //[TODO]: Make it work well for non positioned elements. e.g. text
-//[TODO]: hook parameters are inconsistent, establish what to do about it
 let C_ABS_LVL = 'contentAstractionLevel'
 let C_TOT_ABS_LVLS = 'contentTotalAbstractionLevels'
 let ABS_LVL = 'abstractionLevel'
@@ -65,7 +63,6 @@ Container.prototype.expand = function(id, callerId) {
     }
 }
 
-//Create/Delete abstraction levels
 /**
  * @summary Gets container's abstraction level count
  * @description [TODO]
@@ -134,7 +131,6 @@ Container.prototype.removeAllAbstraction = function(c) {
     this.notifyUpdate(node)
 }
 
-//Content abstraction level
 /**
  * @summary Sets the current abstraction level for this container's content.
  * @description In other words any child of this container that has the abstraction level equal to the 2nd argument (lvl) will be displayed
@@ -189,7 +185,6 @@ Container.prototype.getAllInAbstractionLevel = function(c, lvl) {
     return result
 }
 
-//Container abstraction level
 /**
  * @summary Sets the abstraction level a container belongs to.
  * @description This can cause it to be hidden or displayed depending if it matches with the current content abstraction level or its parent.
@@ -209,7 +204,8 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
     lvl = parseInt(lvl)
     let maxAbsLevels = this.getAbstractionLevels(node.parentNode);
     if (lvl < 0 || lvl > maxAbsLevels) {
-        throw `Abstraction level ${lvl} out of bounds [${0}:${maxAbsLevels}]`
+        console.error(`Abstraction level ${lvl} out of bounds [${0}:${maxAbsLevels}]`)
+        lvl = maxAbsLevels
     }
     
     if (lvl > 0) {
@@ -217,7 +213,8 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
         let prevLvlCount = this.getAllInAbstractionLevel(node.parentNode, lvl - 1).length
         
         if (targetLvlCount + 1 > prevLvlCount) {
-            throw `Cannot make abstraction level contain more nodes than its previous abstraction level`
+            console.error(`Cannot make abstraction level contain more nodes than its previous abstraction level`)
+            lvl = 0;
         }
     }
 
@@ -241,24 +238,18 @@ Container.prototype.getAbstractionLevel = function(c) {
     return parseInt(node.dataset[ABS_LVL] || 0)
 }
 
-Container.registerPreSetterHook('setParent', function(node) {
-    if (this.getAbstractionLevel(node) > 0) {
-        throw `Not allowed to change ownership of abstraction level content`
-    }
-});
-
 //[TODO]: figure out what causes the event look feedback
-//[TODO]: set abstraction level according to parent when changing parents
 Container.registerPostSetterHook('new', setUnignorableDataFields);
 Container.registerPostSetterHook('create', applyAbstractionView);
 Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbsLevel);
 //Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
-function setChildAbsLevelToParentContentAbsLevel(child, parent) {
+//[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
+function setChildAbsLevelToParentContentAbsLevel(child, parent, force=true) {
     //set current abstraction level based on the parent if abstraction level absent
     let currentLevel = this.getAbstractionLevel(child)
     let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
-    if (currentLevel == 0 && parentContentAbstractionLevel > 0) {
+    if (force || (currentLevel == 0 && parentContentAbstractionLevel > 0)) {
         this.setAbstractionLevel(child, parentContentAbstractionLevel)
     }
 }
@@ -271,7 +262,7 @@ function applyAbstractionView(pid, node) {
         updateDisplayedAbstractionLevel(this, node, lvl)
     }
 
-    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid])
+    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, false])
 }
 
 function applyAbstractionViewOnUpdate(node) {
