@@ -483,8 +483,8 @@ export class ContainerTextInjector {
 
 	makeNewLine(insertAt) {
 		let lineBefore = undefined;
-		if (this.target.children && insertAt >= 0 && insertAt < this.getLinesCount(this.target)) {
-			lineBefore = this.target.children[insertAt]
+		if (insertAt >= 0 && insertAt < this.getLinesCount(this.target)) {
+			lineBefore = this.getLine(this.target, insertAt)
 		}
 		return this.container.createFromSerializable(this.target.id, this.lineDescriptor, lineBefore, this.appId)
 	}

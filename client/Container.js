@@ -91,7 +91,7 @@ export class Container {
          * first 2 parameters are always: parentId and child
          * other parameters depend on the original method (createFromSerializable, createFromDom or index)
          */
-        'new', //params: none
+        'new',      //params: none
         'create',   //params: ParentId, Child Node, CallerId
         'update',   //params: DOM node, update descriptor, callerId
         'style',    //params: DOM node, style descriptor, callerId
@@ -330,10 +330,13 @@ export class Container {
     }
 
     static #applyHooks(ctx, set, setter, params) {
-        let methods = set[setter]
-        if (methods) {
-            for (const method of methods) {
+        let methods = set[setter] || []
+        for (const method of methods) {
+            try {
                 method.apply(ctx, params)
+            } catch (e) {
+                console.error(`[CORE] Failed to apply ${setter} hook`)
+                console.error(e)
             }
         }
     }
@@ -358,12 +361,7 @@ export class Container {
     * @param {array} params - array of parameters to pass to the hooks.
     */
     static applyPostHooks(ctx, setter, params) {
-        try {
-            Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
-        } catch (e) {
-            console.error(`[CORE] Failed to apply post setter hooks`)
-            console.error(e)
-        }
+        Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
     }
 
     //</hooks>

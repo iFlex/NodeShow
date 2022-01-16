@@ -248,15 +248,24 @@ Container.registerPreSetterHook('setParent', function(node) {
 });
 
 //[TODO]: figure out what causes the event look feedback
-Container.registerPostSetterHook('create', applyAbstractionView);
+//[TODO]: set abstraction level according to parent when changing parents
 Container.registerPostSetterHook('new', setUnignorableDataFields);
+Container.registerPostSetterHook('create', applyAbstractionView);
 //Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
 function applyAbstractionView(pid, node) {
+    //content abstraction
     let maxLvl = this.getAbstractionLevels(node)
     if (maxLvl > 0) {
         let lvl = this.getCurrentContentAbstractionLevel(node)
         updateDisplayedAbstractionLevel(this, node, lvl)
+    }
+
+    //set current abstraction level based on the parent if abstraction level absent
+    let currentLevel = this.getAbstractionLevel(node)
+    let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(pid)
+    if (currentLevel == 0 && parentContentAbstractionLevel > 0) {
+        this.setAbstractionLevel(node, parentContentAbstractionLevel)
     }
 }
 
