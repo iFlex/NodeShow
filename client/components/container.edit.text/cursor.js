@@ -1,17 +1,19 @@
 export class Cursor {
 	
+	#editor = null;
 	#target = null
 	#lineNumber = 0;
 	#charNumber = 0;
 	#localCharNumber = 0;
 
-	constructor (target) {
+	constructor (textEditor, target) {
 		this.#target = target
+		this.#editor = textEditor
 	}
 
-	#getLineAt(offset) {
-		offset = this.#capLineNumber(offset)
-		return this.#target.childNodes[offset]
+	#getLineAt(lineNumbe) {
+		lineNumbe = this.#capLineNumber(lineNumbe)
+		return this.#editor.getLine(this.#target, lineNumbe)
 	}
 
 	#getLineWidth(line) {
@@ -66,16 +68,12 @@ export class Cursor {
 		return lastUnit
 	}
 
-	#getCurrentLineCount() {
-		return (this.#target.childNodes) ? this.#target.childNodes.length : 0;
-	}
-
 	#capLineNumber(number) {
 		if (number < 0) {
 			return 0;
 		}
 
-		let lines = this.#getCurrentLineCount();
+		let lines = this.#editor.getLinesCount(this.#target);
 		if (lines > 0 && number >= lines) {
 			return lines - 1;
 		}
@@ -84,10 +82,10 @@ export class Cursor {
 
 	#getCurrentLine () {
 		this.#lineNumber = this.#capLineNumber(this.#lineNumber)
-		if (!this.#target.childNodes || this.#target.childNodes.length == 0) {
+		if (this.#editor.getLinesCount(this.#target) == 0) {
 			return null
 		}
-		return this.#target.childNodes[this.#lineNumber]
+		return this.#editor.getLine(this.#target, this.#lineNumber)
 	}
 
 	setTarget (target) {
@@ -178,7 +176,7 @@ export class Cursor {
 				//seems stuck, try next line
 				let sign = this.#getSign(amount)
 				let nextLine = newStatus.lineNumber + sign * 1
-				if (nextLine < 0 || nextLine >= this.#getCurrentLineCount()) {
+				if (nextLine < 0 || nextLine >= this.#editor.getLinesCount(this.#target)) {
 					break
 				}
 

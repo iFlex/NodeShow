@@ -132,7 +132,7 @@ export class ContainerTextInjector {
 			console.log("Text editor runnign in debug mode")
 		}
 
-		this.cursor = new Cursor()
+		this.cursor = new Cursor(this)
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
 		this.initKeyboard();
 
@@ -311,6 +311,36 @@ export class ContainerTextInjector {
 		return this.target
 	}
 
+	//[TODO]: make efficient, should not loop over every time
+	getLinesCount(target = {childNodes:[]}) {
+		let count = 0
+		for (const child of target.childNodes) {
+			if (this.isLine(child) && this.isVisible(child)) {
+				count++
+			}
+		}
+		return count
+	}
+
+	//[TODO]: make efficient, should not seek every time this is called
+	getLine(target = {childNodes:[]}, lineNumber) {
+		let count = 0;
+		for (const child of target.childNodes) {
+			if (this.isLine(child) && this.isVisible(child)) {
+				if (count == lineNumber) {
+					return child
+				}
+				count++;
+			}
+		}	
+
+		return null;
+	}
+
+	isVisible(target = {style:{display:'none'}}) {
+		return target.style.display !== 'none'
+	}
+
 	static isPrintableCharacter(key) {
 		return key.length === 1;
 	}
@@ -333,6 +363,7 @@ export class ContainerTextInjector {
 		return this.findFirstDivParent(elem.parentNode)
 	}
 
+	//[TODO]: reconsider criteria
 	isTargetTextEditable(target) {
 		if (target === this.container.parent) {
 			console.log(`${this.appId} - currently not allowing adding text to root container`)
@@ -346,7 +377,7 @@ export class ContainerTextInjector {
 			}
 		}
 
-		if (!target.childNodes || target.childNodes.length == 0) {
+		if (!target.childNodes || this.getLinesCount(this.target) == 0) {
 			return true;
 		}
 		
@@ -452,7 +483,7 @@ export class ContainerTextInjector {
 
 	makeNewLine(insertAt) {
 		let lineBefore = undefined;
-		if (this.target.children && insertAt >= 0 && insertAt < this.target.children.length) {
+		if (this.target.children && insertAt >= 0 && insertAt < this.getLinesCount(this.target)) {
 			lineBefore = this.target.children[insertAt]
 		}
 		return this.container.createFromSerializable(this.target.id, this.lineDescriptor, lineBefore, this.appId)
@@ -474,6 +505,7 @@ export class ContainerTextInjector {
 		}
 	}
 	
+	//[TODO]: NOT USED? 
 	findClosestTextUnit(line, direction) {
 		let pointer = line
 		let skippedLines = new Set([])
@@ -539,27 +571,29 @@ export class ContainerTextInjector {
 		let units = new Set([])
 		let lines = new Set([])			
 		while (currentLine) {
-			if (!currentTextUnit) {
-				currentTextUnit = currentLine.firstChild
-			}
-			lines.add(currentLine)
-
-			while (currentTextUnit) {
-				if (this.isTextUnit(currentTextUnit)) {
-					units.add(currentTextUnit)
-					if (currentTextUnit == endTextUnit) {
-						units.add(end)
-						return {lines:lines, units:units}
-					}
+			if (this.isLine(currentLine) && this.isVisible(currentLine)) {
+				if (!currentTextUnit) {
+					currentTextUnit = currentLine.firstChild
 				}
-				currentTextUnit = currentTextUnit.nextSibling
-			}
-			if (stopAtEOL) {
-				break;
-			}
+				lines.add(currentLine)
 
-			if (currentLine == endLine) {
-				break;
+				while (currentTextUnit) {
+					if (this.isTextUnit(currentTextUnit)) {
+						units.add(currentTextUnit)
+						if (currentTextUnit == endTextUnit) {
+							units.add(end)
+							return {lines:lines, units:units}
+						}
+					}
+					currentTextUnit = currentTextUnit.nextSibling
+				}
+				if (stopAtEOL) {
+					break;
+				}
+
+				if (currentLine == endLine) {
+					break;
+				}
 			}
 			currentLine = currentLine.nextSibling
 		}

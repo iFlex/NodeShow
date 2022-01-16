@@ -111,20 +111,22 @@ function mouseUp(e) {
 
 		target = null;
 		e.preventDefault();
-	}
 
-	if (clickTarget){
-		if (moved <= FOCUS_TRESHOLD) {
-			container.emit('container.click', {id:clickTarget.id, originalEvent:e})
-			let dnow = Date.now()
-			if (dnow - lastClickTime <= dblClickTreshold && e.button == lastClickedButton) {
-				container.emit('container.dblclick', {id:clickTarget.id, originalEvent:e})
-				lastClickTime = 0;
-			} else {
-				lastClickTime = dnow
+		//[TODO]: make this independent of drag. careful how, because it can break interfaces
+		if (clickTarget){
+			if (moved <= FOCUS_TRESHOLD) {
+				container.emit('container.click', {id:clickTarget.id, originalEvent:e})
+				let dnow = Date.now()
+				if (dnow - lastClickTime <= dblClickTreshold && e.button == lastClickedButton) {
+					container.emit('container.dblclick', {id:clickTarget.id, originalEvent:e})
+					lastClickTime = 0;
+				} else {
+					lastClickTime = dnow
+				}
 			}
 		}
 	}
+
 	lastClickedButton = e.button
 }
 

@@ -19,6 +19,7 @@ Client Features:
         state: tracks at what levels of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous levels. The first levels being the full content of the container.
         [TODO]: allow each abstraction layer to impose a different style on the container +store it in the DOM
+        [TODO]: when container is at abstraction layer x, all added or swapped children are set to that abstraction layer
 12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
     [NICE-TO-HAVE]: make it a bit more advanced?: e.g. read status from target, show sliders, etc?
 ------------------------------------------------------------------------------

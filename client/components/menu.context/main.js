@@ -185,6 +185,7 @@ export class ContextMenu {
 	}
 
 	callAction(e, details) {
+		console.log(`${this.appId} - call action ${JSON.stringify(details)}`)
 		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
 	    	let selection = getSelection(this.#container)
