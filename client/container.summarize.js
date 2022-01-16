@@ -251,7 +251,17 @@ Container.registerPreSetterHook('setParent', function(node) {
 //[TODO]: set abstraction level according to parent when changing parents
 Container.registerPostSetterHook('new', setUnignorableDataFields);
 Container.registerPostSetterHook('create', applyAbstractionView);
+Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbsLevel);
 //Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
+
+function setChildAbsLevelToParentContentAbsLevel(child, parent) {
+    //set current abstraction level based on the parent if abstraction level absent
+    let currentLevel = this.getAbstractionLevel(child)
+    let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
+    if (currentLevel == 0 && parentContentAbstractionLevel > 0) {
+        this.setAbstractionLevel(child, parentContentAbstractionLevel)
+    }
+}
 
 function applyAbstractionView(pid, node) {
     //content abstraction
@@ -261,12 +271,7 @@ function applyAbstractionView(pid, node) {
         updateDisplayedAbstractionLevel(this, node, lvl)
     }
 
-    //set current abstraction level based on the parent if abstraction level absent
-    let currentLevel = this.getAbstractionLevel(node)
-    let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(pid)
-    if (currentLevel == 0 && parentContentAbstractionLevel > 0) {
-        this.setAbstractionLevel(node, parentContentAbstractionLevel)
-    }
+    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid])
 }
 
 function applyAbstractionViewOnUpdate(node) {
