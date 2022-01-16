@@ -1,7 +1,7 @@
-export function post(url, contentType, data, onComplete, onError) {
+export function httpReq(method, url, contentType, data, onComplete, onError) {
   var http = new XMLHttpRequest();
   
-  http.open('PUT', url, true);
+  http.open(method, url, true);
   http.setRequestHeader("Content-type", contentType);
   http.onreadystatechange = function() {
     if(http.readyState == 4 && http.status == 200) {
@@ -13,5 +13,9 @@ export function post(url, contentType, data, onComplete, onError) {
     }
   }
   http.send(data);
+}
+
+export function post(url, contentType, data, onComplete, onError) {
+  httpReq('PUT',url, contentType, data, onComplete, onError)
 }
  

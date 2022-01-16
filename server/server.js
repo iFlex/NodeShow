@@ -111,15 +111,18 @@ function manuallyHandle(url, req, res) {
   });
 
   req.on("end", function() {
-    console.log(content)
     let data = JSON.parse(content)
 
     try {
       if (url == '/configure') {
+        console.log(content)
         setNodeShowMetadata(null, data)
       } else if (url == '/delete') {
+        console.log(content)  
         deletePresentation(null, data)
-      } 
+      } else if (url == '/bulk') {
+        handleBulkUpdate(content);
+      }
       res.writeHead(200, {'Content-Type': 'application/json'});
     } catch(e) {
       res.writeHead(500, {'Content-Type': 'application/json'})
@@ -379,6 +382,26 @@ function findUserBySocket(socket, prezzo){
   return null;
 }
 
+/**
+ * 
+ */ 
+function handleBulkUpdate(data) {
+  try {
+    data = JSON.parse(data)  
+  } catch(e) {
+    console.error('Failed to parse bulk update')
+    console.error(e)
+    return;
+  }
+  console.log(`Bulk updating ${data.length} items`)
+  for (const node of data) {
+    let prezId = node.presentationId;
+    let prezzo = presentations[prezId];
+    prezzo.presentation.update(node);
+  }
+  console.log('Updated')
+}
+
 function handleBridgeUpdate(parsed, originSocket) {
   let cookie = authorize(originSocket.handshake.headers)
   let user = Users.lookup(cookie.id);
@@ -388,6 +411,10 @@ function handleBridgeUpdate(parsed, originSocket) {
     console.log(parsed)  
     console.log(user)
   }
+  if (debug_level > 0 && debug_level < 2) {
+    console.log(`update from ${user} in ${parsed.presentationId}`)
+  }
+
   let prezId = parsed.presentationId;
   let sessionId = parsed.sessionId;
   let prezzo = presentations[prezId];

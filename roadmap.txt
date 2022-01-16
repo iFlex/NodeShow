@@ -34,6 +34,8 @@ Link are currently a performance issue - they seem to slow down the server
 
 14. Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
 15. Camera implementation: focus, move, zoom
+16. Optimize event sending and heavy loading (e.g. books)
+    Implement BulkBridge maybe?
 --------------------------------------------
 
 

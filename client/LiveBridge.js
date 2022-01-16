@@ -273,13 +273,15 @@ export class LiveBridge {
     }
     
 	//TESTING
-	beam(snapshot) {
+	beam(snapshot, queue, index) {
         if (!this.#ready) {
             throw `LiveBridge not ready yet`
         }
 
-		let queue = [this.container.parent]
-		var index = 0
+        if (queue.length == 0) {
+            queue.push(this.container.parent)
+            index = 0;
+        }
 		var count = 0;
         var faliures = 0;
 		do {
@@ -301,8 +303,13 @@ export class LiveBridge {
                         descriptor:raw
                     }
                 }
+                console.log("BEAMING ITEM:")
                 console.log(jsndata)
-				this.socket.emit("update", jsndata);
+                this.#ready = false
+                this.socket.emit("update", jsndata, (e) => {
+                    console.log("ACK")
+                    this.#ready = true
+                });
 			}
 
 			if (item.children) {
@@ -312,6 +319,7 @@ export class LiveBridge {
 			}
 		
 			index ++;
+            return index
 		} while(index < queue.length)
         console.log(`beamed ${count} elements out of ${index} with failures ${faliures}`);
 	}
