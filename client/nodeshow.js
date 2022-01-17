@@ -16,7 +16,7 @@ if (!root) {
 
 let container = new Container(root, false);
 container.init();
-container.makeCamera();
+container.makeCamera(document.documentElement);
 
 let bridge = new LiveBridge(container, false);
 bridge.registerSocketIo();

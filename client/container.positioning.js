@@ -29,6 +29,12 @@ function findAbsPos(obj) {
     return [curleft,curtop];
 }
 
+Container.prototype.localToGlobalPosition = function(id, x, y) {
+    let node = this.lookup(id)
+    let pos = findAbsPos(node)
+    return {x: pos[0] + x, y: pos[1] + y}
+}
+
 Container.prototype.getTopCornerMargin = function(element) {
     let style = window.getComputedStyle(element);
     let marginTop = style.marginTop;

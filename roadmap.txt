@@ -42,7 +42,6 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
-[BUG]: positioning goes nuts when away from origin....
 [BUG]: Fit content seems to not work corretly on collapse/expand
 [BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two 
 receivers rather than just one.

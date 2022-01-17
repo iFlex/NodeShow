@@ -6,7 +6,7 @@ Container.prototype.getCamera = function(camId) {
 }
 
 Container.prototype.registerCamera = function(node, camera, callerId) {
-	if (node === this.parent) {
+	if (node === this.parent || node === document.documentElement) {
 		this.camera = camera
 	}
 

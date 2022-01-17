@@ -319,7 +319,6 @@ export class LiveBridge {
 			}
 		
 			index ++;
-            return index
 		} while(index < queue.length)
         console.log(`beamed ${count} elements out of ${index} with failures ${faliures}`);
 	}

@@ -87,16 +87,21 @@
   position: absolute;
   left:  0px;
   top:  0px;
-  overflow: scroll;
+  overflow: hidden;
   margin: 0px;
   padding: 0px;
   border-width: 0px;
 
-  width: 100vw;
-  height: 100vh;
+  width: 200vw;
+  height: 200vh;
 }
 
+/*
+keep this as is if you want pageX and pageY to work
+*/
 body {
   width:  100vw;
   height:  100vh;
+  /*overflow: hidden;*/
+  overflow:  scroll;
 }

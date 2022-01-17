@@ -47,6 +47,7 @@ function mouseDown(e) {
 	}
 	
 	clickTarget = e.target
+	
 	target = findActionableAnchestor(container, e.target, appId)
 	if (target) {
 		focusTarget = target
@@ -59,6 +60,7 @@ function mouseDown(e) {
 			id:target.id,
 			dx: 0,
 			dy: 0,
+			position: {x:e.pageX, y:e.pageY},
 			moved: 0, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -71,6 +73,7 @@ function mouseDown(e) {
 function mouseMove(e) {
 	lastPageX = e.pageX;
 	lastPageY = e.pageY;
+	let globPos = container.localToGlobalPosition(e.target, e.layerX, e.layerY)
 
 	if (target) {
 		let dx = e.screenX - lastX;
@@ -82,6 +85,7 @@ function mouseMove(e) {
 			id:target.id,
 			dx:dx,
 			dy:dy,
+			position: {x:e.pageX, y:e.pageY},
 			moved: moved, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -97,12 +101,15 @@ function mouseMove(e) {
 }
 
 function mouseUp(e) {
+	let globPos = container.localToGlobalPosition(e.target, e.layerX, e.layerY)
+
 	if (target) {
 		clickTarget = target
 		container.emit('drag.end',{
 			id:target.id,
 			dx: 0, //ToDo: incorrect
 			dy: 0,
+			position: {x:e.pageX, y:e.pageY},
 			moved: moved,
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy, 
@@ -115,10 +122,10 @@ function mouseUp(e) {
 		//[TODO]: make this independent of drag. careful how, because it can break interfaces
 		if (clickTarget){
 			if (moved <= FOCUS_TRESHOLD) {
-				container.emit('container.click', {id:clickTarget.id, originalEvent:e})
+				container.emit('container.click', {id:clickTarget.id, position: {x:e.pageX, y:e.pageY}, originalEvent:e})
 				let dnow = Date.now()
 				if (dnow - lastClickTime <= dblClickTreshold && e.button == lastClickedButton) {
-					container.emit('container.dblclick', {id:clickTarget.id, originalEvent:e})
+					container.emit('container.dblclick', {id:clickTarget.id, position: {x:e.pageX, y:e.pageY}, originalEvent:e})
 					lastClickTime = 0;
 				} else {
 					lastClickTime = dnow

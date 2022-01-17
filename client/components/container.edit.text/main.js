@@ -289,6 +289,10 @@ export class ContainerTextInjector {
 		
 		this.#keyboard.enable();
 		this.#clipboard.enable();
+
+		if (this.container.camera) {
+			this.container.camera.focusOn(this.target)
+		}
 	}
 
 	stop () {
