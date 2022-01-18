@@ -70,10 +70,10 @@ export class InputAccessManager {
 			&& setOrExclusiveMode !== ACCESS_REQUIREMENT.EXCLUSIVE) {
 			return []
 		}
-		
-		let grantAtLevel = this.getGrantAtLevel(event, setOrExclusiveMode)
-		if (grantAtLevel) {
-			return grantAtLevel
+
+		let grantAt = this.getGrantAtLevel(event, setOrExclusiveMode)
+		if (grantAt) {
+			return grantAt
 		}
 
 		let latestId = null;
@@ -96,11 +96,6 @@ export class InputAccessManager {
 	}
 
 	getSetInclusiveListeners(event) {
-		let grantAtLevel = this.getGrantAtLevel(event, ACCESS_REQUIREMENT.SET_INCLUSIVE)
-		if (grantAtLevel) {
-			return grantAtLevel
-		}
-
 		let result = []
 		for (const [id, listenerDetail] of Object.entries(this.#access[event])) {
 			let mode = listenerDetail.mode
@@ -153,6 +148,7 @@ export class InputAccessManager {
 		for ( const [id, listenerDetail] of Object.entries(this.#access[event]) ) {
 			let mode = listenerDetail.mode
 			if ( currentMode < mode ) {
+				console.log(`higher: ${currentMode}`)
 				currentMode = mode
 			}
 
@@ -166,12 +162,14 @@ export class InputAccessManager {
 			this.#grants[event] = {}
 		}
 
+		console.log(`grantFound ${grantFound} grantMode: ${grantedMode} grantedto:${grantedTo}`)
 		if (grantFound) {
 			this.#grants[event].mode = grantedMode
 		} else {
 			this.#grants[event].mode = currentMode
 			this.#grants[event].grantedTo = null;
 		}
+		console.log(`Recomputed access mode to ${this.#grants[event].mode}`)
 	}
 
 	recomputeState(event) {
@@ -228,10 +226,14 @@ export class InputAccessManager {
 			return;
 		}
 
-		if (this.#grants[event].grantedTo !== listenerId) {
+		if (this.#grants[event].grantedTo !== listenerId && listenerId) {
 			return;
 		}
 
+		if (this.#grants[event]) {
+			this.#grants[event].grantedTo = null
+			this.#grants[event].mode = null	
+		}
 		this.recomputeState(event)
 	}
 

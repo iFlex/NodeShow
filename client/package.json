@@ -6,8 +6,7 @@
     "mocha": "*"
   },
   "scripts": {
-    "test": "node ./node_modules/.bin/isparta cover _mocha",
-    "test:coverage": "istanbul cover --no-default-excludes --report=text  -x '**/node_modules/**' _mocha test/*"
+    "test": "node mocha"
   },
   "author": "Milorad Liviu Felix"
 }
