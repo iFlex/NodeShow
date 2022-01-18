@@ -134,8 +134,8 @@ export class ContainerEditLinks {
             target: event.detail.id,
             localX: e.layerX,
             localY: e.layerY,
-            absX: e.pageX,
-            absY: e.pageY
+            absX: event.detail.position.x,
+            absY: event.detail.position.y
         }
 
         if (!this.left) {

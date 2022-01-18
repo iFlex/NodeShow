@@ -785,11 +785,11 @@ export class Container {
     }
     
     getWidth(id) {
-        return jQuery(Container.lookup(id)).outerWidth()
+        return jQuery(Container.lookup(id)).innerWidth() //.outerWidth()
 	}
 
 	getHeight(id) {
-        return jQuery(Container.lookup(id)).outerHeight()
+        return jQuery(Container.lookup(id)).innerHeight() //.outerHeight()
 	}
 
     getContentHeight (id) {
@@ -880,17 +880,13 @@ export class Container {
 
         //use min width for content fit
         //this.styleChild(node, {"min-width": `${w}px`, "min-height":`${h}px`}, emit)
-        if (expandOnly == true) {
-            let oldW = this.getWidth(node)
-            if (oldW < w) {
-                this.setWidth(node, w)    
-            }
-            let oldH = this.getHeight(node)
-            if (oldH < h) {
-                this.setHeight(node, h)
-            }
-        } else {
-            this.setWidth(node, w)
+        let oldW = this.getWidth(node)
+        let oldH = this.getHeight(node)
+        
+        if (oldW < node.scrollWidth || expandOnly != true) {
+            this.setWidth(node, w)    
+        } 
+        if (oldH < node.scrollHeight || expandOnly != true) {
             this.setHeight(node, h)
         }
     }

@@ -117,8 +117,8 @@ export class ContainerMover {
 		
 		let preTargetPos = this.container.getPosition(d.id)
 		this.modifyContainer(d.id,
-			d.originalEvent.pageX, 
-			d.originalEvent.pageY,
+			d.position.x, 
+			d.position.y,
 			d.targetOx, 
 			d.targetOy)
 		let postTargetPos = this.container.getPosition(d.id)

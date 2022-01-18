@@ -23,6 +23,26 @@ import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 	1. resizing container as text is typed (both with and height)
 	2. automatically wrapping a line that is too long
 		-> cursor support for this (depends on knowing char height and width)
+
+	Types of fields:
+	1. Just a text field
+	 width: auto
+	 height: auto
+	 - self adjusting
+	 or fitVisibleContent with expandOnly = false
+
+	2. Fixed width text field
+	 width: x px
+	 height: auto
+	 - need some function to break the line
+
+	 - needs auto line breaking
+
+	3. Multi content text field
+	 width: x px
+	 height: y px
+
+	 - container.fitVisibleContent()
 */
 
 //line spacing
@@ -55,13 +75,12 @@ export class ContainerTextInjector {
 		computedStyle:{
 			"position":"absolute",
 			"background-color": "transparent",
-			"top":"0px",
-			"left":"0px",
-			"width":"32px",
-			"height":"32:px",
-			"border-width":"2px solid",
-			"border-color":"black"
-		}
+			"width":"auto",
+			"height":"auto",
+			"min-width":"32px",
+			"min-height":"32px"
+		},
+		data:{}//[TODO]
 	}
 
 	cursorDescriptor = {
@@ -96,14 +115,6 @@ export class ContainerTextInjector {
 		}
 	}
 	
-	textContainerStyle  = {
-	  "width": "auto",
-	  "height":  "auto",
-	  //"min-width":  "300px", //these mins shuold be overridable depending on the text
-	  //"min-height": "150px",
-	  "padding": "20px"
-	}
-
 	state = {
 		control:false,
 		bold:false,
@@ -275,10 +286,10 @@ export class ContainerTextInjector {
 		pos.originX = 0.0
 		pos.originY = 1.0
 		this.container.setPosition(this.#interface, pos, this.appId)
+		this.container.show(this.#interface, this.appId)
 		this.#interface.style['min-width'] = this.container.getWidth(this.target)
 		
 		//bring up interface
-		this.container.show(this.#interface, this.appId)
 		this.container.bringToFront(this.#interface)
 		this.container.show(this.#cursorDiv, this.appId)
 		this.container.bringToFront(this.#cursorDiv, this.appId)
@@ -505,7 +516,7 @@ export class ContainerTextInjector {
 
 	styleTarget() {
 		if ( this.target ) {
-			this.container.styleChild(this.target, this.textContainerStyle, this.appId)
+			this.container.fitVisibleContent(this.target, true)
 		}
 	}
 	
@@ -796,8 +807,6 @@ export class ContainerTextInjector {
 			return;
 		}
 
-		this.styleTarget()
-		
 		//if there's a selection delete it first
 		this.deleteSelection();
 		
@@ -820,6 +829,7 @@ export class ContainerTextInjector {
 		this.cursor.move(text.length)
 		this.cursorUpdateVisible(this.#cursorDiv)
 		this.container.notifyUpdate(textUnit.id, this.appId)
+		this.styleTarget()
 	}
 	
 	newLine() {
@@ -846,6 +856,7 @@ export class ContainerTextInjector {
 		//update cursor
 		this.cursor.putAt(curStat.lineNumber + 1, 0)
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	//ToDo: remove lines rendered empty	

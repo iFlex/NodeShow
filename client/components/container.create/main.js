@@ -143,9 +143,9 @@ export class ContainerCreator {
 	}
 
 	onDoubleClick (e) {
-		let evt = e.detail.originalEvent
+		let pos = e.detail.position
 		this.target = this.container.lookup(e.detail.id)
-		this.create(evt.pageX, evt.pageY)
+		this.create(pos.x, pos.y)
 	}
 	
 	overrideStyleWithStylerSettings(style) {

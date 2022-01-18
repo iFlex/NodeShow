@@ -19,7 +19,7 @@ Client Features:
         state: tracks at what levels of 'summarisation' the container is at
                if you want to summarise futher, you summarise based on the previous levels. The first levels being the full content of the container.
         [TODO]: allow each abstraction layer to impose a different style on the container +store it in the DOM
-        [TODO]: when container is at abstraction layer x, all added or swapped children are set to that abstraction layer
+        [!TODO]: when container is at abstraction layer x, all added or swapped children are set to that abstraction layer
 12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
     [NICE-TO-HAVE]: make it a bit more advanced?: e.g. read status from target, show sliders, etc?
 ------------------------------------------------------------------------------
@@ -42,6 +42,8 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
+[TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
+
 [BUG]: Fit content seems to not work corretly on collapse/expand
 [BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two 
 receivers rather than just one.

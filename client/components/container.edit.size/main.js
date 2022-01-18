@@ -119,7 +119,7 @@ export class ContainerSizer {
 		}
 		
 		this.modifyContainer(d.id, d.dx, d.dy, 
-			d.originalEvent.pageX, d.originalEvent.pageY,
+			d.position.x, d.position.y,
 			d.targetOx, d.targetOy)
 	}
 

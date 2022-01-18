@@ -1,5 +1,5 @@
 import { ACTIONS } from '../../Container.js'
-import { EVENTS as MouseEvents, MiceManager } from '../utils/mouse.js'
+import { EVENTS as MouseEvents, MiceManager, getCursorPosition } from '../utils/mouse.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { InputAccessManagerInstance, ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { getSelection } from '../utils/common.js'
@@ -390,7 +390,15 @@ export class ContainerEditOrchestrator {
 			try {
 				let textEditor = this.#container.getComponent('container.edit.text');
 				if (!textEditor.getEditTarget()) {
-					textEditor.start(sel[0])
+					let target = sel[0]
+					let position = undefined
+					if (target == this.#container.parent) {
+						position = getCursorPosition()
+						position.top = position.y
+						position.left = position.x
+					}
+
+					textEditor.start(target, position)
 					textEditor.addPrintable(key)
 				}
 			} catch (e) {
