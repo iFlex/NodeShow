@@ -120,7 +120,7 @@ export class ContainerTextInjector {
 		bold:false,
 		italic:false,
 		underlined: false,
-		textColor: "#000000",
+		textColor: undefined,
 		highlightColor: undefined,
 		fontFam: "Arial",
 		fontSize: "15px"
@@ -506,7 +506,7 @@ export class ContainerTextInjector {
 
 	makeNewTextChild (line) {
 		this.textUnitDescriptor.computedStyle['color'] = this.state.textColor;
-		//this.textUnitDescriptor.computedStyle['background-color'] = this.state.highlightColor;
+		//this.textUnitDescriptor.computedStyle['background-color'] = this.state.highlightColor;	
 		this.textUnitDescriptor.computedStyle['font-family'] = this.state.fontFam;
 		this.textUnitDescriptor.computedStyle['font-size'] = this.state.fontSize;
 
@@ -1150,6 +1150,8 @@ export class ContainerTextInjector {
 		let selection = this.getSelected()
 		if (selection && selection.units.size > 0) {
 			this.styleTextUnits({"color": clr}, selection.units)
+		} else {
+			//[TODO]: split current text unit
 		}
 	}
 

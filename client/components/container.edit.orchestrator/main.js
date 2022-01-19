@@ -29,6 +29,8 @@ export class ContainerEditOrchestrator {
 	#menuRoot = null
 	#menuItemTemplate = null
 	
+	defaults = {}
+
 	constructor (container) {
 		this.#container = container;
 		container.registerComponent(this);	
@@ -95,6 +97,8 @@ export class ContainerEditOrchestrator {
 			lastX = event.pageX;
 			lastY = event.pageY;
 		}
+
+		this.defaults[MouseEvents.DRAG_START] = 'container.edit.pos'
 	}
 
 	enable () {
@@ -131,36 +135,33 @@ export class ContainerEditOrchestrator {
 
 	setupQuickEditShortcuts() {
 		this.#keyboard.setAction(new Set(['Control']), this, (e) => {
-			this.#previousRoutes[MouseEvents.DRAG_START] = InputAccessManagerInstance.getGrant(MouseEvents.DRAG_START)
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.edit.size')
 			this.updateMenu()
 		}, false)
 
 		this.#keyboard.setKeyUpAction(new Set(['Control']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.#previousRoutes[MouseEvents.DRAG_START])
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
 			this.updateMenu()
 		}, false)
 
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
-			this.#previousRoutes[MouseEvents.DRAG_START] = InputAccessManagerInstance.getGrant(MouseEvents.DRAG_START)
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.grouping')
 			this.updateMenu()
 		}, false)
 
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.#previousRoutes[MouseEvents.DRAG_START])
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
 			this.updateMenu()
 		}, false)
 
 
 		this.#keyboard.setAction(new Set(['Alt']), this, (e) => {
-			this.#previousRoutes[MouseEvents.DRAG_START] = InputAccessManagerInstance.getGrant(MouseEvents.DRAG_START)
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.select')
 			this.updateMenu()
 		}, false)
 
 		this.#keyboard.setKeyUpAction(new Set(['Alt']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.#previousRoutes[MouseEvents.DRAG_START])
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
 			this.updateMenu()
 		}, false)
 	}
