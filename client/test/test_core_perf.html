@@ -129,6 +129,58 @@
         console.log(`Get position time: ${results['getPosition(DOM)']}ms`)
     }
 
+    TestRunner.prototype.testGetWidth = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 10000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.getWidth(root)
+        }
+        let duration = Date.now() - start
+        results['getWidth(DOM)'] = duration/runcount
+        console.log(`getWidth:${results['getWidth(DOM)']}ms`)
+    }
+
+    TestRunner.prototype.testSetWidth = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 10000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.setWidth(root, i+1)
+        }
+        let duration = Date.now() - start
+        results['setWidth(DOM)'] = duration/runcount
+        console.log(`setWidth:${results['setWidth(DOM)']}ms`)
+    }
+
+    TestRunner.prototype.testGetHeight = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 10000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.getHeight(root)
+        }
+        let duration = Date.now() - start
+        results['getHeight(DOM)'] = duration/runcount
+        console.log(`getHeight:${results['getHeight(DOM)']}ms`)
+    }
+
+    TestRunner.prototype.testSetHeight = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 10000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.setHeight(root, i+1)
+        }
+        let duration = Date.now() - start
+        results['setHeight(DOM)'] = duration/runcount
+        console.log(`setHeight:${results['setHeight(DOM)']}ms`)
+    }
+
     let tr = new TestRunner()
     tr.afterTests = function() {
         let str = ""
