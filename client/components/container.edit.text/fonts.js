@@ -2,9 +2,14 @@ export class FontManager {
     
     #container = null
     
-    #defaultGoogleFonts = ['Roboto', 'Dongle','Open Sans', 'Rubik Beastly', 'Lato', 'Mochiy Pop P One','Montserrat','Sedgwick Ave']
-    #defaults = {}
+    #defaultGoogleFonts = ['Roboto', 'Dongle','Open Sans', 'Rubik Beastly', 
+    'Lato', 'Mochiy Pop P One','Montserrat','Sedgwick Ave',
+    'Raleway', 'Nunito', 'Ubuntu', 'Playfair Display', 'Luxurious Roman',
+    'Source Code Pro','Dancing Script', 'Lobster', 'Pacifico', 'Shadows Into Light',
+    'Caveat', 'Archivo Narrow', 'Architects Daughter', 'Noto Sans Display', 'Amatic SC',
+    'Satisfy']
 
+    #defaults = {}
     #loaded = new Set()
 
     constructor(container) {
