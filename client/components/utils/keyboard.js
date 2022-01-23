@@ -97,28 +97,44 @@ export class Keyboard {
     isUppercase (key) {
         return key === key.toUpperCase()
     }
+    
+    #setUnion(left, right) {
+        return new Set([...left, ...right]);
+    }
 
-    setAction(keys, context, handler, preventDefault, strict) {
+    #setDifference(left, right) {
+        return new Set([...left].filter(x => !right.has(x)));
+    }
+
+    #setIntersection(left, right) {
+        return new Set([...left].filter(x => right.has(x)));
+    }
+
+    setAction(keys, context, handler, preventDefault, strict = false) {
         this.#actions[this.setToKey(keys)] = {
+            keys: keys,
             context: context,
             handler: handler, 
-            preventDefault: preventDefault
+            preventDefault: preventDefault,
+            strict: strict
         }
     }
 
     setKeyUpAction(keys, context, handler, preventDefault) {
         this.#actionsUp[this.setToKey(keys)] = {
+            keys: keys,
             context: context,
             handler: handler, 
             preventDefault: preventDefault
         }
     }
 
-    onPritable(context, handler, preventDefault) {
+    onPritable(context, handler, preventDefault, strict = false) {
         this.#onPrintable = {
             context: context, 
             handler: handler,
-            preventDefault: preventDefault
+            preventDefault: preventDefault,
+            strict: strict
         }
     }
 
@@ -183,15 +199,22 @@ export class Keyboard {
         }
     }
 
-    #applyActionAndDefault(e, key, actionSet) {
-        let action = actionSet[key]
-        if (action && action.preventDefault) {
-            console.log(`Key: Action prevent default by ${this.#callerId}`)
-            e.preventDefault();
-        }
-        
-        if (action && action.handler) {
-            action.handler.apply(action.context, [e.key])
+    #applyActionAndDefault(e, actionSet) {
+        let allPressed = this.#setUnion(this.#pressedNonPrintables, this.#pressedPrintables);
+        for (const [key, detail] of Object.entries(actionSet)) {
+            let intersection = this.#setIntersection(detail.keys, allPressed);
+            let match = (intersection.size === detail.keys.size)
+            let isStrict = (allPressed.size === intersection.size)
+
+            if (match && (!detail.strict || isStrict)) {
+                if (detail.preventDefault) {
+                    console.log(`Key: Action prevent default by ${this.#callerId}`)
+                    e.preventDefault();
+                }
+                if (detail.handler) {
+                    detail.handler.apply(detail.context, [e.key, intersection]) 
+                }
+            }
         }
     }
 
@@ -203,8 +226,7 @@ export class Keyboard {
             this.#pressedNonPrintables.add(e.key)
         }
         
-        let key = this.setToKey(this.#pressedNonPrintables, e.key)
-        this.#applyActionAndDefault(e, key, this.#actions)
+        this.#applyActionAndDefault(e, this.#actions)
 
         if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintable)) {
             console.log(`KeyDown: Printable prevent default by ${this.#callerId}`)
@@ -212,6 +234,9 @@ export class Keyboard {
         }
         
         if (isPrintable && this.shouldActOnPrintable() && this.#onPrintable) {
+            if (this.#onPrintable.strict && (this.#pressedPrintables.size > 1 || this.#pressedNonPrintables > 0)) {
+                return;
+            }
             this.#onPrintable.handler.apply(this.#onPrintable.context, [e.key])
         }
 
@@ -222,9 +247,7 @@ export class Keyboard {
 
     handleKeyUp(e) {
         let isPrintable = this.isPrintable(e.key)
-        
-        let key = this.setToKey(this.#pressedNonPrintables, e.key)
-        this.#applyActionAndDefault(e, key, this.#actionsUp)
+        this.#applyActionAndDefault(e, this.#actionsUp)
         
         if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintableUp)) {
             console.log(`KeyUp: Printable prevent default by ${this.#callerId}`)
@@ -257,5 +280,4 @@ export class Keyboard {
         console.log(this.#pressedPrintables)
         console.log(this.#pressedNonPrintables)
 	}
-
 }
