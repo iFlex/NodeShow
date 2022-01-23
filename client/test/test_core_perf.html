@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/jquery.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>Node Show Experimental</title>
+  </head>
+  <body style="height: auto; width: auto;"></body>
+  <!-- CORE -->
+  <script type="module">
+    import { assertEquals, assertTrue, TestRunner } from "./jsunit.mjs";
+    import { container } from "./test_core_setup.mjs";
+    import { ACTIONS } from '../Container.js'
+
+    let itemCount = 10000;
+    let descriptor = {
+        nodeName:"DIV",
+        computedStyle:{
+            "position":"absolute",
+            "background-color": "red",
+            "width":"auto",
+            "height":"auto",
+            "min-width":"32px",
+            "min-height":"32px"
+        },
+        data:{}//[TODO]
+    }
+        
+    TestRunner.prototype.testPureImplementation = function () {
+        let live = true
+        let s = Date.now();
+        let a = document.createElement('DIV');
+        if (live) {
+            document.body.appendChild(a)
+        }
+
+        for (let i = 0 ; i < itemCount; ++i ) {
+            let b = document.createElement('SPAN');
+            b.innerHTML = 'cxalkjdasoldjqpowirj0-29ju09z su09asud 0as9jd 0a9uj ';
+            a.appendChild(b)
+        }
+        console.log(`Pure Took ${Date.now() - s}ms`)
+    }
+    
+    TestRunner.prototype.testSerCreate = function() {
+        let start = Date.now()
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        for (let i = 0 ; i < itemCount; ++i ) {
+            container.createFromSerializable(root, descriptor, null, null)
+        }
+
+        let duration = Date.now() - start
+        console.log(`Container Ser Took ${duration}ms`)
+        assertTrue(duration < 1000)
+    }
+
+    TestRunner.prototype.testNodeCreate = function() {
+        let start = Date.now()
+
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        for (let i = 0 ; i < itemCount; ++i ) {
+            let node = document.createElement('SPAN')
+            node.innerHTML = 'cxalkjdasoldjqpowirj0-29ju09z su09asud 0as9jd 0a9uj'
+            container.addDomChild(root, node, 'samboody', false)
+        }
+
+        let duration = Date.now() - start
+        console.log(`Container DOM Took ${duration}ms`)
+        assertTrue(duration < 1000)
+    }
+     
+    let tr = new TestRunner()
+    tr.run();
+
+  </script>
+</html>

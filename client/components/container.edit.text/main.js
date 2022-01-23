@@ -26,23 +26,23 @@ import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 	Types of fields:
 	1. Just a text field
-	 width: auto
-	 height: auto
-	 - self adjusting
-	 or fitVisibleContent with expandOnly = false
+	width: auto
+	height: auto
+	- self adjusting
+	or fitVisibleContent with expandOnly = false
 
 	2. Fixed width text field
-	 width: x px
-	 height: auto
-	 - need some function to break the line
+	width: x px
+	height: auto
+	- need some function to break the line
 
-	 - needs auto line breaking
+	- needs auto line breaking
 
 	3. Multi content text field
-	 width: x px
-	 height: y px
+	width: x px
+	height: y px
 
-	 - container.fitVisibleContent()
+	- container.fitVisibleContent()
 */
 
 //line spacing
@@ -59,6 +59,7 @@ export class ContainerTextInjector {
 	
 	container = null;	
 	target = null;
+	newLineChar = '\n';
 	#interface = null;
 	#keyboard = null;
 	#clipboard = null;
@@ -100,7 +101,7 @@ export class ContainerTextInjector {
 		nodeName: "DIV", 
 		className: "text-document-line", 
 		"data":{
-			"containerActions":[{"trigger":"click","call":"container.edit.text.onLineClick","params":[]}],
+			//"containerActions":[{"trigger":"click","call":"container.edit.text.onLineClick","params":[]}],
 			"containerPermissions":textLinePerms
 		}
 	}
@@ -136,8 +137,8 @@ export class ContainerTextInjector {
 		if(debug) {
 			this.lineDescriptor['computedStyle'] = {
 				"border-width": "3px",
-    			"border-color": "red",
-    			"border-style": "dotted"
+				"border-color": "red",
+				"border-style": "dotted"
 			}
 			this.textUnitDescriptor['computedStyle'] = this.lineDescriptor.computedStyle;
 			console.log("Text editor runnign in debug mode")
@@ -176,12 +177,12 @@ export class ContainerTextInjector {
 				"position":"absolute"
 			},
 			"data":{
-		    	"ignore":true,
-		    	"containerPermissions":{
+				"ignore":true,
+				"containerPermissions":{
 					"container.broadcast":{"*":false},
 					"container.bridge":{"*":false}
 				}
-		    }
+			}
 		},
 		null,
 		this.appId)
@@ -402,13 +403,13 @@ export class ContainerTextInjector {
 
 	//doesn't support rich text yet
 	paste (event) {
-	    if (!this.target) {
-	    	return;
-	    }
-	    
-	    let paste = (event.clipboardData || window.clipboardData).getData('text');
-	    this.addPrintable(paste)
-	    event.preventDefault();
+		if (!this.target) {
+			return;
+		}
+		
+		let paste = (event.clipboardData || window.clipboardData).getData('text');
+		this.addPrintable(paste)
+		event.preventDefault();
 	}
 
 	cut (event) {
@@ -471,9 +472,9 @@ export class ContainerTextInjector {
 		}
 
 		let curStat = this.cursor.getPosition()
-        console.log("Cursor Down")
-        console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
-        this.cursorUpdateVisible(this.#cursorDiv)
+		console.log("Cursor Down")
+		console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	cursorLeft () {
@@ -617,10 +618,10 @@ export class ContainerTextInjector {
 
 	makeSelection(start, end) {
 		let range = new Range();
-  		range.setStart(start.firstChild, 0);
-  		range.setEnd(end.lastChild, end.lastChild.length);
+		range.setStart(start.firstChild, 0);
+		range.setEnd(end.lastChild, end.lastChild.length);
 
-  		let sel = this.clearSelection()
+		let sel = this.clearSelection()
 		sel.addRange(range)
 	}
 
@@ -680,7 +681,7 @@ export class ContainerTextInjector {
 				let startSplit = this.splitTextUnit(start, startOffset)
 				let startNode = startSplit[1]
 				if (start == end) {
-				 	endOffset -= startOffset
+					endOffset -= startOffset
 					end = startNode
 				}
 				let endSplit = this.splitTextUnit(end, endOffset)
@@ -819,16 +820,27 @@ export class ContainerTextInjector {
 			this.makeNewTextChild(curStat.line)
 			curStat = this.cursor.get()
 		}
-	
+		let textLines = text.split(this.newLineChar)
+		console.log(textLines)
 		let textUnit = curStat.textUnit;
 		let existing = textUnit.innerHTML
 		let before = existing.substring(0, curStat.localCharNumber)
 		let after = existing.substring(curStat.localCharNumber, existing.length)
-		textUnit.innerHTML = `${before}${text}${after}`
-		
-		this.cursor.move(text.length)
+
+		let firstLine = textLines[0]
+		textUnit.innerHTML = `${before}${firstLine}${after}`
+		this.cursor.move(firstLine.length)
 		this.cursorUpdateVisible(this.#cursorDiv)
 		this.container.notifyUpdate(textUnit.id, this.appId)
+
+		if (textLines.length > 1) {
+			let lineBefore = this.getLine(this.target, curStat.lineNumber + 1)
+			for (var i = 1; i < textLines.length; ++i) {
+				let line = this.container.createFromSerializable(this.target.id, this.lineDescriptor, lineBefore, this.appId)
+				textUnit = this.container.createFromSerializable(line, this.textUnitDescriptor, null, this.appId)
+				textUnit.innerHTML = textLines[i]
+			}
+		}
 		this.styleTarget()
 	}
 	

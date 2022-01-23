@@ -34,10 +34,9 @@ function stripClassName(classList, toStrip) {
 
 function emitContainerCreated(context, parent, child, callerId) {
     //this container has finally been initialized
-    console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
+    //console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
     Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
     
-    context.CONTAINER_COUNT ++;
     context.emit(ACTIONS.create, {
         presentationId: context.presentationId, 
         parentId: parent.id, 
@@ -49,13 +48,13 @@ function emitContainerCreated(context, parent, child, callerId) {
 
 function addChildNodes(context, elem, callerId) {
     if (!initQueue[elem.id]) {
-        console.log(`Failed to initialize ChildNodes for ${elem.id} - no state stored in init queue`)
+        //console.log(`Failed to initialize ChildNodes for ${elem.id} - no state stored in init queue`)
         return;
     }
 
     let childNodes = initQueue[elem.id].childNodes
     let index = initQueue[elem.id].index
-    console.log(`start step adding children to ${elem.id} index:${index}`)
+    //console.log(`start step adding children to ${elem.id} index:${index}`)
     for (; index < childNodes.length; ++index) {
         let node = childNodes[index]
         if (node.id) {
@@ -72,10 +71,10 @@ function addChildNodes(context, elem, callerId) {
 
     //update index
     initQueue[elem.id].index = index;
-    console.log(`end step adding children to ${elem.id} index:${index}`)
+    //console.log(`end step adding children to ${elem.id} index:${index}`)
     //initialisation complete
     if (childNodes.length <= index) {
-        console.log(`CONTAINER CREATED ${elem.id}`)
+        //console.log(`CONTAINER CREATED ${elem.id}`)
         //update order of siblings 
         context.reorderChildren(elem, initQueue[elem.id].descriptor, callerId)
         emitContainerCreated(context, elem.parent || context.parent, elem, callerId)
@@ -139,7 +138,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     let child = makeAndInsertChild(rawDescriptor, parent, insertBefore)
     //set all properties and configurations & child order
-    this.updateChild(child, rawDescriptor, callerId, false)
+    this.updateChild(child, rawDescriptor, callerId, false) //PERF: HEAVY
     
     if(rawDescriptor.childNodes && rawDescriptor.childNodes.length > 0) {
         initQueue[child.id] = {
@@ -242,16 +241,12 @@ Container.prototype.toSerializable = function(id, snapshot, subset) {
 
 Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
     //check children order
-    console.log(`Updating child order ${elem.id} - ${(rawDescriptor.childNodes)?rawDescriptor.childNodes.length:0}`) 
+    //console.log(`Updating child order ${elem.id} - ${(rawDescriptor.childNodes)?rawDescriptor.childNodes.length:0}`) 
     if (rawDescriptor.childNodes) {
         for (let i = 0; i < rawDescriptor.childNodes.length && i < elem.childNodes.length; ++i ) {
-            console.log(`${i} descriptor_id:${rawDescriptor.childNodes[i].id} actual_id: ${elem.childNodes[i].id}`)
             if (rawDescriptor.childNodes[i].id != elem.childNodes[i].id) {
-                console.log(`setPos ${rawDescriptor.childNodes[i].id} to ${i}`)
-                console.log(elem)
                 try {
                     this.setSiblingPosition(rawDescriptor.childNodes[i].id, i, callerId)    
-                    console.log("SWAPPED:")
                 } catch (e) {
                     console.error("Failed to reorder siblings. Did you reference an unrelated container?", e)
                 }
