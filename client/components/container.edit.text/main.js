@@ -404,15 +404,25 @@ export class ContainerTextInjector {
 		return false;
 	}
 
+	#detectClipboardFormat(controller) {
+		console.log(`CLIPBOARD_TYPES: ${JSON.stringify(controller.types)}`)
+		//let rtf = controller.getData('text/html')
+		//console.log(`RTF_CLIPBOARD: ${rtf}`)
+	}
+
 	//doesn't support rich text yet
 	paste (event) {
 		if (!this.target) {
 			return;
 		}
 		
-		let paste = (event.clipboardData || window.clipboardData).getData('text');
+		let clipboardController = (event.clipboardData || window.clipboardData)
+		let paste = clipboardController.getData('text');
 		this.addPrintable(paste)
 		event.preventDefault();
+
+		//[TODO]: integrate
+		this.#detectClipboardFormat(clipboardController)
 	}
 
 	cut (event) {
