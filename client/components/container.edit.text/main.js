@@ -3,8 +3,7 @@ import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
-
-//testing
+import { findCommonStyleSubset } from '../utils/common.js'
 import { queueWork } from '../../YeldingExecutor.js'
 
 //import { getSelection } from '../utils/common.js'
@@ -121,9 +120,9 @@ export class ContainerTextInjector {
 	
 	state = {
 		control:false,
-		bold:false,
-		italic:false,
-		underlined: false,
+		bold:'normal',
+		italic:'normal',
+		underlined: '',
 		textColor: undefined,
 		highlightColor: undefined,
 		fontFam: "Arial",
@@ -518,13 +517,19 @@ export class ContainerTextInjector {
 		return this.container.createFromSerializable(this.target.id, this.lineDescriptor, lineBefore, this.appId)
 	}
 
-	makeNewTextChild (line) {
+	#updateTextUnitDescriptorFromState() {
 		this.textUnitDescriptor.computedStyle['color'] = this.state.textColor;
 		//this.textUnitDescriptor.computedStyle['background-color'] = this.state.highlightColor;	
 		this.textUnitDescriptor.computedStyle['font-family'] = this.state.fontFam;
 		this.textUnitDescriptor.computedStyle['font-size'] = this.state.fontSize;
+		this.textUnitDescriptor.computedStyle['font-weight'] = this.state.bold;
+		this.textUnitDescriptor.computedStyle['font-style'] = this.state.italic;
+		this.textUnitDescriptor.computedStyle['text-decoration-line'] = this.state.underlined;
+	}
 
-		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor, null, this.appId)
+	makeNewTextChild (line, before) {
+		this.#updateTextUnitDescriptorFromState();		
+		let unit = this.container.createFromSerializable(line.id, this.textUnitDescriptor, before, this.appId)
 		return unit
 	}
 
@@ -1042,6 +1047,19 @@ export class ContainerTextInjector {
 		return result;
 	}
 
+	newTextUnitAtCursor () {
+		let cursor = this.cursor.get()
+		if (cursor && cursor.textUnit) {
+			if (cursor.textUnit.innerHTML.length == 0) {
+				this.#updateTextUnitDescriptorFromState();
+				this.container.styleChild(cursor.textUnit, this.textUnitDescriptor.computedStyle, this.appId)
+			} else {
+				let split = this.splitTextUnit(cursor.textUnit, cursor.localCharNumber)
+				this.makeNewTextChild(cursor.line, split[1]);
+			}
+		}
+	}
+
 	changeFontSize (delta) {
 		let selection = this.getSelected()
 		if (!selection || selection.units.size == 0) {
@@ -1059,16 +1077,18 @@ export class ContainerTextInjector {
 		this.styleTextUnits({"font-size": modFunc}, selection.units)
 
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	setFontSize (fontSize) {
 		let selection = this.getSelected()
 		if (!selection || selection.units.size == 0) {
-			//selection = {units:this.getAllTextUnits()}
+			this.newTextUnitAtCursor()
 			return;
 		}
 		this.styleTextUnits({"font-size": fontSize}, selection.units)
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	uiSelectFontSize() {
@@ -1086,6 +1106,7 @@ export class ContainerTextInjector {
 		} catch (e) {
 			
 		}
+		this.styleTarget()
 	}
 
 	fontDown (e) {
@@ -1097,18 +1118,21 @@ export class ContainerTextInjector {
 		} catch (e) {
 			
 		}
+		this.styleTarget()
 	}
 
 	setFont(fontFam) {
 		this.state.fontFam = fontFam
 
 		let selection = this.getSelected()
-		if (!selection || selection.units.size == 0) {
-			selection = {units:this.getAllTextUnits()}
+		if (selection && selection.units.size > 0) {
+			this.styleTextUnits({"font-family": fontFam}, selection.units);
+		} else {
+			this.newTextUnitAtCursor()
 		}
-		this.styleTextUnits({"font-family": fontFam}, selection.units);
-
+		
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	align (alignment) {
@@ -1131,13 +1155,18 @@ export class ContainerTextInjector {
 
 		let selection = this.getSelected()
 		if (selection && selection.units.size > 0) {
-			this.styleTextUnits({"font-weight": toggleFunc}, selection.units)
+			let commonStyle = findCommonStyleSubset(this.container, selection.units)
+			let currentValue = commonStyle["font-weight"] || "normal"
+
+			this.styleTextUnits({"font-weight": toggleFunc(currentValue)}, selection.units)
 		} else {
 			this.state.bold = toggleFunc(this.state.bold);
+			this.newTextUnitAtCursor()
 		}
 
 		this.clearSelection()
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	italic (textUnits) {
@@ -1150,32 +1179,42 @@ export class ContainerTextInjector {
 
 		let selection = this.getSelected()
 		if (selection && selection.units.size > 0) {
-			this.styleTextUnits({"font-style": toggleFunc}, selection.units)
+			let commonStyle = findCommonStyleSubset(this.container, selection.units)
+			let currentValue = commonStyle["font-style"] || "normal"
+
+			this.styleTextUnits({"font-style": toggleFunc(currentValue)}, selection.units)
 		} else {
 			this.state.italic = toggleFunc(this.state.italic);
+			this.newTextUnitAtCursor()
 		}
 
 		this.clearSelection()
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	underlined (textUnits) {
 		let toggleFunc = function(e) {
 			if (e == 'underline') {
-				return 'none'
+				return ''
 			}
 			return 'underline'
 		}
 
 		let selection = this.getSelected()
 		if (selection && selection.units.size > 0) {
-			this.styleTextUnits({"text-decoration": toggleFunc}, selection.units)
+			let commonStyle = findCommonStyleSubset(this.container, selection.units)
+			let currentValue = commonStyle["text-decoration-line"] || ""
+
+			this.styleTextUnits({"text-decoration-line": toggleFunc(currentValue)}, selection.units)
 		} else {
 			this.state.underlined = toggleFunc(this.state.underlined);
+			this.newTextUnitAtCursor()
 		}
 
 		this.clearSelection()
 		this.cursorUpdateVisible(this.#cursorDiv)
+		this.styleTarget()
 	}
 
 	#setColor(clr) {
@@ -1184,7 +1223,7 @@ export class ContainerTextInjector {
 		if (selection && selection.units.size > 0) {
 			this.styleTextUnits({"color": clr}, selection.units)
 		} else {
-			//[TODO]: split current text unit
+			this.newTextUnitAtCursor()
 		}
 	}
 
@@ -1206,7 +1245,7 @@ export class ContainerTextInjector {
 
 	changeFont(e) {
 		console.log(`${this.appId} setting font family to: ${e.target.value}`)
-		this.setFont(this.state.fontFam)
+		this.setFont(e.target.value)
 	}
 
 	updateInterface() {

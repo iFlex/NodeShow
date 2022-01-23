@@ -105,6 +105,32 @@ export function lookupStyleRules(className) {
 	return result;
 }
 
+export function findCommonStyleSubset(container, selection = []) {
+	if (selection.length == 0 || selection.size == 0) {
+		return {};
+	}
+	let result = null
+	for (const item of selection) {
+		let style = container.toSerializableStyle(item)
+		if (!result) {
+			result = style
+		} else {
+			for (const [key, value] of Object.entries(style)) {
+			
+				if (!result[key] || result[key] !== value) {
+					delete result[key]
+				}
+	
+				if (Object.keys(result).length == 0) {
+					break;
+				}
+			}
+		}
+	}
+
+	return result
+}
+
 //TEMPORARY & EXPERIMENTAL
 export function positionVerticalMenu(container, interfNode, appId) {
 	try {

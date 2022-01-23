@@ -26,6 +26,22 @@ export class Cursor {
 		return result
 	}
 
+	#biasToEmptyUnit(unit) {
+		if (!unit || unit.innerHTML.length == 0) {
+			return unit
+		}
+		if (this.#localCharNumber == 0 && unit.previousSibling) {
+			this.#localCharNumber = unit.previousSibling.innerHTML.length
+			return unit.previousSibling
+		}
+		if (this.#localCharNumber > 0 && this.#localCharNumber == unit.innerHTML.length) {
+			if (unit.nextSibling && unit.nextSibling.innerHTML.length == 0) {
+				return unit.nextSibling
+			}
+		}
+		return unit
+	}
+
 	#getCurrentTextUnit(line) {
 		if (!line) {
 			this.#localCharNumber = 0;
@@ -53,7 +69,7 @@ export class Cursor {
 			if ( index > this.#charNumber ) {
 				index -= unitLen
 				this.#localCharNumber = this.#charNumber - index
-				return unit
+				return this.#biasToEmptyUnit(unit)
 			}
 			lastUnit = unit
 		}
@@ -65,7 +81,7 @@ export class Cursor {
 		} else {
 			this.#localCharNumber = 0;
 		}
-		return lastUnit
+		return this.#biasToEmptyUnit(lastUnit)
 	}
 
 	#capLineNumber(number) {
