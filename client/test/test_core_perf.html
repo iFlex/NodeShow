@@ -12,7 +12,8 @@
     import { container } from "./test_core_setup.mjs";
     import { ACTIONS } from '../Container.js'
 
-    let itemCount = 10000;
+    let results = {}
+    let itemCount = 100000;
     let descriptor = {
         nodeName:"DIV",
         computedStyle:{
@@ -39,18 +40,23 @@
             b.innerHTML = 'cxalkjdasoldjqpowirj0-29ju09z su09asud 0as9jd 0a9uj ';
             a.appendChild(b)
         }
-        console.log(`Pure Took ${Date.now() - s}ms`)
+        if (!live) {
+            document.body.appendChild(a)
+        }
+        console.log(`Pure(live=${live}) Took ${Date.now() - s}ms`)
     }
     
     TestRunner.prototype.testSerCreate = function() {
-        let start = Date.now()
         let root = container.createFromSerializable(null, descriptor, null, null)
+        
+        let start = Date.now()
         for (let i = 0 ; i < itemCount; ++i ) {
             container.createFromSerializable(root, descriptor, null, null)
         }
 
         let duration = Date.now() - start
-        console.log(`Container Ser Took ${duration}ms`)
+        results['createFromSerializable'] = duration/itemCount
+        console.log(`Container Ser Took ${duration}ms createFromSerializable ${results['createFromSerializable']}ms`)
         assertTrue(duration < 1000)
     }
 
@@ -68,9 +74,71 @@
         console.log(`Container DOM Took ${duration}ms`)
         assertTrue(duration < 1000)
     }
-     
-    let tr = new TestRunner()
-    tr.run();
+    
 
+    TestRunner.prototype.testLookupById = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let id = root.id
+        let runcount = 1000000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.lookup(id)
+        }
+        let duration = Date.now() - start
+        results['lookup(id)'] = duration/runcount
+        console.log(`id lookup time: ${results['lookup(id)']}ms`)
+    }
+
+    TestRunner.prototype.testLookupByDOM = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 1000000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.lookup(root)
+        }
+        let duration = Date.now() - start
+        results['lookup(DOM)'] = duration/runcount
+        console.log(`DOM lookup time: ${results['lookup(DOM)']}ms`)
+    }
+
+    TestRunner.prototype.testSetPosition = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 10000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.setPosition(root, {top:0, left:i})
+        }
+        let duration = Date.now() - start
+        results['setPosition(DOM)'] = duration/runcount
+        console.log(`Set position time: ${results['setPosition(DOM)']}ms`)
+    }
+
+    TestRunner.prototype.testGetPosition = function() {
+        let root = container.createFromSerializable(null, descriptor, null, null)
+        let runcount = 10000;
+
+        let start = Date.now()
+        for (let i = 0; i < runcount; i++) {
+            container.getPosition(root)
+        }
+        let duration = Date.now() - start
+        results['getPosition(DOM)'] = duration/runcount
+        console.log(`Get position time: ${results['getPosition(DOM)']}ms`)
+    }
+
+    let tr = new TestRunner()
+    tr.afterTests = function() {
+        let str = ""
+        for(const [key, value] of Object.entries(results)) {
+            str += `${key}:${value}ms\n`
+        }
+        console.log(JSON.stringify(results))
+        alert(str)
+    }
+
+    tr.run();
   </script>
 </html>

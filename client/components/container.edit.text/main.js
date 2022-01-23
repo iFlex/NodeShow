@@ -1,8 +1,11 @@
-import { ACTIONS } from '../../Container.js'
+import { ACTIONS, Container } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
+
+//testing
+import { queueWork } from '../../YeldingExecutor.js'
 
 //import { getSelection } from '../utils/common.js'
 //TODO:
@@ -803,6 +806,11 @@ export class ContainerTextInjector {
 		}
 	}
 
+	insertTextBlockAsLine(descriptor, lineBefore) {
+		let line = this.container.createFromSerializable(this.target.id, this.lineDescriptor, lineBefore, this.appId)
+		this.container.createFromSerializable(line, descriptor, null, this.appId)
+	}
+
 	addPrintable(text) {
 		if (!this.target) {
 			return;
@@ -836,12 +844,15 @@ export class ContainerTextInjector {
 		if (textLines.length > 1) {
 			let lineBefore = this.getLine(this.target, curStat.lineNumber + 1)
 			for (var i = 1; i < textLines.length; ++i) {
-				let line = this.container.createFromSerializable(this.target.id, this.lineDescriptor, lineBefore, this.appId)
-				textUnit = this.container.createFromSerializable(line, this.textUnitDescriptor, null, this.appId)
-				textUnit.innerHTML = textLines[i]
+				let descriptor = Container.clone(this.textUnitDescriptor)
+				descriptor.innerHTML = textLines[i]
+				
+				queueWork(this.insertTextBlockAsLine, this, [descriptor, lineBefore])
+				//this.insertTextBlockAsLine(descriptor, lineBefore)
 			}
 		}
-		this.styleTarget()
+		//this.styleTarget()
+		queueWork(this.styleTarget, this)
 	}
 	
 	newLine() {

@@ -1,6 +1,6 @@
 let index = 0
 let workQueue = []
-let maxUninterrupted = 100
+let maxUninterrupted = 10
 
 function execute() {
 	let uninterrupted = 0
@@ -17,7 +17,9 @@ function execute() {
 
 		if (uninterrupted >= maxUninterrupted) {
 			let overshot = uninterrupted - maxUninterrupted
-			setTimeout(execute, overshot + 10)
+			//setTimeout(execute, overshot+1)
+			setTimeout(execute, 1)
+			return;
 		}
 	}	 	
 	console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms`)

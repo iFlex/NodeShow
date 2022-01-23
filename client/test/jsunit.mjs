@@ -1,3 +1,5 @@
+import { queueWork } from '../../YeldingExecutor.js'
+
 export function assertTrue(bool) {
   if (!bool) {
     throw `ASSERTION_ERROR: should have been true`
@@ -17,8 +19,8 @@ export function assertNotEquals(expected, actual) {
 }
 
 export class TestRunner {
-  #passed = 0 
-  #failed = 0
+  passed = 0 
+  failed = 0
 
   constructor () {
 
@@ -57,26 +59,38 @@ export class TestRunner {
     });
   }
 
+  runOneTest (methodName, context) {
+    let method = context[methodName]
+    context.beforeEach()
+    try {
+      method();
+      context.passed++;
+      console.log(`PASSED: ${methodName}`)  
+    } catch (e){
+      console.error(`FAILED: ${methodName}`)
+      console.error(e)
+      context.failed++;
+    }
+    context.afterEach()
+  }
+
+  report () {
+    let status = 'SUCCESS'
+    if (this.failed > 0) {
+      status = 'FAILURE'
+    }
+    alert(`${status} Passed:${this.passed} Failed:${this.failed}`)
+    
+    if (this.afterTests) {
+      this.afterTests();
+    }
+  }
+
   run () {
     let tests = this.getAllFuncs(this);
     for (const method of tests) {
-      this.beforeEach()
-      try {
-        this[method]();
-        this.#passed++;
-        console.log(`PASSED: ${method}`)  
-      } catch (e){
-        console.error(`FAILED: ${method}`)
-        console.error(e)
-        this.#failed++;
-      }
-      this.afterEach();
+      queueWork(this.runOneTest, this, [method, this])
     }
-
-    let status = 'SUCCESS'
-    if (this.#failed > 0) {
-      status = 'FAILURE'
-    }
-    alert(`${status} Passed:${this.#passed} Failed:${this.#failed}`)
+    queueWork(this.report, this)
   }
 }
