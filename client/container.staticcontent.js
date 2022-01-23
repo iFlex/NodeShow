@@ -61,12 +61,12 @@ Container.prototype.loadHtml = function(node, resource, callerId, emit) {
  * @param {string} resource - name of the stylesheet file
  * @param {string} callerId - name of the calling component
  */
-Container.prototype.loadStyle = function(resource, callerId) {
+Container.prototype.loadStyle = function(resource, callerId, external=false) {
     var head  = document.getElementsByTagName('head')[0];
     var link  = document.createElement('link');
     link.rel  = 'stylesheet';
     link.type = 'text/css';
-    link.href = `components/${callerId}/${resource}`;
+    link.href = (external) ? resource : `components/${callerId}/${resource}`;
     link.media = 'all';
     head.appendChild(link);
 }

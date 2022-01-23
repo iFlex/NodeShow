@@ -1,5 +1,6 @@
 import { ACTIONS, Container } from '../../Container.js'
 import { Cursor } from './cursor.js'
+import { FontManager } from './fonts.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
@@ -65,7 +66,7 @@ export class ContainerTextInjector {
 	#interface = null;
 	#keyboard = null;
 	#clipboard = null;
-
+	#fontManager = null;
 	#enabled = false
 	#handlers = {};
 
@@ -167,6 +168,7 @@ export class ContainerTextInjector {
 		// 	this.stop();
 		// 	this.tryFetchTarget(e.selection)
 		// }
+		this.#fontManager = new FontManager(container)
 
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
 
@@ -193,6 +195,9 @@ export class ContainerTextInjector {
 		//load interface style and html
 		this.container.loadStyle("style.css", this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+			.then(e => {
+				this.#loadFontsInInterface()
+			})
 
 		//create cursor pointer
 		this.#cursorDiv = this.container.createFromSerializable(document.body, this.cursorDescriptor, null, this.appId)
@@ -254,6 +259,18 @@ export class ContainerTextInjector {
 
 		this.#keyboard.setAction(new Set(['Control','c']), this, (key) => {}, false)
 		this.#keyboard.setAction(new Set(['Control','v']), this, (key) => {}, false)
+	}
+	
+	#loadFontsInInterface () {
+		let fonts = this.#fontManager.listFonts()
+		
+		let root = this.container.lookup("ns-text-editor-font")
+		for (const fontName of fonts) {
+			let fontRow = document.createElement('option')
+			fontRow.value = fontName
+			fontRow.innerHTML = fontName
+			root.appendChild(fontRow)
+		}
 	}
 
 	start (target, overrideNewBoxPos) {
