@@ -17,7 +17,7 @@ Container.prototype.initActions = function(node) {
 //ToDo: switch to using set instead of list for actions.
 Container.prototype.addAction = function(id, action, callerId) {
     this.isOperationAllowed('container.actions.add', id, callerId);
-    let node = Container.lookup(id)
+    let node = this.lookup(id)
     this.attachAction(node, action)
     
     let actions = this.getActions(node)
@@ -33,7 +33,7 @@ Container.prototype.addAction = function(id, action, callerId) {
 
 Container.prototype.removeAction = function(id, action, callerId) {
     this.isOperationAllowed('container.actions.remove', id, callerId);
-    let node = Container.lookup(id)
+    let node = this.lookup(id)
     this.detachAction(node, action)
 
     let toRem = JSON.stringify(action)

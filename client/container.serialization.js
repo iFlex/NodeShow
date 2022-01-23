@@ -34,9 +34,10 @@ function stripClassName(classList, toStrip) {
 
 function emitContainerCreated(context, parent, child, callerId) {
     //this container has finally been initialized
-    console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
+    //console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
     Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
-    
+    context.virtualDOM[child.id] = child
+
     context.CONTAINER_COUNT ++;
     context.emit(ACTIONS.create, {
         presentationId: context.presentationId, 
@@ -49,18 +50,18 @@ function emitContainerCreated(context, parent, child, callerId) {
 
 function addChildNodes(context, elem, callerId) {
     if (!initQueue[elem.id]) {
-        console.log(`Failed to initialize ChildNodes for ${elem.id} - no state stored in init queue`)
+        //console.log(`Failed to initialize ChildNodes for ${elem.id} - no state stored in init queue`)
         return;
     }
 
     let childNodes = initQueue[elem.id].childNodes
     let index = initQueue[elem.id].index
-    console.log(`start step adding children to ${elem.id} index:${index}`)
+    //console.log(`start step adding children to ${elem.id} index:${index}`)
     for (; index < childNodes.length; ++index) {
         let node = childNodes[index]
         if (node.id) {
             try {
-                Container.lookup(node.id)
+                context.lookup(node.id)
             } catch (e){
                 break;   
             }
@@ -72,10 +73,10 @@ function addChildNodes(context, elem, callerId) {
 
     //update index
     initQueue[elem.id].index = index;
-    console.log(`end step adding children to ${elem.id} index:${index}`)
+    //console.log(`end step adding children to ${elem.id} index:${index}`)
     //initialisation complete
     if (childNodes.length <= index) {
-        console.log(`CONTAINER CREATED ${elem.id}`)
+        //console.log(`CONTAINER CREATED ${elem.id}`)
         //update order of siblings 
         context.reorderChildren(elem, initQueue[elem.id].descriptor, callerId)
         emitContainerCreated(context, elem.parent || context.parent, elem, callerId)
@@ -83,11 +84,11 @@ function addChildNodes(context, elem, callerId) {
     }
 }
 
-function makeAndInsertChild(rawDescriptor, parent, insertBefore) {
+function makeAndInsertChild(context, rawDescriptor, parent, insertBefore) {
     if (rawDescriptor.id) {
         let collision = null;
         try {
-            collision = Container.lookup(rawDescriptor.id)
+            collision = context.lookup(rawDescriptor.id)
         } catch (e) {
             
         }
@@ -112,7 +113,7 @@ function makeAndInsertChild(rawDescriptor, parent, insertBefore) {
 function resolveParentForCreation(context, parentId, rawDescriptor) {
     if (parentId) {
         try {
-            return Container.lookup(parentId);
+            return context.lookup(parentId);
         } catch (e) {
             //save it in case the parrent shows up :D 
             if (!orphans[parentId]) {
@@ -137,7 +138,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
     Container.applyPreHooks(this, 'create', [parentId, null, rawDescriptor, insertBefore, callerId])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
-    let child = makeAndInsertChild(rawDescriptor, parent, insertBefore)
+    let child = makeAndInsertChild(this, rawDescriptor, parent, insertBefore)
     //set all properties and configurations & child order
     this.updateChild(child, rawDescriptor, callerId, false)
     
@@ -167,7 +168,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
 }
 
 Container.prototype.toSerializableStyle = function(id, snapshot, subset) {
-    let elem = Container.lookup(id);
+    let elem = this.lookup(id);
     let computedStyle = elem.style;
     if (snapshot) {
         computedStyle = window.getComputedStyle(elem)
@@ -184,7 +185,7 @@ Container.prototype.toSerializableStyle = function(id, snapshot, subset) {
 Container.prototype.toSerializable = function(id, snapshot, subset) {
     let basicProps = ['id','nodeName', 'src']
 
-    let elem = Container.lookup(id);
+    let elem = this.lookup(id);
     
     let serialize = {}
     //NOTE: the basic properties will always be present in a serialization result
@@ -242,7 +243,7 @@ Container.prototype.toSerializable = function(id, snapshot, subset) {
 
 Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
     //check children order
-    console.log(`Updating child order ${elem.id} - ${(rawDescriptor.childNodes)?rawDescriptor.childNodes.length:0}`) 
+    //console.log(`Updating child order ${elem.id} - ${(rawDescriptor.childNodes)?rawDescriptor.childNodes.length:0}`) 
     if (rawDescriptor.childNodes) {
         for (let i = 0; i < rawDescriptor.childNodes.length && i < elem.childNodes.length; ++i ) {
             console.log(`${i} descriptor_id:${rawDescriptor.childNodes[i].id} actual_id: ${elem.childNodes[i].id}`)
@@ -266,7 +267,7 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
     actions
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit){
-    let child = Container.lookup(childId)
+    let child = this.lookup(childId)
     Container.applyPreHooks(this, 'update', [child, rawDescriptor, callerId, emit])
     
     //bulindly applying all properties received

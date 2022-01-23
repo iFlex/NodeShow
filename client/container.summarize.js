@@ -34,7 +34,7 @@ let ABS_LVL = 'abstractionLevel'
  * @param {string} callerId - the name of the caller of this method
  */
 Container.prototype.collapse = function(id, callerId) {
-    let node = Container.lookup(id)
+    let node = this.lookup(id)
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
     let maxAbsLevels = this.getAbstractionLevels(node)
 
@@ -53,7 +53,7 @@ Container.prototype.collapse = function(id, callerId) {
  * @param {string} callerId - the name of the caller of this method
  */
 Container.prototype.expand = function(id, callerId) {
-    let node = Container.lookup(id);
+    let node = this.lookup(id);
     
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
     

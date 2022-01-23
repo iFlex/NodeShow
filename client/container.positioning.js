@@ -66,7 +66,7 @@ ToDo: support more position types
  * @param {string} callerId - the name of the caller of this method
  */
 Container.prototype.setPosition = function(id, position, callerId) {
-    let elem = Container.lookup(id);
+    let elem = this.lookup(id);
     this.isOperationAllowed(ACTIONS.setPosition, elem, callerId);
 
     //do position translation (even if the positioning is absolute, it still uses the parent x,y as the origin point)
@@ -102,7 +102,7 @@ Container.prototype.setPosition = function(id, position, callerId) {
  * @returns the position of the referenced container. 
  */
 Container.prototype.getPosition = function(id) {
-    let node = Container.lookup(id)
+    let node = this.lookup(id)
     let p = findAbsPos(node)
 
     return {

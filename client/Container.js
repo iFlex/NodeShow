@@ -99,7 +99,7 @@ export class Container {
     ])
     static #preSetterHooks = {}
     static #postSetterHooks = {}
-
+    virtualDOM = {}
     /*
     Permissions describing what operations can be performed on containers
     Format {"containerId":{"operation":{"callerId":true/false}}}
@@ -115,7 +115,6 @@ export class Container {
         }
     }
     */
-
     #permissions = {}
     localmetadata = {}
 	
@@ -199,7 +198,7 @@ export class Container {
     owns (id) {
         let node = null
         try {   
-            node = Container.lookup(id)
+            node = this.lookup(id)
         } catch (e) {
             return false;
         }
@@ -220,7 +219,17 @@ export class Container {
     * @returns {DOMObject} the DOM object with the given id
     */
     lookup (id) {
-        return Container.lookup(id);
+        let virtualNode = null
+        try {
+            return Container.lookup(id);
+        } catch (e) {
+            virtualNode = this.virtualDOM[id]
+        }
+
+        if (!virtualNode) {
+            throw `could not find node ${id}`
+        }
+        return virtualNode
     }
 
     /**
@@ -402,7 +411,7 @@ export class Container {
     * @param {boolean=false} isLocal - indicates if the permission should be persisted or only applied locally
     */
     setPermission(id, permName, opCaller, allow, callerId, isLocal) {
-        let elem = Container.lookup(id);
+        let elem = this.lookup(id);
         let operation = `set.${permName}`
         this.isOperationAllowed(operation, elem, callerId)
 
@@ -439,7 +448,7 @@ export class Container {
     * @param {string} callerId  - the name of the caller of the setPermission method
     */
     removePermission(id, permName, opCaller, callerId) {
-        let elem = Container.lookup(id);
+        let elem = this.lookup(id);
         let operation = `remove.${permName || '*'}`
         this.isOperationAllowed(operation, elem, callerId)
         
@@ -476,7 +485,7 @@ export class Container {
     * @param {string=} opCaller - the name of the caller subject to this permission. If not provided, all permissions for the given permName are removed.
     */
     getPermission(id, permName, opCaller) {
-        let elem = Container.lookup(id);
+        let elem = this.lookup(id);
         //prevent returning a pointer to the actual permission
         let permission = this.#permissions[elem.id]
         if (permName) {
@@ -501,7 +510,7 @@ export class Container {
         }
 
         let perms = JSON.parse(node.dataset.containerPermissions)
-        console.log("Loading permissions from DOM")
+        //console.log("Loading permissions from DOM")
         this.#permissions[node.id] = perms
     }
     //<extensions subsystem>
@@ -599,7 +608,7 @@ export class Container {
     //</extensions subsystem>
     
     nodeCountToRoot(id) {
-        let pointer = Container.lookup(id)
+        let pointer = this.lookup(id)
         if (pointer == this.parent) {
             return 0;
         }
@@ -615,8 +624,8 @@ export class Container {
 
     //<nesting>
 	setParent(childId, parentId, callerId, options) {
-        let parent = Container.lookup(parentId);
-        let child = Container.lookup(childId);
+        let parent = this.lookup(parentId);
+        let child = this.lookup(childId);
         if (child.parentNode.id === parent.id) {
             return; //noop
         }
@@ -626,10 +635,10 @@ export class Container {
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
-        console.log(`Change parent for ${child.id} to ${parent.id}`)
+        //console.log(`Change parent for ${child.id} to ${parent.id}`)
         let prevParentId = child.parentNode.id;
         if (options && options.insertBefore && parent.firstChild) {
-            jQuery(child).detach().insertBefore(Container.lookup(options.insertBefore));
+            jQuery(child).detach().insertBefore(this.lookup(options.insertBefore));
         } else {
             jQuery(child).detach().appendTo(parent);    
         }
@@ -704,7 +713,7 @@ export class Container {
     //contextualise width and height based on type of element and wrapping
     //[DOC] width is always expressed in pixels. If a unitOverride is provided, a conversion from pixels to the provided unit will be carried out before setting the result.
 	setWidth(id, width, callerId, emit) {
-        let elem = Container.lookup(id)
+        let elem = this.lookup(id)
         let unit = elem.dataset.widthUnit || 'px'
         if (unit !== 'px') {
             width = this.#convertPixelWidth(elem, width, unit)    
@@ -756,7 +765,7 @@ export class Container {
     }
 
 	setHeight(id, height, callerId, emit) {
-        let elem = Container.lookup(id);
+        let elem = this.lookup(id);
 
         let unit = elem.dataset.heightUnit || 'px'
         if (unit !== 'px') {
@@ -784,26 +793,32 @@ export class Container {
         }
     }
     
-    getWidth(id) {
-        return jQuery(Container.lookup(id)).innerWidth() //.outerWidth()
+    getWidth(id, withMargin = false) {
+        if (withMargin) {
+            return jQuery(this.lookup(id)).outerWidth()    
+        }
+        return jQuery(this.lookup(id)).innerWidth()
 	}
 
-	getHeight(id) {
-        return jQuery(Container.lookup(id)).innerHeight() //.outerHeight()
+	getHeight(id, withMargin = false) {
+        if (withMargin) {
+            return jQuery(this.lookup(id)).outerHeight()
+        }
+        return jQuery(this.lookup(id)).innerHeight()
 	}
 
     getContentHeight (id) {
-        return Container.lookup(id).scrollHeight
+        return this.lookup(id).scrollHeight
     }
 
     getContentWidth (id) {
-        return Container.lookup(id).scrollWidth
+        return this.lookup(id).scrollWidth
     }
     //</size>
 	
     setAngle(id, angle, originX, originY, callerId) {
         this.isOperationAllowed(ACTIONS.setAngle, id, callerId);
-        let node = Container.lookup(id)
+        let node = this.lookup(id)
         this.styleChild(node, {
             "transform-origin": `${originX} ${originY}`,
             "transform":`rotate(${angle})`
@@ -829,7 +844,7 @@ export class Container {
     //</rotation>
 
     hide(id, callerId) {
-        let elem = Container.lookup(id);
+        let elem = this.lookup(id);
         this.isOperationAllowed(ACTIONS.hide, elem, callerId);
         
         $(elem).hide();
@@ -840,7 +855,7 @@ export class Container {
     }
 
     show(id, callerId) {
-        let elem = Container.lookup(id);
+        let elem = this.lookup(id);
         this.isOperationAllowed(ACTIONS.show, elem, callerId);
         
         $(elem).show();
@@ -853,24 +868,33 @@ export class Container {
     //get bounding box in absolute coordinates
     //wonder if the browser is willing to give this up... rather than having to compute it in JS
     getContentBoundingBox(id) {
-        let node = Container.lookup(id)
+        let node = this.lookup(id)
         let result = this.getPosition(node)
-        result.right = result.left + node.scrollWidth 
-        result.bottom = result.top + node.scrollHeight
-        result.bbox = node.getBoundingClientRect();
+        result.bottom = 0
+        result.right = 0
+
+        for (const child of node.children) {
+            let bbox = this.getBoundingBox(child)
+            if (result.right < bbox.right) {
+                result.right = bbox.right
+            }
+            if (result.bottom < bbox.bottom) {
+                result.bottom = bbox.bottom
+            }
+        }
         return result;
     }
 
     getBoundingBox(id) {
         let bbox = this.getPosition(id)
-        bbox.right = bbox.left + this.getWidth(id)
-        bbox.bottom = bbox.top + this.getHeight(id)
+        bbox.right = bbox.left + this.getWidth(id, true)
+        bbox.bottom = bbox.top + this.getHeight(id, true)
         return bbox;
     }
 
     //[TODO][WARNING]Highly experimental!
     fitVisibleContent(id, expandOnly, emit) {
-        let node = Container.lookup(id)
+        let node = this.lookup(id)
         let computedStyle = window.getComputedStyle(node)
         let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
         let paddingBottom = convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
@@ -878,16 +902,24 @@ export class Container {
         let w = node.scrollWidth + paddingRight
         let h = node.scrollHeight + paddingBottom
 
-        //use min width for content fit
-        //this.styleChild(node, {"min-width": `${w}px`, "min-height":`${h}px`}, emit)
         let oldW = this.getWidth(node)
         let oldH = this.getHeight(node)
-        
-        if (oldW < node.scrollWidth || expandOnly != true) {
+
+        let contentBbox = undefined
+        if (oldW < node.scrollWidth) {
             this.setWidth(node, w)    
-        } 
-        if (oldH < node.scrollHeight || expandOnly != true) {
+        } else if (expandOnly != true){
+            contentBbox = this.getContentBoundingBox(node)
+            this.setWidth(node, contentBbox.right + paddingRight)
+        }
+
+        if (oldH < node.scrollHeight) {
             this.setHeight(node, h)
+        } else if (expandOnly != true){
+            if (!contentBbox) {
+                contentBbox = this.getContentBoundingBox(node)
+            }
+            this.setHeight(node, contentBbox.bottom + paddingBottom)
         }
     }
 
@@ -925,7 +957,7 @@ export class Container {
     }
 
     getChildAt(parentId, index) {
-        let parent = Container.lookup(parentId)
+        let parent = this.lookup(parentId)
         if (index < 0 || index >= parent.childNodes.length) {
             return undefined;
         }
@@ -934,7 +966,7 @@ export class Container {
     }
 
     getSiblingPosition(siblingId) {
-        let sibling = Container.lookup(siblingId)
+        let sibling = this.lookup(siblingId)
         let parent = sibling.parentNode
         if (parent) {
             for ( let i = 0 ; i < parent.childNodes.length; ++i ) {
@@ -947,7 +979,7 @@ export class Container {
     }
 
     setSiblingPosition(siblingId, index, callerId) {
-        let sibling = Container.lookup(siblingId)
+        let sibling = this.lookup(siblingId)
         this.isOperationAllowed(ACTIONS.setSiblingPosition, sibling, callerId);
         let parent = sibling.parentNode
 
@@ -979,7 +1011,7 @@ export class Container {
     }
 
     changeSiblingPosition(siblingId, amount, callerId) {
-        let sibling = Container.lookup(siblingId)
+        let sibling = this.lookup(siblingId)
         let pos = this.getSiblingPosition(sibling)
         this.setSiblingPosition(sibling, pos + amount, callerId)
     }
@@ -987,7 +1019,7 @@ export class Container {
     addDomChild(parentId, domNode, callerId, emit) {
         Container.applyPreHooks(this, 'create', [parentId, domNode, callerId])
 
-        let parent = Container.lookup(parentId);
+        let parent = this.lookup(parentId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
 
         if (domNode) {
@@ -996,7 +1028,7 @@ export class Container {
 
             Container.applyPostHooks(this, 'create', [domNode.parentNode, domNode, callerId])
             this.updateZindexLimits(domNode)
-
+            this.virtualDOM[domNode.id] = domNode
             this.CONTAINER_COUNT++;
             if (emit !== false) {
                 this.emit(ACTIONS.create, {
@@ -1010,7 +1042,7 @@ export class Container {
     }
 
     delete (id, callerId) {
-        let child = Container.lookup(id)
+        let child = this.lookup(id)
         this.isOperationAllowed(ACTIONS.delete, child, callerId);
 
         if (child != this.parent) {
@@ -1027,7 +1059,7 @@ export class Container {
     }
 
     deleteSparingChildren(id, callerId) {
-        let elem = Container.lookup(id)
+        let elem = this.lookup(id)
         this.isOperationAllowed(ACTIONS.delete, elem, callerId);
         this.isOperationAllowed(ACTIONS.deleteSparingChildren, elem, callerId);
 
@@ -1060,7 +1092,7 @@ export class Container {
             if(this.#currentMinZindex > zIndex) {
                 this.#currentMinZindex = zIndex
             }
-            console.log(`[CORE] zIndex[${this.#currentMinZindex},${this.#currentMaxZindex}]`)
+            //console.log(`[CORE] zIndex[${this.#currentMinZindex},${this.#currentMaxZindex}]`)
         } else if (this.#currentMaxZindex  != 0 || this.#currentMinZindex != 0) {
             this.#currentMaxZindex++;
             node.style.zIndex = `${this.#currentMaxZindex}`;
@@ -1068,7 +1100,7 @@ export class Container {
     }
 
     bringToFront(id) {
-        let node = Container.lookup(id)
+        let node = this.lookup(id)
         this.#currentMaxZindex++;
         node.style.zIndex = `${this.#currentMaxZindex}`
 
@@ -1079,7 +1111,7 @@ export class Container {
     }
 
     sendToBottom(id) {
-        let node = Container.lookup(id)
+        let node = this.lookup(id)
         this.#currentMinZindex--;
         node.style.zIndex = `${this.#currentMinZindex}` 
 
@@ -1090,7 +1122,7 @@ export class Container {
     }
 
     setZIndex(id, index) {
-        let node = Container.lookup(id)
+        let node = this.lookup(id)
         node.style.zIndex = `${index}` 
         this.notifyUpdate(node)
     }
@@ -1098,7 +1130,7 @@ export class Container {
     setMetadata (id, key, value) {
         let node = {}
         if (id) {
-            node = Container.lookup(id)
+            node = this.lookup(id)
         }
 
         if (!(node.id in this.localmetadata)) {
@@ -1110,7 +1142,7 @@ export class Container {
     removeMetadata (id, key) {
         let node = {}
         if (id) {
-            node = Container.lookup(id)
+            node = this.lookup(id)
         }
 
         if (this.localmetadata[node.id]) {
@@ -1121,7 +1153,7 @@ export class Container {
     getMetadata (id, key) {
         let node = {}
         if (id) {
-            node = Container.lookup(id)
+            node = this.lookup(id)
         }
 
         if (this.localmetadata[node.id]) {
@@ -1136,7 +1168,7 @@ export class Container {
 
     //<events>
     notifyUpdate(id, callerId, subset) {
-        let node = (id) ? Container.lookup(id) : this.parent
+        let node = (id) ? this.lookup(id) : this.parent
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId, subset:subset})
     }
 
@@ -1171,6 +1203,20 @@ export class Container {
         this.parent.removeEventListener(event, listener)
     }
     //</events>
+    
+    //experimental
+    #transactions = {}
+    startTransaction(id, callerId) {
+        let node = this.lookup(id)
+        this.#transactions[node.id] = node.parentNode
+        //$(node).detach()
+        node.parentNode.removeChild(node)
+    }
+
+    endTransaction(id) {
+        let node = this.lookup(id)
+        this.#transactions[node.id].appendChild(node)
+    }
 }
 
 //load persisted permissions when node is created
