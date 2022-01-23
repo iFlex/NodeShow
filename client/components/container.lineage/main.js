@@ -32,8 +32,8 @@ export class ContainerLineage {
         this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.onDragEnd(e))
 
         // //todo update target
-        // this.#keyboard.setAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true)
-        // this.#keyboard.setAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true)
+        // this.#keyboard.setAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true, true)
+        // this.#keyboard.setAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true, true)
     }
 
     enable () {

@@ -50,9 +50,6 @@ export class ContainerMover {
 			//ToDo: forgot what this is for, document plz
 			$('*').on('dragstart', this.#handlers.dragStart);
 
-			//checking shift and ctrl
-			this.container.addEventListener("keydown", this.#handlers.keyDown)
-			this.container.addEventListener("keyup", this.#handlers.keyUp)
 			this.container.addEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])	
 		}
 	}
@@ -65,9 +62,6 @@ export class ContainerMover {
 			//this.#touch.disable();
 			$('*').off('dragstart', this.#handlers.dragStart);
 
-			//checking shift and ctrl
-			this.container.removeEventListener("keydown", this.#handlers.keyDown)
-			this.container.removeEventListener("keyup", this.#handlers.keyUp)
 			this.container.removeEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])
 		}
 	}

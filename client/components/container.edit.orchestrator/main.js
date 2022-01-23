@@ -37,16 +37,16 @@ export class ContainerEditOrchestrator {
 		
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#keyboard.onPritable(this, (e) => this.tryAddText(e), false)
-		this.#keyboard.setKeyUpAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','4']), this, (e) => this.routeByIndex(4), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','5']), this, (e) => this.routeByIndex(5), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','6']), this, (e) => this.routeByIndex(6), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','7']), this, (e) => this.routeByIndex(7), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','8']), this, (e) => this.routeByIndex(8), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','9']), this, (e) => this.routeByIndex(9), true)
-		this.#keyboard.setKeyUpAction(new Set(['Control','0']), this, (e) => this.routeByIndex(0), true)
+		this.#keyboard.setAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
+		this.#keyboard.setAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
+		this.#keyboard.setAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), true)
+		this.#keyboard.setAction(new Set(['Control','4']), this, (e) => this.routeByIndex(4), true)
+		this.#keyboard.setAction(new Set(['Control','5']), this, (e) => this.routeByIndex(5), true)
+		this.#keyboard.setAction(new Set(['Control','6']), this, (e) => this.routeByIndex(6), true)
+		this.#keyboard.setAction(new Set(['Control','7']), this, (e) => this.routeByIndex(7), true)
+		this.#keyboard.setAction(new Set(['Control','8']), this, (e) => this.routeByIndex(8), true)
+		this.#keyboard.setAction(new Set(['Control','9']), this, (e) => this.routeByIndex(9), true)
+		this.#keyboard.setAction(new Set(['Control','0']), this, (e) => this.routeByIndex(0), true)
 
 		this.setupQuickEditShortcuts()
 
@@ -137,7 +137,7 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setAction(new Set(['Control']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.edit.size')
 			this.updateMenu()
-		}, false)
+		}, false, true)
 
 		this.#keyboard.setKeyUpAction(new Set(['Control']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
@@ -147,23 +147,22 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.grouping')
 			this.updateMenu()
-		}, false)
+		}, true, true)
 
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
 			this.updateMenu()
-		}, false)
-
+		}, true)
 
 		this.#keyboard.setAction(new Set(['Alt']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.select')
 			this.updateMenu()
-		}, false)
+		}, true, true)
 
 		this.#keyboard.setKeyUpAction(new Set(['Alt']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
 			this.updateMenu()
-		}, false)
+		}, true)
 	}
 
 	switchRoute(event, routeTo, triggerNode) {

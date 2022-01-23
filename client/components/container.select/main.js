@@ -54,8 +54,8 @@ export class ContainerSelect {
 		
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#container.serializerIgnore('className', this.selectedClass)
-		//This conflicts with text editor 'Escape'
-		//this.#keyboard.setAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
+		
+		this.#keyboard.setAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
 	}
 
 	enable () {
