@@ -94,11 +94,11 @@ export class ContainerFeedback {
 		this.#syncing[id] = Date.now()	
 	}
 
-	//[TODO]: use something else rather than opacity
 	makeLoaderId(id) {
 		return `${id}-loader`
 	}
 
+	//[TODO]: show main loader rather than on every single container
 	markAsSyncing(id) {
 		// try {
 		// 	if (!this.#container.getMetadata(id, 'syncing')) {

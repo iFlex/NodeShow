@@ -1,6 +1,5 @@
 import { ACTIONS } from '../../Container.js'
 
-//ToDo: make it toggle extensions on and off as well as register and deregister
 export class ContainerExtensionsManager {
     appId = 'container.extensions.manager'
 	type = 'transactional'

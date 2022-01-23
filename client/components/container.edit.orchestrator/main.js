@@ -6,12 +6,7 @@ import { getSelection } from '../utils/common.js'
 
 let lastY = 0
 let lastX = 0
-//[TODO]: interfaces with input fields clash with text editor and clipboard. Fix it somehow
-/*
-	Suggestion 1: pause all keyboards and disable copy/paste app.
-	Suggestion 2: deisable container.edit.text and copy.paste app while a UI with text fields is started
-	Suggestion 3: make relevant apps ask for sole input focus while they are active. Which means all input is paused for all other apps (mouse and keyboard) 
-*/
+
 //[TODO]: Add another app cathegory (other than transactional) which can be toggled via this app but that won't need to show an iterface
 export class ContainerEditOrchestrator {
 	appId = "container.edit.orchestrator"

@@ -4,9 +4,6 @@ import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Touch, EVENTS as TouchEvents } from '../utils/touch.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
-//BUG: when mouse goes out of target, moveing or sizing stops... it needs to keep happening until mouse up (release)
-//happens because events stop firing
-//ToDo: fire drag end event
 export class ContainerMover {
 	container = null;
 	appId = "container.edit.pos"
@@ -54,7 +51,6 @@ export class ContainerMover {
 		}
 	}
 
-	//ToDo: the container.created event listener could attach listeners to dom children types that may then not be detached in this call, plz fix
 	disable() {
 		if (this.#enabled) {
 			this.#enabled = false
@@ -81,8 +77,6 @@ export class ContainerMover {
 		}
 	}
 
-
-	//ToDo: consider scale for changing size
 	modifyContainer(targetId, x, y, targetOx, targetOy) {
 		let target = this.container.lookup(targetId)
 		this.container.setPosition(target, {

@@ -1,7 +1,6 @@
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 
-//BUG: fails to ignore interface
 export class ContainerRepeller {
     appId = 'container.repell'
     type = 'service'

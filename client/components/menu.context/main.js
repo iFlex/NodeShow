@@ -2,7 +2,6 @@ import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
 import { clearSelection, getSelection, makeSelection } from '../utils/common.js'
 
 //ToDo: state based button text and action
-//ToDo: implement key bindings
 export class ContextMenu {
 	appId = "menu.context"
 	#container = null;

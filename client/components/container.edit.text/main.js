@@ -10,16 +10,14 @@ import { queueWork } from '../../YeldingExecutor.js'
 //import { getSelection } from '../utils/common.js'
 //TODO:
 //fix reverse selection (sometimes it is smaller than it should be)
-//new line comprehension in addPrintable and when serializing text units
 //forward delete doesn't work well (via delete key)
 //font and letter size tracking
-//transparent text boxes that are draggable from text
 //better line comprehension in text manipulation:
 //  - fixed line heights
 //span compaction (combine if style is identical)
 //unicode & escaped character support
 //serialize text units as rich text
-
+//line spacing
 
 //wrapping - add in logic to support:
 /*
@@ -47,8 +45,6 @@ import { queueWork } from '../../YeldingExecutor.js'
 
 	- container.fitVisibleContent()
 */
-
-//line spacing
 
 const textItemPerms = {}//, "container.edit":{"*":false}}
 textItemPerms[ACTIONS.setPosition] = {"*":false}
@@ -880,10 +876,8 @@ export class ContainerTextInjector {
 				descriptor.innerHTML = textLines[i]
 				
 				queueWork(this.insertTextBlockAsLine, this, [descriptor, lineBefore])
-				//this.insertTextBlockAsLine(descriptor, lineBefore)
 			}
 		}
-		//this.styleTarget()
 		queueWork(this.styleTarget, this)
 	}
 	
@@ -914,7 +908,6 @@ export class ContainerTextInjector {
 		this.styleTarget()
 	}
 
-	//ToDo: remove lines rendered empty	
 	//BUG: fix forward deletion
 	removePrintable(count) {
 		if (!this.target) {
