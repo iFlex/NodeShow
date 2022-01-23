@@ -62,8 +62,7 @@ export class Container {
 	presentationId = null;
 	socket = null;
     debug = false;
-    CONTAINER_COUNT = 0;
-
+    
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
 
@@ -254,8 +253,7 @@ export class Container {
             
             if (!item.id && item.nodeName != "SCRIPT" && item.nodeName != "BODY") {
 				item.id = Container.generateUUID()	
-                this.CONTAINER_COUNT++;
-				labeledCount += 1;
+                labeledCount += 1;
 			}
             
             if (item.children) {
@@ -1023,13 +1021,13 @@ export class Container {
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
 
         if (domNode) {
-            domNode.id = Container.generateUUID();
+            domNode.id = Container.generateUUID(); //pref considerable
             parent.appendChild(domNode);
 
             Container.applyPostHooks(this, 'create', [domNode.parentNode, domNode, callerId])
             this.updateZindexLimits(domNode)
             this.virtualDOM[domNode.id] = domNode
-            this.CONTAINER_COUNT++;
+
             if (emit !== false) {
                 this.emit(ACTIONS.create, {
                     presentationId: this.presentationId, 
@@ -1047,7 +1045,6 @@ export class Container {
 
         if (child != this.parent) {
             child.parentNode.removeChild(child);
-            this.CONTAINER_COUNT--;
             this.emit(ACTIONS.delete, {
                 id: child.id,
                 callerId: callerId
@@ -1195,12 +1192,26 @@ export class Container {
         this.emit(appId+'.'+type, details); 
     }
 
+    listeners = {}
     addEventListener(event, listener) {
         this.parent.addEventListener(event, listener)
+        if (!this.listeners[event]){
+            this.listeners[event] = {
+                count: 0,
+                listeners: []
+            }
+        }
+        this.listeners[event].count++;
+        this.listeners[event].listeners.push(listener)
     }
 
     removeEventListener(event, listener) {
         this.parent.removeEventListener(event, listener)
+        this.listeners[event].count--
+    }
+
+    listenerStats() {
+        return this.listeners
     }
     //</events>
     

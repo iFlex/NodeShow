@@ -36,9 +36,7 @@ function emitContainerCreated(context, parent, child, callerId) {
     //this container has finally been initialized
     //console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
     Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
-    context.virtualDOM[child.id] = child
 
-    context.CONTAINER_COUNT ++;
     context.emit(ACTIONS.create, {
         presentationId: context.presentationId, 
         parentId: parent.id, 
@@ -107,6 +105,7 @@ function makeAndInsertChild(context, rawDescriptor, parent, insertBefore) {
     } else {
         parent.appendChild(child);
     }
+    context.virtualDOM[child.id] = child
     return child
 }
 
@@ -140,7 +139,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     let child = makeAndInsertChild(this, rawDescriptor, parent, insertBefore)
     //set all properties and configurations & child order
-    this.updateChild(child, rawDescriptor, callerId, false)
+    this.updateChild(child, rawDescriptor, callerId, false) //PERF: HEAVY
     
     if(rawDescriptor.childNodes && rawDescriptor.childNodes.length > 0) {
         initQueue[child.id] = {
@@ -246,13 +245,9 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
     //console.log(`Updating child order ${elem.id} - ${(rawDescriptor.childNodes)?rawDescriptor.childNodes.length:0}`) 
     if (rawDescriptor.childNodes) {
         for (let i = 0; i < rawDescriptor.childNodes.length && i < elem.childNodes.length; ++i ) {
-            console.log(`${i} descriptor_id:${rawDescriptor.childNodes[i].id} actual_id: ${elem.childNodes[i].id}`)
             if (rawDescriptor.childNodes[i].id != elem.childNodes[i].id) {
-                console.log(`setPos ${rawDescriptor.childNodes[i].id} to ${i}`)
-                console.log(elem)
                 try {
                     this.setSiblingPosition(rawDescriptor.childNodes[i].id, i, callerId)    
-                    console.log("SWAPPED:")
                 } catch (e) {
                     console.error("Failed to reorder siblings. Did you reference an unrelated container?", e)
                 }
