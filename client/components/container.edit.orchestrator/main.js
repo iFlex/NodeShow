@@ -173,13 +173,14 @@ export class ContainerEditOrchestrator {
 		if (group) {
 			let i = 0;
 			for (const item of group) {
-				let comp = this.#container.getComponent(item)
+				let comId = this.#stripUUID(item)
+				let comp = this.#container.getComponent(comId)
 				ctxOptions.push(
 				{
-					name: comp.displayName || item, 
+					name: comp.displayName || comId, 
 					action: "container.edit.orchestrator.switchRoute", 
-					shortcut:  `${this.getShortcuts(item)} / Ctrl + ${i}`, 
-					icon: this.getIconId(item),
+					shortcut:  `${this.getShortcuts(comId)} / Ctrl + ${i}`, 
+					icon: this.getIconId(comId),
 					params:[event, item, triggerNode]
 				})
 				i++;
@@ -233,7 +234,12 @@ export class ContainerEditOrchestrator {
 
 		this.updateMenu();
 	}
- 	
+	
+	#stripUUID (componentId) {
+		let items = componentId.split(' ')
+		return items[0]
+	}
+
 	updateMenu () {
 		let menu = this.#menuRoot.children[0]
 		for (const toggler of menu.children) {
@@ -278,6 +284,7 @@ export class ContainerEditOrchestrator {
 				}
 
 				if (grantedTo) {
+					grantedTo = this.#stripUUID(grantedTo)
 					let component = this.#container.getComponent(grantedTo)
 			
 					let displayName = component.displayName || grantedTo;

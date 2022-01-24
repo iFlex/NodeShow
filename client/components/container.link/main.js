@@ -1,4 +1,5 @@
 import { Container, ACTIONS } from '../../Container.js'
+import { queueWork } from '../../YeldingExecutor.js';
 import { draw as straightLine } from './straightLine.js'
 
 //[TODO]: delete hooks
@@ -180,22 +181,17 @@ export class ContainerLink {
     onContainerChange(e) {
         let links = this.getLinksRelatedTo(e.detail.id)
         for(const link of links) {
-            this.draw(this.#links[link])
+            queueWork(this.draw, this, [this.#links[link]])
         }
     }
 
     onContainerDelete(e) {
         let links = this.getLinksRelatedTo(e.detail.id)
         for (const link of links) {
-            this.deleteLink(link, this.appId)
+            //this.deleteLink(link, this.appId)
+            queueWork(this.deleteLink, this, [link, this.appId])
         }
-
-        this.scheduleCleanup()
-    }
-
-    //[TODO]: defer execution / split into work units
-    scheduleCleanup() {
-        this.cleanup();
+        queueWork(this.cleanup, this);
     }
 
     cleanup() {

@@ -1,4 +1,5 @@
-import {Container, ACTIONS} from "./Container.js"
+import { Container, ACTIONS } from "./Container.js"
+import { queueWork } from "./YeldingExecutor.js"
 /**
  * LiveBridge Module
  * @module LiveBridge
@@ -49,7 +50,7 @@ export class LiveBridge {
 		this.debug = debug;
 
         for (const event of RELEVANT_EVENTS) {
-            this.#events[event] = {send:this.sendUpdate, recv:null}
+            this.#events[event] = {send:this.queueUpdate, recv:null}
         }
         
         console.log("LiveBridge will act on the following events:")
@@ -76,6 +77,10 @@ export class LiveBridge {
      */
     isCallerIdLocal(callerId) {
         return (!callerId || callerId == this.sessionId || this.container.getComponent(callerId))
+    }
+
+    queueUpdate(e) {
+        queueWork(this.sendUpdate, this, [e])
     }
 
     /**
@@ -147,6 +152,7 @@ export class LiveBridge {
         this.metrics.sent++;
     }
     
+
     /**
      * @summary Registers with the server.
      * @description This method initiates the LiveBridge, it opens the socket.io connection and sends a register event to the server.
@@ -187,7 +193,7 @@ export class LiveBridge {
      * @summary Method retries to send unsuccessful updates.
      */
     retry() {
-        for (let [evkey, update] of Object.entries(this.#retryQueue)) {
+        for (let update of Object.values(this.#retryQueue)) {
             this.socket.emit("update", update, () => {
                 //server ACKed message
                 this.removeUpdateFromQueue(update)
@@ -273,7 +279,7 @@ export class LiveBridge {
     }
     
 	//TESTING
-	beam(snapshot, queue, index) {
+	beam(snapshot) {
         if (!this.#ready) {
             throw `LiveBridge not ready yet`
         }
@@ -303,13 +309,8 @@ export class LiveBridge {
                         descriptor:raw
                     }
                 }
-                console.log("BEAMING ITEM:")
-                console.log(jsndata)
-                this.#ready = false
-                this.socket.emit("update", jsndata, (e) => {
-                    console.log("ACK")
-                    this.#ready = true
-                });
+                
+                queueWork(this.socket.emit, this, ["update", jsndata])
 			}
 
 			if (item.children) {

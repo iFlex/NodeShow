@@ -4,6 +4,7 @@
  */
 
 import { container } from "../../nodeshow.js"
+import { Container } from "../../Container.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessManager.mjs"
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
@@ -165,7 +166,7 @@ export class Mouse {
 	
 	constructor(appId, container) {
 		console.log(`NEW MOUSE handler instance created for ${appId}`)
-		this.#appId = appId //`${appId}-${Container.generateUUID()}`
+		this.#appId = `${appId} mouse-${Container.generateUUID()}`
 	}
 
 	getId() {

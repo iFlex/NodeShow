@@ -4,6 +4,7 @@
  */
 
 import { container } from "../../nodeshow.js"
+import { Container } from "../../Container.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessManager.mjs"
 import { InputManager } from "../utils/InputManager.js"
 
@@ -44,7 +45,7 @@ export class Clipboard {
 	
 	constructor(appId, container) {
 		console.log(`NEW Clipboard handler instance created for ${appId}`)
-		this.#appId = appId
+		this.#appId = `${appId} ${Container.generateUUID()}` //appId
 	}
 
 	getId() {

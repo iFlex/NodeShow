@@ -4,9 +4,11 @@
  */
 
 import { container } from "../../nodeshow.js"
+import { Container } from "../../Container.js"
 import { InputAccessManagerInstance as InputAccessManager} from "./InputAccessManager.mjs"
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor } from "../utils/common.js"
+import { MiceManager } from "./mouse.js"
 
 export const EVENTS = {
 	'DOWN':'touch.down',
@@ -57,6 +59,7 @@ function handleStart(e) {
 			id:target.id,
 			dx: 0,
 			dy: 0,
+			position: {x:touch.pageX, y:touch.pageY},
 			moved: 0, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -78,6 +81,7 @@ function handleMove(e) {
 			id:target.id,
 			dx:dx,
 			dy:dy,
+			position: {x:touch.pageX, y:touch.pageY},
 			moved: moved, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -102,6 +106,7 @@ function handleEnd(e) {
 			id:target.id,
 			dx: 0, //ToDo: incorrect
 			dy: 0,
+			position: {x:e.pageX, y:e.pageY},
 			moved: moved,
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy, 
@@ -110,11 +115,11 @@ function handleEnd(e) {
 
 		if (moved <= FOCUS_TRESHOLD) {
 			container.emit('container.focus', {id:target.id})
-			container.emit(EVENTS.CLICK, {id:target.id, originalEvent:e})
+			container.emit(EVENTS.CLICK, {id:target.id, position: {x:e.pageX, y:e.pageY}, originalEvent:e})
 			//was click
 			let dnow = Date.now()
 			if (dnow - lastClickTime <= dblClickTreshold) {
-				container.emit(EVENTS.DOUBLE_CLICK, {id:target.id, originalEvent:e})
+				container.emit(EVENTS.DOUBLE_CLICK, {id:target.id, position: {x:e.pageX, y:e.pageY}, originalEvent:e})
 			}
 			lastClickTime = dnow
 		}
@@ -183,26 +188,38 @@ let TouchManager = new InputManager(InputAccessManager, EVENTS);
 export class Touch {
 	#appId = null
 	#handlers = {}
+	#manager = MiceManager //TouchManager
 
 	constructor(appId, container) {
 		console.log(`NEW Touch manager instance created for ${appId}`)
-		this.#appId = appId//`${appId}-${Container.generateUUID()}`
+		this.#appId = `${appId} touch-${Container.generateUUID()}`
+	}
+
+	getId() {
+		return this.#appId
+	}
+
+	getEvents() {
+		let result = {}
+		for ( const [key, value] of Object.entries(this.#handlers) ) {
+			result[key] = value
+		}
+		return result
 	}
 
 	enable() {
-		for (const [event, callback] of Object.entries(this.#handlers)) {
-			document.addEventListener(event, callback)
-		}
+		this.#manager.register(this)
 	}
 
 	disable() {
-		for (const [event, callback] of Object.entries(this.#handlers)) {
-			document.removeEventListener(event, callback)
-		}
+		this.#manager.unregister(this)
 	}
 
 	setAction(event, callback, accessReq) {
-		this.#handlers[event] = callback;
+		this.#handlers[event] = {
+			callback:callback,
+			access: accessReq
+		}
 	}
 
 	getFocusTarget() {

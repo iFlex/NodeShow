@@ -1,12 +1,14 @@
 const io = require('socket.io-client')
 const https = require('https')
 
+const NODE_SHOW_PSK = 'thisisfordemoonly'
+
 let NODE_SHOW_HOST = 'localhost'
 let NODE_SHOW_PORT = 8080
-let PREZ_ID = "JEkku"
+let PREZ_ID = "rLueD"
 let SESH_ID = undefined
 let INTERVAL = 1
-let EVENT = 'container.create' //'container.create'
+let EVENT = 'container.create' //'container.update'
 const MAX_REQ = 1000;//25000
 //TODO: split test in create and update events
 
@@ -19,7 +21,10 @@ let metrics = {
 let socketIoConfig = {
     rejectUnauthorized: false,
     requestCert: true,  
-    agent: false
+    agent: false,
+	extraHeaders: {
+		Authorization: `${NODE_SHOW_PSK}`//[TODO]: use real oauth
+	}
 }
 
 socket = io(`https://${NODE_SHOW_HOST}:${NODE_SHOW_PORT}`, socketIoConfig);
@@ -40,7 +45,7 @@ let updateData = {
     sessionId: SESH_ID,
     event: EVENT,
     detail: {
-    	parentId:"",
+      parentId:"",
       id:"b46345b7-8e70-4e90-8737-b80e788826ad",
       descriptor:{
       	"id":"b46345b7-8e70-4e90-8737-b80e788826ad",
@@ -85,7 +90,7 @@ function sendData() {
 	
 	//console.log(`Sending`)
 	//socket.emit('update', updateData, (e) => {
-	socket.volatile.emit('update', updateData, (e) => {
+	socket.emit('update', updateData, (e) => {
 		let recvd = Date.now()
 		let delta = recvd - sent
 		

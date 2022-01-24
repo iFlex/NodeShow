@@ -50,6 +50,9 @@ export class Camera {
 	#contentSurface = null
 	#options = null
 
+	//[TODO]: reconsider
+	#zoomLevel = 1.0
+
 	constructor(container, viewPort, contentSurface, options) {
 		this.#container = container
 		this.#viewPort = viewPort
@@ -93,11 +96,21 @@ export class Camera {
 		}, options.speed)
 	}
 
-	zoom(level, options = {speed:0}) {
+	zoomTo (level, options = {speed:0}) {
+		this.#zoomLevel = level
 		this.#contentSurface.style.transform = `scale(${level})`
 		this.#contentSurface.style.transformOrigin = `${options.ox || "50%"} ${options.oy || "50%"}`
 		this.#contentSurface.style.transitionDuration = `${options.speed}s`
 		this.#contentSurface.style.transitionFunction= options.function || 'linear'
+	}
+
+	zoom (delta, options = {speed:0}) {
+		this.#zoomLevel += delta
+		this.zoomTo(this.#zoomLevel, options)
+	}
+
+	getZoomLevel () {
+		return this.#zoomLevel
 	}
 
 	getPosition() {

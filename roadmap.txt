@@ -42,6 +42,9 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
+[TODO]: Find solution for Mouse and Touch coexistance in Orchestrator
+[TODO]: Tidy up LiveBridge & make it compact events before sending.
+[BUG]: certain events cause feedback loops between collaborators. E.g. link maintenance
 [TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
 
 [BUG]: Fit content seems to not work corretly on collapse/expand
@@ -111,7 +114,6 @@ e.g. Permissions, Actions, etc.
 [SHOULD-HAVE]: implement undo/redo
 [TODO]: investigate slow load time
 [ISSUE]: copy/pasting links will not translate IDs in their descriptors. Needs fix
-[BUG]: fix resize to preserve ratio again. Keyboard needs fixin for that
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
 [BUG]: Repell component sometimes goes beserk, interface gets moved
 [BUG]: incorrectly deleting a selection can cause the selector app to stop working and sometimes moves some of the prev selected items into document.body from container.root ?!?

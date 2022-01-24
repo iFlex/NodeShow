@@ -77,6 +77,20 @@ export class ContainerSizer {
 		}
 		
 		return {dx:(sign * ratio * dist), dy:(sign * dist)}
+	}	
+
+	zoomRootCamera(target, details) {
+		if (this.container.camera) {
+			let decider = details.dy
+			if (Math.abs(details.dx) > Math.abs(details.dy)) {
+				decider = details.dx
+			}
+			let sign = 1
+			if (decider < 0) {
+				sign = -1
+			}
+			this.container.camera.zoom(sign * 0.05)
+		}
 	}
 
 	//ToDo: consider scale for changing size
@@ -104,8 +118,8 @@ export class ContainerSizer {
 	}
 
 	start(id) {
-		this.target = this.container.lookup(id)
 		this.container.componentStartedWork(this.appId, {})
+		this.target = this.container.lookup(id)
 	}
 
 	handleDragUpdate(e) {
@@ -114,11 +128,13 @@ export class ContainerSizer {
 		}
 		
 		let d = e.detail;
-		if (d.id == this.container.parent.id) {
+		let tnode = this.container.lookup(d.id)
+		if (tnode == this.container.parent) {
+			this.zoomRootCamera(tnode, d)
 			return;
-		}
+		} 
 		
-		this.modifyContainer(d.id, d.dx, d.dy, 
+		this.modifyContainer(tnode, d.dx, d.dy, 
 			d.position.x, d.position.y,
 			d.targetOx, d.targetOy)
 	}

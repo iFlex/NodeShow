@@ -43,7 +43,7 @@ export class ContainerMover {
 		if (!this.#enabled) {
 			this.#enabled = true
 			this.#mouse.enable();
-			//this.#touch.enable();
+			this.#touch.enable();
 			//ToDo: forgot what this is for, document plz
 			$('*').on('dragstart', this.#handlers.dragStart);
 
@@ -55,7 +55,7 @@ export class ContainerMover {
 		if (this.#enabled) {
 			this.#enabled = false
 			this.#mouse.disable();
-			//this.#touch.disable();
+			this.#touch.disable();
 			$('*').off('dragstart', this.#handlers.dragStart);
 
 			this.container.removeEventListener(ACTIONS.create, this.#handlers[ACTIONS.create])
@@ -77,8 +77,13 @@ export class ContainerMover {
 		}
 	}
 
-	modifyContainer(targetId, x, y, targetOx, targetOy) {
-		let target = this.container.lookup(targetId)
+	moveRootCamera(details) {
+		if (this.container.camera) {
+			this.container.camera.move(-details.dx, -details.dy)
+		}
+	}
+	
+	modifyContainer(target, x, y, targetOx, targetOy) {
 		this.container.setPosition(target, {
 			top: y,
 			left: x,
@@ -88,8 +93,8 @@ export class ContainerMover {
 	}
 
 	start(id) {
-		this.target = this.container.lookup(id)
 		this.container.componentStartedWork(this.appId, {})
+		this.target = this.container.lookup(id)
 		this.#selection = new Set(getSelection(this.container))
 	}
 
@@ -99,17 +104,20 @@ export class ContainerMover {
 		}
 
 		let d = e.detail;
-		if (d.id == this.container.parent.id) {
-			return;
-		}
+		let tnode = this.container.lookup(d.id)
 		
-		let preTargetPos = this.container.getPosition(d.id)
-		this.modifyContainer(d.id,
+		if (tnode == this.container.parent) {
+			this.moveRootCamera(d);
+			return
+		}
+
+		let preTargetPos = this.container.getPosition(tnode)
+		this.modifyContainer(tnode,
 			d.position.x, 
 			d.position.y,
 			d.targetOx, 
 			d.targetOy)
-		let postTargetPos = this.container.getPosition(d.id)
+		let postTargetPos = this.container.getPosition(tnode)
 		
 		let dy = postTargetPos.top - preTargetPos.top
 		let dx = postTargetPos.left - preTargetPos.left
