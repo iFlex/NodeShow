@@ -3,6 +3,7 @@
  * @module Container 
  */
 import { convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
+import { queueWork } from './YeldingExecutor.js'
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
@@ -1170,19 +1171,29 @@ export class Container {
     }
 
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
-	emit(type, details) {
+	//Deffered set to true helps with bulk operations.
+    //While creating items on screen works super well with defferred = true,
+    // updating can be very slow. E.g. moving a 5K content node container on screen works just fine with defferred=false and lags behind with deffered=true
+    // - defferred - is an important performance consideration
+    emit(type, details, deffered=false) {
         details['type'] = type;
 		const event = new CustomEvent(type, {
 		  bubbles: true,
 		  detail: details
 		});
 
-        this.parent.dispatchEvent(event);
-
+        if (deffered) {
+            queueWork(this.parent.dispatchEvent, this.parent, [event])
+        } else {
+            this.parent.dispatchEvent(event);    
+        }
+        
         //fire related events
         if (ACTIONS_CHAIN[type]) {
             for (const relatedEvent of ACTIONS_CHAIN[type]) {
-                this.emit(relatedEvent, { id:details.id, callerId:details.callerId, original_event:details})
+                this.emit(relatedEvent, 
+                    { id:details.id, callerId:details.callerId, original_event:details}, 
+                    deffered)
             }
         }
 	}

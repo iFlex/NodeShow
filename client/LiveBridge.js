@@ -279,20 +279,24 @@ export class LiveBridge {
     }
     
 	//TESTING
-	beam(snapshot) {
+	beam(snapshot, destinationRootId) {
         if (!this.#ready) {
             throw `LiveBridge not ready yet`
         }
+        
+        let index = 0;
+        var count = 0;
+        var faliures = 0;
+        let queue = []
 
         if (queue.length == 0) {
             queue.push(this.container.parent)
             index = 0;
         }
-		var count = 0;
-        var faliures = 0;
+
 		do {
 			let item = queue[index]
-			let parentId = null;
+			let parentId = destinationRootId;
 			if (item != this.container.parent && item.parentNode != this.container.parent) {
 				parentId = item.parentNode.id;
 			}
@@ -310,7 +314,7 @@ export class LiveBridge {
                     }
                 }
                 
-                queueWork(this.socket.emit, this, ["update", jsndata])
+                queueWork(this.socket.emit, this.socket, ["update", jsndata])
 			}
 
 			if (item.children) {

@@ -1,6 +1,8 @@
 let index = 0
 let workQueue = []
 let maxUninterrupted = 10
+let totalWork = 0;
+let totalCompletedWork = 0;
 
 function execute() {
 	let uninterrupted = 0
@@ -12,6 +14,7 @@ function execute() {
 		} catch (e) {
 
 		}
+		totalCompletedWork++;
 		let duration = Date.now() - start
 		uninterrupted += duration
 
@@ -22,9 +25,9 @@ function execute() {
 			return;
 		}
 	}	 	
-	console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms`)
+	console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms\nTotal_queued:${totalWork}\nTotal_done__:${totalCompletedWork}`)
 	workQueue = []
-	index = 0
+	index = 0 
 }
 
 export function queueWork(callback, context, params) {
@@ -33,8 +36,13 @@ export function queueWork(callback, context, params) {
 		context: context,
 		params:params
 	});
+	totalWork++;
 
 	if (workQueue.length == 1) {
 		execute();
 	}
+}
+
+export function status () {
+	return workQueue.length
 }

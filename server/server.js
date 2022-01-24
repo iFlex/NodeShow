@@ -249,7 +249,7 @@ function handlePost(url, request, response) {
         response.writeHead(200, {'content-type': 'text/plain'});
         console.log(`User Uploaded:`)
         console.log(data)
-        robotUploader.beam(fields.pid, files.file.newFilename)
+        robotUploader.beam(fields.pid, files.file.newFilename, fields.rid)
       }
       response.end();
   });

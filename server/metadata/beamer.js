@@ -6,13 +6,13 @@ const NODE_SHOW_UPLOADER_ENTRYPOINT = `${NODE_SHOW_CLIENT_ROOT}/beam.js`
 const SECRET = 'thisisfordemoonly' 
 //NOTE: the pre shared secret or Authorization: Bearer token should not be sent to domain
 //other than NodeShow host
-async function beam(pid, htmlFile) {
+async function beam(pid, htmlFile, rid=null) {
 	console.log(`Creating robot instance in NodeShow:${pid} to upload file ${htmlFile}`)
 	const browser = await puppeteer.launch({ignoreHTTPSErrors: true, headless:false});
     const page = await browser.newPage();
     page.setExtraHTTPHeaders({'Authorization':`${SECRET}`})
 
-    await page.goto(`${host}/${htmlFile}?pid=${pid}`, { waitUntil: 'networkidle2' });
+    await page.goto(`${host}/${htmlFile}?pid=${pid}&rid=${rid}`, { waitUntil: 'networkidle2' });
 	
 	//Add required socket-io and jquery
 	await page.addScriptTag({ 
