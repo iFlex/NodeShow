@@ -1,5 +1,6 @@
 import { ACTIONS, Container } from '../../Container.js'
 import { Cursor } from './cursor.js'
+import { TextSize } from './TextSize.js'
 import { FontManager } from './fonts.js'
 import { Keyboard } from '../utils/keyboard.js'
 import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
@@ -59,6 +60,7 @@ export class ContainerTextInjector {
 	container = null;	
 	target = null;
 	newLineChar = '\n';
+	#textSize = null;
 	#interface = null;
 	#keyboard = null;
 	#clipboard = null;
@@ -144,6 +146,7 @@ export class ContainerTextInjector {
 		}
 
 		this.cursor = new Cursor(this)
+		this.#textSize = new TextSize(container, this)
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
 		this.initKeyboard();
 
@@ -738,23 +741,22 @@ export class ContainerTextInjector {
 		}
 	}
 
-	//cursor logic
-	//BUG: placing cursor on click is not accurate sadly. Check calculatios
-	onTextUnitClick(e) {
-		let textUnit = e.target
-		let clickP = e.layerX
-		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length;
-		let offset = Math.ceil(clickP/charWidth)
-
-		this.start(e.target.parentNode.parentNode)
-		this.cursor.putOn(textUnit, offset)
-		this.cursorUpdateVisible(this.#cursorDiv)
-	}
-
 	// onLineClick(e) {
 	// 	let line = e.target
 	// 	this.start(e.target.parentNode)
 	// }
+
+	//cursor logic
+	onTextUnitClick(e) {
+		let textUnit = e.target
+		let textStyle = this.container.toSerializableStyle(textUnit)
+		
+		let offset = this.#textSize.positionToCharNumber(textUnit.innerHTML, textStyle, 0, e.offsetX)
+		
+		this.start(e.target.parentNode.parentNode)
+		this.cursor.putOn(textUnit, offset)
+		this.cursorUpdateVisible(this.#cursorDiv)
+	}
 
 	cursorUpdateVisible(blinker) {
 		if (!blinker) {
@@ -762,20 +764,21 @@ export class ContainerTextInjector {
 		}
 
 		let curStat = this.cursor.get()
+		let localText = ""
+		let localTarget = curStat.line
 		
 		let textUnit = curStat.textUnit
-		let offset = curStat.localCharNumber
-		if(!textUnit) {
-			textUnit = curStat.line
-			offset = 0
+		if (textUnit) {
+			localText = textUnit.innerHTML
+			localTarget = textUnit	
 		}
+		let localStyle = this.container.toSerializableStyle(localTarget)
 
-		let unitPos = this.container.getPosition(textUnit)
-		let unitHeight = this.container.getHeight(textUnit)
-		let charWidth = this.container.getWidth(textUnit) / textUnit.innerHTML.length
-		unitPos.left += Math.ceil(charWidth * offset)
+		let localPosition = this.#textSize.charNumberToPosition(localText, localStyle, curStat.localCharNumber)
+		let globalPosition = this.container.localToGlobalPosition(localTarget, localPosition.left, localPosition.top)
+		let unitHeight = this.container.getHeight(localTarget)
 
-		this.container.setPosition(blinker, {top:unitPos.top,left:unitPos.left}, this.appId)
+		this.container.setPosition(blinker, {top:globalPosition.y,left:globalPosition.x}, this.appId)
 		this.container.setHeight(blinker, unitHeight, this.appId)
 		this.container.show(blinker, this.appId)
 		this.container.bringToFront(blinker, this.appId)

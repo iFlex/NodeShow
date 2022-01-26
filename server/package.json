@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "chai": "*",
-    "mocha": "*",
-    "jsdoc": "^3.6.7"
+    "jsdoc": "^3.6.7",
+    "mocha": "*"
   },
   "scripts": {
     "doc": "jsdoc -d docs --configure jsconf.json server.js",

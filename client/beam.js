@@ -5,7 +5,7 @@ import { httpReq } from "./components/utils/http.js"
 let rootId = Container.getQueryVariable("rid")
 function stream() {
     try {
-        bridge.beam(true, rootId)
+        bridge.beam(false, rootId)
     } catch (e) {
         console.log('Could not beam, encountered exceptin. Retrying later...');
         console.error(e);

@@ -46,3 +46,9 @@ export function queueWork(callback, context, params) {
 export function status () {
 	return workQueue.length
 }
+
+//[TODO]: multiple queues (by queue name or priority?)
+//[TODO]: ability to compound work (via a computed work_unit_id. if you submit another work unit with the same id all previous unexecuted work units with the same id are skipped)
+//[TODO]: ability to cancel all work in queue
+//[TODO]: ability to remove from queue
+//[TODO]: promise integration

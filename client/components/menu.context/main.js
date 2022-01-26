@@ -28,7 +28,8 @@ export class ContextMenu {
 		{name: "Cut", action: "container.clipboard.doCut", icon:"ns-cut-icon", shortcut:'Ctrl+X'},
 		{name: "Paste[X]", action: "container.clipboard.doPaste", icon:"ns-paste-icon", shortcut:'Ctrl+V'},
 		{name: "Send To Front", action: "bringToFront", shortcut:'Ctrl+}'},
-		{name: "Send To Back", action: "sendToBottom", shortcut:'Ctrl+{'}
+		{name: "Send To Back", action: "sendToBottom", shortcut:'Ctrl+{'},
+		{name: "Fit Content", action: "fitVisibleContent", shortcut:'Shift+{}'}
 	]
   
 	#actions = []

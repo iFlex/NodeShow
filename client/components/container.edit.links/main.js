@@ -105,7 +105,7 @@ export class ContainerEditLinks {
         }
 
         return links;
-    }to
+    }
 
     onContainerChange(e) {
         // let links = this.getLinksRelatedTo(e.detail.id)

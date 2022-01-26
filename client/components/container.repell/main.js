@@ -1,5 +1,7 @@
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
+import { queueWork } from '../../YeldingExecutor.js'
+import { ACTIONS } from '../../Container.js'
 
 export class ContainerRepeller {
     appId = 'container.repell'
@@ -12,6 +14,7 @@ export class ContainerRepeller {
     #mouse = null;
     #enabled = false
     #handlers = {}
+    #visited = new Set([])
 
     constructor (container) {
         this.#container = container
@@ -20,6 +23,10 @@ export class ContainerRepeller {
         
         this.#mouse = new Mouse(this.appId);
         this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.onDragUpdate(e.detail))
+        
+        //this.#handlers[ACTIONS.setPosition] = (e) => this.onUpdate(e.detail)
+        //this.#handlers[ACTIONS.setWidth] = (e) => this.onUpdate(e.detail)
+        //this.#handlers[ACTIONS.setHeight] = (e) => this.onUpdate(e.detail)
     }
 
     /*
@@ -66,6 +73,12 @@ export class ContainerRepeller {
     }
 
     pushSiblingsAway (node, dx, dy, visited) {
+        if (visited.has(node.id)) {
+            return;
+        } else {
+            visited.add(node.id)
+        }
+
         let children = node.parentNode.children;
         for(const child of children) {
             if (child.id == node.id) {
@@ -83,18 +96,22 @@ export class ContainerRepeller {
                 let pos = this.#container.getPosition(child)
                 pos.left += this.sign(dx)*moveX;
                 pos.top += this.sign(dy)*moveY;
-                this.#container.setPosition(child, pos, this.appId)
                 //ToDo: don't do this recursively
                 if (!visited.has(child.id)) {
-                    this.pushSiblingsAway(child, dx, dy, visited.add(node.id))
+                    //this.#container.setPosition(child, pos, this.appId)
+                    queueWork(this.#container.setPosition, this.#container, [child, pos, this.appId])
+                    this.pushSiblingsAway(child, dx, dy, visited)
                 } 
             }
         }
+        queueWork(this.#container.fitVisibleContent, this.#container, [node.parentNode, true])
     }
 
     onDragUpdate (ev) {
         let node = this.#container.lookup(ev.id)
         this.pushSiblingsAway(node, ev.dx, ev.dy, new Set([]))
+        //[TODO]: find a better way to clear visited
+        //this.#visited = new Set([])
     }
 
     //universe expansion type
@@ -104,33 +121,8 @@ export class ContainerRepeller {
         //then move them all away from the centre enough for no overlaps to exist anymore
     }
 
-    //collision type
-    move(id, dx, dy) {
-        //find siblings that overlap
-        //move siblings with changed direction
-        //keep doing until no more moves
-    }
-
-    onMove() {
-
-    }
-
-    onWidth() {
-
-    }
-
-    onHeight() {
-
-    }
-
-    onRotate() {
-
-    }
-
-    handleKeydown(e) {
-        //console.log(`Collapser key down: ${e.key}`)
-        if( e.key == '|') {
-            this.expand();
-        }
+    onUpdate(ev) {
+        let node = this.#container.lookup(ev.id)
+        this.pushSiblingsAway(node, ev.dx, ev.dy) 
     }
 }
