@@ -23,8 +23,9 @@ export class ContainerEditOrchestrator {
 	
 	#menuRoot = null
 	#menuItemTemplate = null
-	
+	#componentToInputInstance = {}
 	defaults = {}
+
 
 	constructor (container) {
 		this.#container = container;
@@ -130,32 +131,38 @@ export class ContainerEditOrchestrator {
 
 	setupQuickEditShortcuts() {
 		this.#keyboard.setAction(new Set(['Control']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.edit.size')
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
+				this.#componentToInputInstance['container.edit.size'])
 			this.updateMenu()
 		}, false, true)
 
 		this.#keyboard.setKeyUpAction(new Set(['Control']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
+				this.#componentToInputInstance[this.defaults[MouseEvents.DRAG_START]])
 			this.updateMenu()
 		}, false)
 
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.grouping')
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
+				this.#componentToInputInstance['container.grouping'])
 			this.updateMenu()
 		}, true, true)
 
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
+				this.#componentToInputInstance[this.defaults[MouseEvents.DRAG_START]])
 			this.updateMenu()
 		}, true)
 
 		this.#keyboard.setAction(new Set(['Alt']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 'container.select')
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
+				this.#componentToInputInstance['container.select'])
 			this.updateMenu()
 		}, true, true)
 
 		this.#keyboard.setKeyUpAction(new Set(['Alt']), this, (e) => {
-			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, this.defaults[MouseEvents.DRAG_START])
+			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
+				this.#componentToInputInstance[this.defaults[MouseEvents.DRAG_START]])
 			this.updateMenu()
 		}, true)
 	}
@@ -305,9 +312,18 @@ export class ContainerEditOrchestrator {
 		}
 	}
 
+	#remapInputIntancesToComponents(listeners) {
+		for (const [key, entry] of Object.entries(listeners)) {
+			for (const listener of entry) {
+				let component = this.#stripUUID(listener)
+				this.#componentToInputInstance[component] = listener
+			}
+		}
+	}
 
 	onMouseMgmtChange() {
 		this.#conflictingGroups = this.#mouseManager.getConflictingGroups()
+		this.#remapInputIntancesToComponents(this.#conflictingGroups)
 		this.rebuildMenu();
 		
 		console.log(`${this.appId} - conflictingGroups`)

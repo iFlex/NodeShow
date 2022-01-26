@@ -38,6 +38,7 @@ export function findActionableAnchestor(container, target, appId) {
 	}
 
 	//ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
+	//this should be solved with a local permission. deny cascading to everyone while editing text
 	if (container.getMetadata(target, 'text-editing')) {
 		return null;
 	}

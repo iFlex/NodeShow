@@ -15,6 +15,7 @@ export class ContainerMover {
 	#touch = null
 
 	#handlers = {}
+	#passToAncestorExceptions = new Set(['ContainerOperationDenied'])
 	#editableClass = 'editable:hover'
 	#selection = []
 
@@ -84,16 +85,24 @@ export class ContainerMover {
 	}
 	
 	modifyContainer(target, x, y, targetOx, targetOy) {
-		this.container.setPosition(target, {
+		let newPos = {
 			top: y,
 			left: x,
 			originX: targetOx,
 			originY: targetOy
-		}, this.appId)
+		}
+
+		try {
+			this.container.callUntilAllowed(target, "setPosition", [target, newPos, this.appId],this.#passToAncestorExceptions,this.appId);
+			this.container.componentStartedWork(this.appId, {})
+		} catch (e) {
+			
+		}
+		//this.container.setPosition(target, newPos, this.appId)
 	}
 
 	start(id) {
-		this.container.componentStartedWork(this.appId, {})
+		//this.container.componentStartedWork(this.appId, {})
 		this.target = this.container.lookup(id)
 		this.#selection = new Set(getSelection(this.container))
 	}

@@ -21,6 +21,7 @@ export const ACTIONS = {
     sendToBack: 'container.sendToBottom',
     setContentAbstractionLevel: 'container.set.contentAbstractionLevel',
     setAbstractionLevel: 'container.set.abstractionLevel',
+    cascade: 'container.cascade',
 
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',
@@ -55,6 +56,52 @@ let ACTIONS_CHAIN = {}
 //[TODO]: use WeakSet to account for deallocations -> allow GC to collect the container ref
 export const INSTANCES = new Set()//new WeakSet([])
 
+export class ContainerException {
+    #id = null
+    #method = null
+    #callerId = null
+    #reason = null
+
+    console(id, method, callerId, reason) {
+        this.#id = id
+        this.#method = method
+        this.#callerId = callerId
+        this.#reason = reason
+    }
+
+    exactComparableString() {
+        return `call ${this.method} on ${this.id} by ${this.callerId} FAILED because:${this.reason}`
+    }
+
+    comparableString() {
+        return `ContainerException`
+    }
+}
+
+export class ContainerOperationDenied {
+    id = null
+    callerId = null
+    operation = null
+
+    console(id, opreation, callerId) {
+        this.id = id
+        this.operation = operation
+        this.callerId = callerId
+    }
+
+    exactComparableString() {
+        return `DENIED_${this.operation}_on_${this.id}_to_${this.callerId}`
+    }
+
+    comparableString() {
+        return `ContainerOperationDenied`   
+    }
+}
+
+export class ContainerOperationNotApplicable {
+
+}
+
 /** @class */
 export class Container {
 	//[TODO]: integrate hook callers wherever relevant
@@ -66,6 +113,7 @@ export class Container {
     
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
+    #callUntilAllowedAbleMethods = new Set(['setPosition','setWidth','setHeight'])
 
     /*[TODO]: standardize what the parameters will be:
     //         - need it to be resilient to changing function params as much as possible 
@@ -183,7 +231,7 @@ export class Container {
 
         let el = document.getElementById(id);
         if (!el) {
-            throw `Could not find element ${id}`
+            throw new ContainerException(id,"lookup", null,"not found");
         }
 
         return el
@@ -227,7 +275,7 @@ export class Container {
         }
 
         if (!virtualNode) {
-            throw `could not find node ${id}`
+            throw new ContainerException(id,"lookup", null,"not found");
         }
         return virtualNode
     }
@@ -327,7 +375,7 @@ export class Container {
 
     static #reisterHook(set, setter, method) {
         if (!Container.#hookedSetters.has(setter)) {
-            throw `Invalid setter ${setter}`
+            throw new ContainerException(setter,"reisterHook", null,"invalid setter");
         }
 
         if (!set[setter]) {
@@ -386,7 +434,7 @@ export class Container {
     
         let explicit = rules[callerId]
         if(explicit == false) {
-            throw `DENIED ${operation} on ${resource.id} to ${callerId}`
+            throw new ContainerOperationDenied(resource.id, operation, callerId);
         }
         if(explicit == true) {
             return true;
@@ -394,7 +442,7 @@ export class Container {
 
         let general = rules["*"]
         if (general == false) {
-            throw `DENIED ${operation} on ${resource.id} to ${callerId}`
+            throw new ContainerOperationDenied(resource.id, operation, callerId);
         } 
 
         return true;
@@ -409,7 +457,7 @@ export class Container {
     * @param {string} callerId  - the name of the caller of the setPermission method
     * @param {boolean=false} isLocal - indicates if the permission should be persisted or only applied locally
     */
-    setPermission(id, permName, opCaller, allow, callerId, isLocal) {
+    setPermission(id, permName, opCaller, allow, callerId, isLocal = false) {
         let elem = this.lookup(id);
         let operation = `set.${permName}`
         this.isOperationAllowed(operation, elem, callerId)
@@ -1162,6 +1210,45 @@ export class Container {
             }
         }
         return null;
+    }
+
+    #exceptionToComparable(e, exactMatch) {
+        let matchMethod = (exactMatch)?"exactComparableString":"comparableString"
+        if (typeof e == 'object' && typeof e[matchMethod] == 'function') {
+            return e[matchMethod]()    
+        }
+
+        return e
+    }
+
+    callUntilAllowed(id, methodName, parameters, expectedExceptionsSet, callerId, stopNode = this.parent, exactMatch = false) {
+        if (!this.#callUntilAllowedAbleMethods.has(methodName)) {
+            throw new ContainerException(id,"callUntilAllowed",callerId,`${methodName} can't be called until allowed`)
+        }
+
+        let node = this.lookup(id)
+        let startNode = node
+        let method = this[methodName]
+       
+        while (node && node != stopNode) {
+            if (node != startNode) {
+                this.isOperationAllowed(ACTIONS.cascade, node, callerId)    
+            }
+
+            try {
+                parameters[0] = node
+                method.apply(this, parameters)
+                return node
+            } catch (e) {
+                if (!expectedExceptionsSet.has(this.#exceptionToComparable(e, exactMatch))) {
+                    throw e
+                }
+            }
+
+            node = node.parentNode
+        }
+
+        throw new ContainerException(node.id,"callUntilAllowed",callerId,"Could not find ancestor to call on");
     }
 
     //<events>

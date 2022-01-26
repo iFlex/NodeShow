@@ -12,14 +12,12 @@ import { queueWork } from '../../YeldingExecutor.js'
 //TODO:
 //fix reverse selection (sometimes it is smaller than it should be)
 //forward delete doesn't work well (via delete key)
-//font and letter size tracking
 //better line comprehension in text manipulation:
 //  - fixed line heights
 //span compaction (combine if style is identical)
 //unicode & escaped character support
 //serialize text units as rich text
 //line spacing
-
 //wrapping - add in logic to support:
 /*
 	1. resizing container as text is typed (both with and height)
@@ -59,7 +57,11 @@ export class ContainerTextInjector {
 	
 	container = null;	
 	target = null;
+	
 	newLineChar = '\n';
+	tabCharacter = '\t';
+	tabInSpaces = '    ';
+
 	#textSize = null;
 	#interface = null;
 	#keyboard = null;
@@ -68,6 +70,10 @@ export class ContainerTextInjector {
 	#enabled = false
 	#handlers = {};
 
+	//shift select
+	#toggleSelectionModify = false;
+	#anchorCursor = {}
+	
 	#debug = false;
 	
 	#cursorDiv = null
@@ -163,12 +169,7 @@ export class ContainerTextInjector {
 			(event) => {}, //noop
 			ACCESS_REQUIREMENT.EXCLUSIVE)
 
-		// this.#handlers['container.select.selected'] = (e) => {
-		// 	this.stop();
-		// 	this.tryFetchTarget(e.selection)
-		// }
 		this.#fontManager = new FontManager(container)
-
 		this.#handlers['selectionchange'] = (e) => this.onSelectionChange(e)
 
 		//create interface holder
@@ -208,6 +209,7 @@ export class ContainerTextInjector {
 			for (const [key, value] of Object.entries(this.#handlers)) {
 				this.container.addEventListener(key, value)
 			}
+			document.addEventListener("selectionchange", this.#handlers['selectionchange'])
 			this.#enabled = true
 		}	
 	}
@@ -218,6 +220,7 @@ export class ContainerTextInjector {
 			for (const [key, value] of Object.entries(this.#handlers)) {
 				this.container.removeEventListener(key, value)
 			}
+			document.removeEventListener("selectionchange", this.#handlers['selectionchange'])
 			this.container.hide(this.#interface, this.appId)
 			this.#enabled = false
 		}
@@ -232,7 +235,14 @@ export class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true)
 		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true)
 		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true)
-		this.#keyboard.setAction(new Set(['Escape']), this,     (key) => this.stop(), true)
+		this.#keyboard.setAction(new Set(['Escape']), this,    (key) => this.stop(), true)
+		this.#keyboard.setAction(new Set(['Tab']), this,       (key) => this.tab(), true, true)
+		
+		this.#keyboard.setAction(new Set(['Shift']), this,     (key) => {
+			this.#toggleSelectionModify = true
+			this.#anchorCursor = this.cursor.get()
+		}, true)
+		this.#keyboard.setKeyUpAction(new Set(['Shift']), this,     (key) => this.#toggleSelectionModify = false, true)	
 
 		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true)
 		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true)
@@ -242,6 +252,8 @@ export class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['ArrowLeft']), this,     (key) => this.cursorLeft(), true)
 		this.#keyboard.setAction(new Set(['Right']), this,         (key) => this.cursorRight(), true)
 		this.#keyboard.setAction(new Set(['ArrowRight']), this,    (key) => this.cursorRight(), true)
+		this.#keyboard.setAction(new Set(['End']), this,           (key) => this.toLineEnd(), true)
+		this.#keyboard.setAction(new Set(['Home']), this,          (key) => this.toLineStart(), true)
 
 		this.#keyboard.setAction(new Set(['Control','u']), this, (key) => this.underlined(), true)
 		this.#keyboard.setAction(new Set(['Control','i']), this, (key) => this.italic(), true)
@@ -313,10 +325,14 @@ export class ContainerTextInjector {
 		this.container.show(this.#cursorDiv, this.appId)
 		this.container.bringToFront(this.#cursorDiv, this.appId)
 
+		//TODO use cascading and local permissions
 		//these need to be ephemeral state, not sent to the server and propagated...
 		this.container.setMetadata(this.target, 'text-editing', true)
+		this.container.setPermission(this.target, ACTIONS.cascade, '*', false, this.appId, true)
 		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 		
+		
+
 		this.#keyboard.enable();
 		this.#clipboard.enable();
 
@@ -331,9 +347,11 @@ export class ContainerTextInjector {
 			this.container.componentStoppedWork(this.appId)
 			this.#keyboard.disable()
 			this.#clipboard.disable()
+			
 			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 			this.container.removeMetadata(this.target, 'text-editing')
-			
+			this.container.removePermission(this.target, ACTIONS.cascade, '*', this.appId)
+
 			this.cursor.setTarget(null);
 			this.container.hide(this.#cursorDiv, this.appId)
 			this.container.hide(this.#interface, this.appId)
@@ -489,8 +507,13 @@ export class ContainerTextInjector {
 		}
 
 		let curStat = this.cursor.getPosition()
-		console.log("Cursor Up")
-		console.log(this.cursor.putAt(curStat.lineNumber - 1, curStat.charNumber))
+		this.cursor.putAt(curStat.lineNumber - 1, curStat.charNumber)
+
+		if (this.#toggleSelectionModify) {
+			this.modifySelection()
+		} else {
+			this.clearSelection();
+		}
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
@@ -500,8 +523,14 @@ export class ContainerTextInjector {
 		}
 
 		let curStat = this.cursor.getPosition()
-		console.log("Cursor Down")
-		console.log(this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber))
+		this.cursor.putAt(curStat.lineNumber + 1, curStat.charNumber)
+		
+		if (this.#toggleSelectionModify) {
+			this.modifySelection()
+		} else {
+			this.clearSelection();
+		}
+
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
@@ -510,8 +539,13 @@ export class ContainerTextInjector {
 			return;
 		}
 
-		console.log("Cursor Left")
-		console.log(this.cursor.move(-1))
+		this.cursor.move(-1)
+		if (this.#toggleSelectionModify) {
+			this.modifySelection()
+		} else {
+			this.clearSelection();
+		}
+
 		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
@@ -520,9 +554,34 @@ export class ContainerTextInjector {
 			return;
 		}
 
-		console.log("Cursor Right")
-		console.log(this.cursor.move(1))
+		this.cursor.move(1)
+		if (this.#toggleSelectionModify) {
+			this.modifySelection()
+		} else {
+			this.clearSelection();
+		}
+
 		this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	toLineEnd() {
+		this.cursor.putAtLineEnd()
+		if (this.#toggleSelectionModify) {
+			this.modifySelection()
+		} else {
+			this.clearSelection();
+		}
+		this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	toLineStart() {
+		this.cursor.putAtLineStart()
+		if (this.#toggleSelectionModify) {
+			this.modifySelection()
+		} else {
+			this.clearSelection();
+		}
+		this.cursorUpdateVisible(this.#cursorDiv)	
 	}
 
 	makeNewLine(insertAt) {
@@ -650,10 +709,15 @@ export class ContainerTextInjector {
 		return {lines:lines, units:units}
 	}
 
-	makeSelection(start, end) {
+	makeSelection(start, end, startOffset = 0, endOffset = 0) {
 		let range = new Range();
-		range.setStart(start.firstChild, 0);
-		range.setEnd(end.lastChild, end.lastChild.length);
+		if (this.isTextUnitBefore(end, start)) {
+			range.setStart(end.lastChild, (endOffset > 0) ? endOffset : end.lastChild.length);
+			range.setEnd(start.firstChild, startOffset);
+		} else {
+			range.setStart(start.firstChild, startOffset);
+			range.setEnd(end.lastChild, (endOffset > 0) ? endOffset : end.lastChild.length);
+		}
 
 		let sel = this.clearSelection()
 		sel.addRange(range)
@@ -665,17 +729,17 @@ export class ContainerTextInjector {
 		return sel;
 	}
 
-	//carful not to mess up the cursor here
-	//BUG: screws up the cursor when the selection is deleted
 	onSelectionChange(e) {
-		// let docSelect = document.getSelection();
-		// if (docSelect 
-		// 	&& docSelect.focusNode
-		// 	&& docSelect.anchorNode) {
-		// 	if(this.isTextUnitInCurrentTarget(docSelect.focusNode.parentNode)) {
-		// 		this.cursorSetOnTextUnit(this.cursor, docSelect.focusNode.parentNode, docSelect.focusOffset)
-		// 	}
-		// }
+		let docSelect = document.getSelection();
+		if (!docSelect.focusNode) {
+			return;
+		}
+
+		let focusTextUnit = docSelect.focusNode.parentNode
+		let offset = docSelect.focusOffset;
+
+		this.cursor.putOn(focusTextUnit, offset)
+		this.cursorUpdateVisible(this.#cursorDiv)
 	}
 
 	getSelected () {
@@ -733,6 +797,17 @@ export class ContainerTextInjector {
 			}
 		}
 		return null;
+	}
+
+	modifySelection () {
+		let curPos = this.cursor.get()
+		let docSelect = document.getSelection();
+		if (docSelect && docSelect.anchorNode && docSelect.focusNode) {
+			docSelect.extend(curPos.textUnit.firstChild, curPos.localCharNumber)
+		} else {
+			this.makeSelection(this.#anchorCursor.textUnit, curPos.textUnit, 
+				this.#anchorCursor.localCharNumber, curPos.localCharNumber)
+		}
 	}
 
 	selectAll() {
@@ -867,7 +942,7 @@ export class ContainerTextInjector {
 		let after = existing.substring(curStat.localCharNumber, existing.length)
 
 		let firstLine = textLines[0]
-		textUnit.innerHTML = `${before}${firstLine}${after}`
+		textUnit.innerHTML = `${before}${firstLine.replaceAll(this.tabCharacter, this.tabInSpaces)}${after}`
 		this.cursor.move(firstLine.length)
 		this.cursorUpdateVisible(this.#cursorDiv)
 		this.container.notifyUpdate(textUnit.id, this.appId)
@@ -876,7 +951,7 @@ export class ContainerTextInjector {
 			let lineBefore = this.getLine(this.target, curStat.lineNumber + 1)
 			for (var i = 1; i < textLines.length; ++i) {
 				let descriptor = Container.clone(this.textUnitDescriptor)
-				descriptor.innerHTML = textLines[i]
+				descriptor.innerHTML = textLines[i].replaceAll(this.tabCharacter, this.tabInSpaces)
 				
 				queueWork(this.insertTextBlockAsLine, this, [descriptor, lineBefore])
 			}
@@ -1008,6 +1083,23 @@ export class ContainerTextInjector {
 		this.deleteLines(linesToDelete) 
 
 		this.cursorUpdateVisible(this.#cursorDiv)
+	}
+
+	tabLineStart (line) {
+		let firstTextUnit = line.firstChild || this.makeNewTextChild(line)
+		firstTextUnit.innerHTML = `${this.tabInSpaces}${firstTextUnit.innerHTML}`
+	}
+
+	tab () {
+		let selection = this.getSelected();
+		if (selection && selection.lines.size > 0) {
+			for (const line of selection.lines) {
+				queueWork(this.tabLineStart, this, [line])
+			}	
+		} else {
+			this.addPrintable(this.tabInSpaces)
+		}
+		queueWork(this.styleTarget, this)
 	}
 
 	getTextUnitDistanceFromRoot(textUnit) {

@@ -22,6 +22,7 @@ Client Features:
         [!TODO]: when container is at abstraction layer x, all added or swapped children are set to that abstraction layer
 12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
     [NICE-TO-HAVE]: make it a bit more advanced?: e.g. read status from target, show sliders, etc?
+15. Camera implementation: focus, move, zoom
 ------------------------------------------------------------------------------
 13  [IN_PROGRESS] !Link Containers ::container.link
 Link are currently a performance issue - they seem to slow down the server
@@ -34,7 +35,6 @@ Link are currently a performance issue - they seem to slow down the server
     [BUG]: some links don't update at all untill you move one of the linked containers
 
 14. Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
-15. Camera implementation: focus, move, zoom
 16. Optimize event sending and heavy loading (e.g. books)
     Implement BulkBridge maybe?
 --------------------------------------------
@@ -42,10 +42,18 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
-[TODO]: Find solution for Mouse and Touch coexistance in Orchestrator
+[TODO]: call Container method with cascade up on failure:
+        - ability to specify what failures will cause it to cascade up to the parent
+        - returns what container the op was applied to
+        - ability to disallow cascading (either as local or global permission) per container (which will cause the cascader to throw an exception)
+
 [TODO]: Tidy up LiveBridge & make it compact events before sending.
-[BUG]: certain events cause feedback loops between collaborators. E.g. link maintenance
+[BUG]:  certain events cause feedback loops between collaborators. E.g. link maintenance
 [TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
+
+[TODO]: TextEditor Top of text and bottom of text padding edit
+[TODO]: TextEditor paragraph spacing
+[TODO]: textEditor line left and right spacing
 
 [BUG]: Fit content seems to not work corretly on collapse/expand
 [BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two 
@@ -65,12 +73,6 @@ receivers rather than just one.
         - needs event separation (currently all events are listened for via document, they should be listened for via container.parent)
 
 [TODO]: Make color picker with contrast and color profiles that can be used by any other app
-
-[TODO]: Accomodate multiple Mouse & Touch instances for the same applicationId. Currently breaks pretty badly (affects routing of events)
-
-[TODO][L]: Editing container at abstraction level should apply to abstraction level not root content.
-
-[TODO][L]: make text editor ignore invisible divs.
 
 [TODO][]: Determine if content in abstraction level > 0 should be allowed to be abstracted.
 
@@ -103,19 +105,17 @@ e.g. Permissions, Actions, etc.
 
 [TODO]: implement component to visualise abstraction levels
 [FIX?]: [CORE] .getPosition to take borders and margins into account. Should it?
-[TODO]: Text eitor interface improvements: pick font, size update, prettify
 [TODO]: Move findActionableAncestor call from mouse() into the relevant components
-[TODO]: Revise and make robust Mouse & Keyboard
+[TODO]: Revise and make robust Mouse & Keyboard. Think of how they can work along each other
 [TODO]: Work on solid encoding interpretation on content from server
 [TODO]: grouper color selection. pick color in a smart way rather than just black
-[TODO][L]: copy/paste style only (via context menu)
+[TODO][L]: copy/paste style only
 [TODO]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
 [TODO]: make insert content via data b64 link work
 [SHOULD-HAVE]: implement undo/redo
 [TODO]: investigate slow load time
 [ISSUE]: copy/pasting links will not translate IDs in their descriptors. Needs fix
 [BUG]: Lineage component is a bit buggy and can even cause disappearences
-[BUG]: Repell component sometimes goes beserk, interface gets moved
 [BUG]: incorrectly deleting a selection can cause the selector app to stop working and sometimes moves some of the prev selected items into document.body from container.root ?!?
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent

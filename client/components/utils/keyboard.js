@@ -200,7 +200,7 @@ export class Keyboard {
     }
 
     #applyActionAndDefault(e, actionSet) {
-        let allPressed = this.#setUnion(this.#pressedNonPrintables, this.#pressedPrintables);
+        let allPressed = this.getPressed()
         for (const [key, detail] of Object.entries(actionSet)) {
             let intersection = this.#setIntersection(detail.keys, allPressed);
             let match = (intersection.size === detail.keys.size)
@@ -216,6 +216,10 @@ export class Keyboard {
                 }
             }
         }
+    }
+
+    getPressed() {
+        return this.#setUnion(this.#pressedNonPrintables, this.#pressedPrintables);
     }
 
     handleKeydown(e) {

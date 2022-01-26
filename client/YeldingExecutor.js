@@ -1,8 +1,13 @@
 let index = 0
 let workQueue = []
 let maxUninterrupted = 10
+
+//stats
 let totalWork = 0;
 let totalCompletedWork = 0;
+let maxEverSize = 0;
+let queueDepletions = 0;
+let runningMax = [0];
 
 function execute() {
 	let uninterrupted = 0
@@ -25,9 +30,12 @@ function execute() {
 			return;
 		}
 	}	 	
-	console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms\nTotal_queued:${totalWork}\nTotal_done__:${totalCompletedWork}`)
+	console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms\nTotal_queued:${totalWork}\nTotal_done__:${totalCompletedWork}\nMax Ever Queue size: ${maxEverSize}`)
 	workQueue = []
 	index = 0 
+	// console.log(runningMax)
+	// queueDepletions++;
+	// runningMax.push(0);
 }
 
 export function queueWork(callback, context, params) {
@@ -36,19 +44,41 @@ export function queueWork(callback, context, params) {
 		context: context,
 		params:params
 	});
-	totalWork++;
 
+	totalWork++;
+	if (workQueue.length > maxEverSize) {
+		maxEverSize = workQueue.length
+	}
+	// if (workQueue.length > runningMax[queueDepletions]) {
+	// 	runningMax[queueDepletions] = workQueue.length
+	// }
+	
 	if (workQueue.length == 1) {
 		execute();
 	}
+}
+
+export function queueConflatingWork(callback, context, params, conflatingId=null) {
+	if (conflatingId) {
+		//[TODO] implement conflation	
+	}
+	return queueWork(callback, context, params)
+}
+
+export function cancelWork(workId) {
+
+}
+
+export function cancelAllWork() {
+
 }
 
 export function status () {
 	return workQueue.length
 }
 
-//[TODO]: multiple queues (by queue name or priority?)
-//[TODO]: ability to compound work (via a computed work_unit_id. if you submit another work unit with the same id all previous unexecuted work units with the same id are skipped)
+//[TODO]: ability to conflate work (via a computed work_unit_id. if you submit another work unit with the same id all previous unexecuted work units with the same id are skipped)
 //[TODO]: ability to cancel all work in queue
 //[TODO]: ability to remove from queue
 //[TODO]: promise integration
+//[TODO]: multiple queues (by queue name or priority?)

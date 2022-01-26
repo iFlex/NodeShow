@@ -104,6 +104,13 @@ export class Cursor {
 		return this.#editor.getLine(this.#target, this.#lineNumber)
 	}
 
+	#getSign(val) {
+		if (val < 0) {
+			return -1
+		}
+		return 1
+	}
+
 	setTarget (target) {
 		this.#target = target
 	}
@@ -141,13 +148,13 @@ export class Cursor {
 		}
 	}
 
-	putOn (unit, offset) {
+	putOn (unit, offset=0) {
 		//cap the offset
 		if (offset < 0) {
 			offset = 0;
 		}
 
-		if (offset >= unit.innerHTML.length) {
+		if (offset > unit.innerHTML.length) {
 			offset = unit.innerHTML.length - 1;
 		}
 
@@ -168,13 +175,33 @@ export class Cursor {
 		}
 
 		return this.getPosition()
+	}
+
+	putAtLineEnd() {
+		let line = this.#getCurrentLine()
+		let width = this.#getLineWidth(line)
+		this.#charNumber = width
+		let textUnit = this.#getCurrentTextUnit(line)
+		
+		return {
+			line: line,
+			textUnit: textUnit,
+			lineNumber: this.#lineNumber,
+			charNumber: this.#charNumber
+		}
 	}	
 
-	#getSign(val) {
-		if (val < 0) {
-			return -1
+	putAtLineStart() {
+		this.#charNumber = 0
+
+		let line = this.#getCurrentLine()
+		let textUnit = this.#getCurrentTextUnit(line)		
+		return {
+			line: line,
+			textUnit: textUnit,
+			lineNumber: this.#lineNumber,
+			charNumber: this.#charNumber
 		}
-		return 1
 	}
 
 	move (amount) {
