@@ -113,7 +113,7 @@ export class Container {
     
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
-    #callUntilAllowedAbleMethods = new Set(['setPosition','setWidth','setHeight'])
+    #callUntilAllowedAbleMethods = new Set(["setPosition","setWidth","setHeight","fitVisibleContent"])
 
     /*[TODO]: standardize what the parameters will be:
     //         - need it to be resilient to changing function params as much as possible 

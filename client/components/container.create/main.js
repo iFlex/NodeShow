@@ -111,9 +111,12 @@ export class ContainerCreator {
 			console.log(`Creating new container @abspos{${x}x${y}}`)
 			console.log(node)
 			this.container.setPosition(node.id, {top:y, left:x}, this.appId)
-			this.container.fitVisibleContent(node.parentNode, true)
-			console.log("Final position")
-			console.log(this.container.getPosition(node.id))
+			
+			let pointer = node.parentNode
+			while (pointer && pointer != this.parent) {
+				this.container.fitVisibleContent(pointer, true)	
+				pointer = pointer.parentNode
+			}
 		}
 	}
 	

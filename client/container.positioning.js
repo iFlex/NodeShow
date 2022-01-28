@@ -3,14 +3,35 @@ import {Container, ACTIONS} from "./Container.js"
 /** This is a description of the foo function. */
 //Stolen from stack overflow because I was hoping to get this directly from the browser somehow.
 //ToDo: find a way to simplify this
-function findAbsPos(obj) {
+var getStyle = function(e, styleName) {
+  var styleValue = "";
+  if (document.defaultView && document.defaultView.getComputedStyle) {
+    styleValue = document.defaultView.getComputedStyle(e, "").getPropertyValue(styleName);
+  } else if (e.currentStyle) {
+    styleName = styleName.replace(/\-(\w)/g, function(strMatch, p1) {
+      return p1.toUpperCase();
+    });
+    styleValue = e.currentStyle[styleName];
+  }
+  return parseInt(styleValue, 10);
+}
+
+function findAbsPos(obj, container) {
     var curleft = 0;
     var curtop = 0;
-    if(obj.offsetLeft) curleft += parseInt(obj.offsetLeft);
-    if(obj.offsetTop) curtop += parseInt(obj.offsetTop);
+    if(obj.offsetLeft) curleft += parseInt(obj.offsetLeft) + getStyle(obj, 'border-left-width');
+    if(obj.offsetTop) curtop += parseInt(obj.offsetTop) + getStyle(obj, 'border-top-width');
     if(obj.scrollTop && obj.scrollTop > 0) curtop -= parseInt(obj.scrollTop);
+    if(obj.scrollLeft && obj.scrollLeft > 0) curleft -= parseInt(obj.scrollLeft);
+    
+    if(obj == container.camera) {
+        let result = container.camera.surfaceToViewPort(curleft, curtop)
+        curleft = result.x
+        curtop = result.y
+    }
+
     if(obj.offsetParent) {
-        var pos = findAbsPos(obj.offsetParent);
+        var pos = findAbsPos(obj.offsetParent, container);
         curleft += pos[0];
         curtop += pos[1];
     } else if(obj.ownerDocument) {
@@ -19,7 +40,7 @@ function findAbsPos(obj) {
             thewindow = obj.ownerDocument.parentWindow;
         if(thewindow) {
             if(thewindow.frameElement) {
-                var abspos = findAbsPos(thewindow.frameElement);
+                var abspos = findAbsPos(thewindow.frameElement, container);
                 curleft += abspos[0];
                 curtop += abspos[1];
             }
@@ -31,7 +52,7 @@ function findAbsPos(obj) {
 
 Container.prototype.localToGlobalPosition = function(id, x, y) {
     let node = this.lookup(id)
-    let pos = findAbsPos(node)
+    let pos = findAbsPos(node, this)
     return {x: pos[0] + x, y: pos[1] + y}
 }
 
@@ -103,7 +124,7 @@ Container.prototype.setPosition = function(id, position, callerId) {
  */
 Container.prototype.getPosition = function(id) {
     let node = this.lookup(id)
-    let p = findAbsPos(node)
+    let p = findAbsPos(node, this)
 
     return {
         top:p[1],

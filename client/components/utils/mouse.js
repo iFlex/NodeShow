@@ -37,7 +37,8 @@ export const EVENTS = {
 	'DRAG_UPDATE':'drag.update',
 	'DRAG_END':'drag.end',
 	'CLICK': 'container.click',
-	'DOUBLE_CLICK':'container.dblclick'
+	'DOUBLE_CLICK':'container.dblclick',
+	'ZOOM':'container.zoom'
 }
 
 function mouseDown(e) {
@@ -138,6 +139,15 @@ function mouseUp(e) {
 	lastClickedButton = e.button
 }
 
+function mouseWheel(e) {
+	container.emit(EVENTS.ZOOM,{
+		id:e.target.id,
+		position: {x:e.pageX, y:e.pageY},
+		originalEvent: e
+	});
+	e.preventDefault()
+}
+
 export function getCursorPosition() {
 	return {
 		x: lastPageX,
@@ -145,13 +155,13 @@ export function getCursorPosition() {
 	}
 }
 
-// container.parent.addEventListener('mouseup', mouseUp)
-// container.parent.addEventListener('mousemove', mouseMove)
-// container.parent.addEventListener('mousedown', mouseDown)
-
 document.addEventListener('mouseup', mouseUp)
 document.addEventListener('mousemove', mouseMove)
 document.addEventListener('mousedown', mouseDown)
+
+let eventRoot = document.getElementById('nodeshow-content')
+eventRoot.addEventListener('mousewheel', mouseWheel)
+eventRoot.addEventListener('wheel', mouseWheel)
  
 let MManager = new InputManager(InputAccessManager, EVENTS);
 

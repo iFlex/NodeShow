@@ -50,6 +50,9 @@ export class Camera {
 	#contentSurface = null
 	#options = null
 
+	#offsetTop = 0 
+	#offsetLeft = 0
+
 	//[TODO]: reconsider
 	#zoomLevel = 1.0
 
@@ -58,6 +61,15 @@ export class Camera {
 		this.#viewPort = viewPort
 		this.#contentSurface = contentSurface
 		this.#options = options
+	}
+
+
+	surfaceToViewPort(x,y) {
+		return {x:x + this.#offsetLeft, y:y + this.#offsetTop}
+	}
+
+	viewPortToSurface(x,y) {
+		return {x:x, y:y}
 	}
 
 	toString() {

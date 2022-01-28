@@ -22,6 +22,7 @@ export class ContainerSizer {
 		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
+		this.#mouse.setAction(MouseEvents.ZOOM, (e) => this.zoomRootCameraWithWheel(e.detail))
 
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
@@ -78,6 +79,22 @@ export class ContainerSizer {
 		
 		return {dx:(sign * ratio * dist), dy:(sign * dist)}
 	}	
+
+	zoomRootCameraWithWheel(e) {
+		let sign = 1
+		if (e.originalEvent.deltaY < 0) {
+			sign = -1
+		}
+
+		console.log(e)
+		let options = {
+			speed: 0,
+			ox: `${e.position.x || 0}px`,
+			oy: `${e.position.y || 0}px`
+		}
+
+		this.container.camera.zoom(sign * 0.05, options)
+	}
 
 	zoomRootCamera(target, details) {
 		if (this.container.camera) {

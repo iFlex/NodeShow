@@ -30,7 +30,7 @@ function execute() {
 			return;
 		}
 	}	 	
-	console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms\nTotal_queued:${totalWork}\nTotal_done__:${totalCompletedWork}\nMax Ever Queue size: ${maxEverSize}`)
+	//console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms\nTotal_queued:${totalWork}\nTotal_done__:${totalCompletedWork}\nMax Ever Queue size: ${maxEverSize}`)
 	workQueue = []
 	index = 0 
 	// console.log(runningMax)
