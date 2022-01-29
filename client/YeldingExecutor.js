@@ -6,8 +6,6 @@ let maxUninterrupted = 10
 let totalWork = 0;
 let totalCompletedWork = 0;
 let maxEverSize = 0;
-let queueDepletions = 0;
-let runningMax = [0];
 
 function execute() {
 	let uninterrupted = 0
@@ -33,9 +31,6 @@ function execute() {
 	//console.log(`YeldingExecutor: avg call duration: ${uninterrupted/index}ms\nTotal_queued:${totalWork}\nTotal_done__:${totalCompletedWork}\nMax Ever Queue size: ${maxEverSize}`)
 	workQueue = []
 	index = 0 
-	// console.log(runningMax)
-	// queueDepletions++;
-	// runningMax.push(0);
 }
 
 export function queueWork(callback, context, params) {
@@ -49,10 +44,6 @@ export function queueWork(callback, context, params) {
 	if (workQueue.length > maxEverSize) {
 		maxEverSize = workQueue.length
 	}
-	// if (workQueue.length > runningMax[queueDepletions]) {
-	// 	runningMax[queueDepletions] = workQueue.length
-	// }
-	
 	if (workQueue.length == 1) {
 		execute();
 	}
