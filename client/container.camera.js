@@ -65,11 +65,19 @@ export class Camera {
 
 
 	surfaceToViewPort(x,y) {
-		return {x:x + this.#offsetLeft, y:y + this.#offsetTop}
+		let zoomCoef = 1/this.#zoomLevel
+		return {
+			x: (x - this.#viewPort.scrollLeft) * zoomCoef, //this.#offsetLeft, 
+			y: (y - this.#viewPort.scrollTop) * zoomCoef  //this.#offsetTop
+		}
 	}
 
 	viewPortToSurface(x,y) {
-		return {x:x, y:y}
+		let zoomCoef = this.#zoomLevel
+		return {
+			x: (x - this.#viewPort.scrollLeft) * zoomCoef, //this.#offsetLeft, 
+			y: (y - this.#viewPort.scrollTop) * zoomCoef  //this.#offsetTop
+		}
 	}
 
 	toString() {
@@ -130,5 +138,13 @@ export class Camera {
 			top:this.#viewPort.scrollTop,
 			left:this.#viewPort.scrollLeft
 		}
+	}
+
+	getSurface() {
+		return this.#contentSurface
+	}
+
+	getViewport() {
+		return this.#viewPort
 	}
 }

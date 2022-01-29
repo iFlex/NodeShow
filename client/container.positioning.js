@@ -16,22 +16,19 @@ var getStyle = function(e, styleName) {
   return parseInt(styleValue, 10);
 }
 
-function findAbsPos(obj, container) {
+function findAbsPos(obj, stopNode) {
     var curleft = 0;
     var curtop = 0;
     if(obj.offsetLeft) curleft += parseInt(obj.offsetLeft) + getStyle(obj, 'border-left-width');
     if(obj.offsetTop) curtop += parseInt(obj.offsetTop) + getStyle(obj, 'border-top-width');
     if(obj.scrollTop && obj.scrollTop > 0) curtop -= parseInt(obj.scrollTop);
     if(obj.scrollLeft && obj.scrollLeft > 0) curleft -= parseInt(obj.scrollLeft);
-    
-    if(obj == container.camera) {
-        let result = container.camera.surfaceToViewPort(curleft, curtop)
-        curleft = result.x
-        curtop = result.y
+    if(stopNode && obj == stopNode) {
+        return [curleft, curtop]
     }
 
     if(obj.offsetParent) {
-        var pos = findAbsPos(obj.offsetParent, container);
+        var pos = findAbsPos(obj.offsetParent, stopNode);
         curleft += pos[0];
         curtop += pos[1];
     } else if(obj.ownerDocument) {
@@ -40,7 +37,7 @@ function findAbsPos(obj, container) {
             thewindow = obj.ownerDocument.parentWindow;
         if(thewindow) {
             if(thewindow.frameElement) {
-                var abspos = findAbsPos(thewindow.frameElement, container);
+                var abspos = findAbsPos(thewindow.frameElement, stopNode);
                 curleft += abspos[0];
                 curtop += abspos[1];
             }
@@ -49,10 +46,19 @@ function findAbsPos(obj, container) {
 
     return [curleft,curtop];
 }
+    
+function findAbsolutePosition(obj, container) {
+    let pos = findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
+    if (container.camera) {
+        let translated = container.camera.surfaceToViewPort(pos[0], pos[1])
+        return [translated.x, translated.y]
+    }
+    return pos
+}
 
 Container.prototype.localToGlobalPosition = function(id, x, y) {
     let node = this.lookup(id)
-    let pos = findAbsPos(node, this)
+    let pos = findAbsolutePosition(node, this)
     return {x: pos[0] + x, y: pos[1] + y}
 }
 
@@ -124,7 +130,7 @@ Container.prototype.setPosition = function(id, position, callerId) {
  */
 Container.prototype.getPosition = function(id) {
     let node = this.lookup(id)
-    let p = findAbsPos(node, this)
+    let p = findAbsolutePosition(node, this)
 
     return {
         top:p[1],

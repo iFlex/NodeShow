@@ -83,6 +83,11 @@
 
 }
 
+
+/*
+  Keep .nodeshow-content and body as is if you want pageX and pageY to work
+*/
+
 .nodeshow-content {
   position: absolute;
   left:  0px;
@@ -94,14 +99,13 @@
 
   width: 200vw;
   height: 200vh;
+  background-color: white;
 }
 
-/*
-keep this as is if you want pageX and pageY to work
-*/
 body {
   width:  100vw;
   height:  100vh;
   /*overflow: hidden;*/
   overflow:  scroll;
+  background-color: #3f3f3f;
 }
