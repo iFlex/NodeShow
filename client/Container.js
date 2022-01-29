@@ -4,6 +4,7 @@
  */
 import { convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
 import { queueWork } from './YeldingExecutor.js'
+import { ContainerException, ContainerOperationDenied } from './ContainerExcepitons.js'
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
@@ -55,52 +56,6 @@ let ACTIONS_CHAIN = {}
 
 //[TODO]: use WeakSet to account for deallocations -> allow GC to collect the container ref
 export const INSTANCES = new Set()//new WeakSet([])
-
-export class ContainerException {
-    #id = null
-    #method = null
-    #callerId = null
-    #reason = null
-
-    console(id, method, callerId, reason) {
-        this.#id = id
-        this.#method = method
-        this.#callerId = callerId
-        this.#reason = reason
-    }
-
-    exactComparableString() {
-        return `call ${this.method} on ${this.id} by ${this.callerId} FAILED because:${this.reason}`
-    }
-
-    comparableString() {
-        return `ContainerException`
-    }
-}
-
-export class ContainerOperationDenied {
-    id = null
-    callerId = null
-    operation = null
-
-    console(id, opreation, callerId) {
-        this.id = id
-        this.operation = operation
-        this.callerId = callerId
-    }
-
-    exactComparableString() {
-        return `DENIED_${this.operation}_on_${this.id}_to_${this.callerId}`
-    }
-
-    comparableString() {
-        return `ContainerOperationDenied`   
-    }
-}
-
-export class ContainerOperationNotApplicable {
-
-}
 
 /** @class */
 export class Container {

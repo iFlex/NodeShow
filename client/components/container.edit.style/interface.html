@@ -141,11 +141,12 @@ circle </div>
 <input 
 type="text" 
 id="ns-margin" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMargin","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-margin-unit" 
-	  name="ns-margin-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'	   
+name="margin"
+placeholder="Overall Margin" 
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="margin-unit" 
+	  name="margin-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -154,12 +155,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-margin" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMargin","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-margin-unit" 
-	  name="ns-margin-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'	   
+id="ns-marginLeft" 
+name="margin-left" 
+placeholder="Margin Left"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="margin-left-unit" 
+	  name="margin-left-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -168,12 +170,14 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-margin" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMargin","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-margin-unit" 
-	  name="ns-margin-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'	   
+id="ns-margin-top" 
+name="margin-top" 
+placeholder="Margin Top" 
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="margin-top-unit" 
+	  name="margin-top-unit"
+	  placeholder="Margin Top"  
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -182,12 +186,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-margin" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMargin","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-margin-unit" 
-	  name="ns-margin-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'	   
+id="ns-margin-right" 
+name="margin-right" 
+placeholder="Margin Right"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="margin-right-unit" 
+	  name="margin-right-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -196,12 +201,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-margin" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMargin","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-margin-unit" 
-	  name="ns-margin-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMargin","params":[]}}'	   
+id="ns-margin-bottom" 
+name="margin-bottom"
+placeholder="Margin Bottom"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="margin-bottom-unit" 
+	  name="margin-bottom-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -212,12 +218,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 <H3>Padding</h3>
 <input 
 type="text" 
-id="ns-padding" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changePadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-padding-unit" 
-	  name="ns-padding-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'	   
+id="padding" 
+name="padding"
+placeholder="Padding"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="padding-unit" 
+	  name="padding-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -227,12 +234,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 
 <input 
 type="text" 
-id="ns-padding" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changePadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-padding-unit" 
-	  name="ns-padding-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'	   
+id="padding-left" 
+name="padding-left"
+placeholder="Padding Left"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="padding-left-unit" 
+	  name="padding-left-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -241,12 +249,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-padding" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changePadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-padding-unit" 
-	  name="ns-padding-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'	   
+id="padding-top" 
+name="padding-top" 
+placeholder="Padding Top"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="padding-top-unit" 
+	  name="padding-top-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -255,12 +264,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-padding" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changePadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-padding-unit" 
-	  name="ns-padding-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'	   
+id="padding-right" 
+name="padding-right" 
+placeholder="Padding Right"
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="padding-right-unit" 
+	  name="padding-right-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>
@@ -269,12 +279,13 @@ data-container-actions='[{"trigger":"change","call":"container.edit.style.change
 </select>
 <input 
 type="text" 
-id="ns-padding" 
-name="ns-padding" 
-data-container-actions='[{"trigger":"change","call":"container.edit.style.changePadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
-<select id="ns-padding-unit" 
-	  name="ns-padding-unit"
-	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changePadding","params":[]}}'	   
+id="padding-bottom" 
+name="padding-bottom"
+placeholder="Padding Bottom" 
+data-container-actions='[{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]},{"trigger":"focus","call":"container.edit.style.onTextFieldFocus","params":[]},{"trigger":"blur","call":"container.edit.style.onTextFieldBlur","params":[]}]'>
+<select id="padding-bottom-unit" 
+	  name="padding-bottom-unit"
+	data-container-actions='{"0":{"trigger":"change","call":"container.edit.style.changeMarginOrPadding","params":[]}}'	   
 	data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	<option value="px" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
 	px</option>

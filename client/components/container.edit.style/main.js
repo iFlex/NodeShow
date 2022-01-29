@@ -160,22 +160,16 @@ export class ContainerStyler {
 		this.changeBorderType(e);
 	}
 
-	changePadding (e) {
-		let value = document.getElementById('ns-padding').value
-		let unit       = document.getElementById('ns-padding-unit').value
-		let toset       = `${value}${unit}`
+	changeMarginOrPadding (e) {
+		let styleKey = e.target.getAttribute("name")
+		let value = e.target.value
+		let unit = document.getElementById(`${styleKey}-unit`).value
+		let toset = `${value}${unit}`
 
-		this.container.setMetadata(null, 'padding', toset)
-		this.#applyChange({'padding':toset})
-	}
-
-	changeMargin (e) {
-		let value = document.getElementById('ns-margin').value
-		let unit       = document.getElementById('ns-margin-unit').value
-		let toset       = `${value}${unit}`
-
-		this.container.setMetadata(null, 'margin', toset)
-		this.#applyChange({'margin':toset})
+		let style = {}
+		style[styleKey] = toset
+		this.container.setMetadata(null, styleKey, toset)
+		this.#applyChange(style)
 	}
 	
 	getStyleKeys() {
@@ -183,12 +177,12 @@ export class ContainerStyler {
 	}
 
 	onTextFieldFocus() {
-    this.#clipboard.enable()
-    this.#keyboard.enable()
-  }
+		this.#clipboard.enable()
+		this.#keyboard.enable()
+	}
 
-  onTextFieldBlur() {
-    this.#clipboard.disable()
-    this.#keyboard.disable()
-  }
+	onTextFieldBlur() {
+		this.#clipboard.disable()
+		this.#keyboard.disable()
+	}
 }

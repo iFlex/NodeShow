@@ -1,4 +1,7 @@
 import {Container, ACTIONS} from "./Container.js"
+import { ContainerOperationNotApplicable } from './ContainerExcepitons.js'
+
+const POSITIONABLE = new Set(['absolute','relative','fixed'])
 
 /** This is a description of the foo function. */
 //Stolen from stack overflow because I was hoping to get this directly from the browser somehow.
@@ -49,10 +52,10 @@ function findAbsPos(obj, stopNode) {
     
 function findAbsolutePosition(obj, container) {
     let pos = findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
-    if (container.camera) {
-        let translated = container.camera.surfaceToViewPort(pos[0], pos[1])
-        return [translated.x, translated.y]
-    }
+    // if (container.camera) {
+    //     let translated = container.camera.surfaceToViewPort(pos[0], pos[1])
+    //     return [translated.x, translated.y]
+    // }
     return pos
 }
 
@@ -92,10 +95,17 @@ ToDo: support more position types
  * @param {object} position - object describing the new intended position
  * @param {string} callerId - the name of the caller of this method
  */
-Container.prototype.setPosition = function(id, position, callerId) {
+Container.prototype.setPosition = function(id, position, callerId, force = false) {
     let elem = this.lookup(id);
     this.isOperationAllowed(ACTIONS.setPosition, elem, callerId);
-
+    let positionType = elem.style.position || 'static';
+    if (!POSITIONABLE.has(positionType)) {
+        if (force) {
+            elem.style.position = 'absolute';
+        } else {
+            throw new ContainerOperationNotApplicable(elem.id, "setPosition")
+        }
+    }
     //do position translation (even if the positioning is absolute, it still uses the parent x,y as the origin point)
     let parentPos = this.getPosition(elem.parentNode || this.parent)
     position.top -= parentPos.top
@@ -165,7 +175,6 @@ Container.prototype.setPositionUnits = function(id, units, callerId) {
     this.setPosition(id, pos, callerId)
 }
 
-const POSITIONABLE = new Set(['absolute','relative','fixed'])
 Container.prototype.canPosition = function(id) {
     let node = this.lookup(id)
     return POSITIONABLE.has(node.style.position)
