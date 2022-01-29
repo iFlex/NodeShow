@@ -2,7 +2,6 @@
  * Container Framework Module
  * @module Container 
  */
-import { convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
 import { queueWork } from './YeldingExecutor.js'
 import { ContainerException, ContainerOperationDenied } from './ContainerExcepitons.js'
 
@@ -291,21 +290,6 @@ export class Container {
 		this.index();
 		this.emit("Container.init", {presentationId:this.presentationId});
 	}
-
-    /**
-    * @summary Detects the measuring unit of a given value. e.g. px, %, et
-    * @param {string} val - the id or DOM object reference to check
-    * @returns {string} the measuring unit of the given value
-    */
-    //ToDo: make this regex
-    detectUnit(val) {
-        for (const unit of SUPPORTED_MEASURING_UNITS) {
-            if (val.endsWith(unit)) {
-                return unit
-            }
-        }
-        return undefined
-    }
     //</utils>
 
     //<hooks>   
@@ -658,166 +642,7 @@ export class Container {
         this.notifyUpdate(parent, callerId)
     }
     //</nesting>
-
-    #getPercentage(total, fraction) {
-        return fraction/total*100
-    }
-
-    #convertPixelHeight(node, height, unit) {
-        if (unit == '%') {
-            if (!node.parentNode) {
-                throw `Cannot convert to % height for a container with no parentNode`
-            }
-            return this.#getPercentage(this.getHeight(node.parentNode), height)
-        } else {
-            return convert(height, 'px', unit)
-        }
-    }
-
-    #convertPixelWidth(node, width, unit) {
-        if (unit == '%') {
-            if (!node.parentNode) {
-                throw `Cannot convert to % width for a container with no parentNode`
-            }
-            return this.#getPercentage(this.getWidth(node.parentNode), width)
-        } else {
-            return convert(width, 'px', unit)
-        }
-    }
-
-    convertPixelPos(node, pos, units) {
-        let result = {
-            top:0,
-            left:0
-        }
-
-        if (units.top == '%' || units.left == '%') {
-            if (!node.parentNode) {
-                throw `Cannot convert to % position for a container with no parentNode`
-            }
-        }
     
-        if (units.top == '%') {
-            result.top = this.#getPercentage(this.getHeight(node.parentNode), pos.top)    
-        } else {
-            result.top = convert(pos.top, 'px', units.top)
-        }
-        
-        if (units.left == '%') {
-            result.left = this.#getPercentage(this.getWidth(node.parentNode), pos.left)
-        } else {
-            result.left = convert(pos.left, 'px', units.left)
-        } 
-        return result
-    }
-
-    //<size>
-    //contextualise width and height based on type of element and wrapping
-    //[DOC] width is always expressed in pixels. If a unitOverride is provided, a conversion from pixels to the provided unit will be carried out before setting the result.
-	setWidth(id, width, callerId, emit) {
-        let elem = this.lookup(id)
-        let unit = elem.dataset.widthUnit || 'px'
-        if (unit !== 'px') {
-            width = this.#convertPixelWidth(elem, width, unit)    
-        }
-
-        this.setExplicitWidth(elem, width, unit, callerId, emit)        
-	}
-
-    setExplicitWidth(elem, width, unit, callerId, emit) {
-        this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
-        let prevWidth = this.getWidth(elem);
-        
-        if (unit == 'auto') {
-            width = ''
-        }
-        jQuery(elem).css({width: `${width}${unit}`});
-        if (emit != false) {
-            this.emit(ACTIONS.setWidth, {
-                id: elem.id, 
-                width: width, 
-                prevWidth: prevWidth,
-                callerId: callerId
-            });
-        }
-    }
-
-    setUnit(id, property, unit) {
-        if (!unit) {
-            return;
-        }
-
-        let elem = this.lookup(id)
-        if (!SUPPORTED_MEASURING_UNITS.has(unit)) {
-            throw `Unsupported measuring unit ${unit}`
-        }
-        elem.dataset[property] = unit
-    }
-
-    setWidthUnit(id, unit, callerId) {
-        this.setUnit(id, "widthUnit", unit)
-        let measurement = this.getWidth(id)
-        this.setWidth(id, measurement, callerId)
-    }
-
-    setHeightUnit(id, unit, callerId) {
-        this.setUnit(id, "heightUnit", unit)
-        let measurement = this.getHeight(id)
-        this.setHeight(id, measurement, callerId)
-    }
-
-	setHeight(id, height, callerId, emit) {
-        let elem = this.lookup(id);
-
-        let unit = elem.dataset.heightUnit || 'px'
-        if (unit !== 'px') {
-            height = this.#convertPixelHeight(elem, height, unit)    
-        }
-
-        this.setExplicitHeight(elem, height, unit, callerId, emit)
-    }
-
-    setExplicitHeight(elem, height, unit, callerId, emit) {
-        this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
-        
-        let prevHeight = this.getHeight(elem);
-        if (unit == 'auto') {
-            height = ''
-        }
-        jQuery(elem).css({height: `${height}${unit}`});
-        if (emit != false) {
-            this.emit(ACTIONS.setHeight, {
-                id: elem.id, 
-                height: height, 
-                prevHeight: prevHeight,
-                callerId: callerId
-            });
-        }
-    }
-    
-    getWidth(id, withMargin = false) {
-        if (withMargin) {
-            return jQuery(this.lookup(id)).outerWidth()    
-        }
-        return jQuery(this.lookup(id)).innerWidth()
-	}
-
-	getHeight(id, withMargin = false) {
-        if (withMargin) {
-            return jQuery(this.lookup(id)).outerHeight()
-        }
-        return jQuery(this.lookup(id)).innerHeight()
-	}
-
-    getContentHeight (id) {
-        return this.lookup(id).scrollHeight
-    }
-
-    getContentWidth (id) {
-        return this.lookup(id).scrollWidth
-    }
-    //</size>
-	
     setAngle(id, angle, originX, originY, callerId) {
         this.isOperationAllowed(ACTIONS.setAngle, id, callerId);
         let node = this.lookup(id)
@@ -865,64 +690,6 @@ export class Container {
             id:elem.id,
             callerId:callerId
         });
-    }
-
-    //get bounding box in absolute coordinates
-    //wonder if the browser is willing to give this up... rather than having to compute it in JS
-    getContentBoundingBox(id) {
-        let node = this.lookup(id)
-        let result = this.getPosition(node)
-        result.bottom = 0
-        result.right = 0
-
-        for (const child of node.children) {
-            let bbox = this.getBoundingBox(child)
-            if (result.right < bbox.right) {
-                result.right = bbox.right
-            }
-            if (result.bottom < bbox.bottom) {
-                result.bottom = bbox.bottom
-            }
-        }
-        return result;
-    }
-
-    getBoundingBox(id) {
-        let bbox = this.getPosition(id)
-        bbox.right = bbox.left + this.getWidth(id, true)
-        bbox.bottom = bbox.top + this.getHeight(id, true)
-        return bbox;
-    }
-
-    //[TODO][WARNING]Highly experimental!
-    fitVisibleContent(id, expandOnly, emit) {
-        let node = this.lookup(id)
-        let computedStyle = window.getComputedStyle(node)
-        let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
-        let paddingBottom = convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
-        
-        let w = node.scrollWidth + paddingRight
-        let h = node.scrollHeight + paddingBottom
-
-        let oldW = this.getWidth(node)
-        let oldH = this.getHeight(node)
-
-        let contentBbox = undefined
-        if (oldW < node.scrollWidth) {
-            this.setWidth(node, w)    
-        } else if (expandOnly != true){
-            contentBbox = this.getContentBoundingBox(node)
-            this.setWidth(node, contentBbox.right + paddingRight)
-        }
-
-        if (oldH < node.scrollHeight) {
-            this.setHeight(node, h)
-        } else if (expandOnly != true){
-            if (!contentBbox) {
-                contentBbox = this.getContentBoundingBox(node)
-            }
-            this.setHeight(node, contentBbox.bottom + paddingBottom)
-        }
     }
 
     //[TODO]: permissions

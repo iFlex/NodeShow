@@ -1,4 +1,4 @@
-import {Container, ACTIONS} from "./Container.js"
+import {Container} from "./Container.js"
 
 
 Container.prototype.getCamera = function(camId) {

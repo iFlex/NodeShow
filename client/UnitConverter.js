@@ -4,7 +4,12 @@ https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Values_and_un
 */
 export const SUPPORTED_MEASURING_UNITS = new Set(['px','%','el','auto'])
 
-function inferUnit(value) {
+/**
+* @summary Detects the measuring unit of a given value. e.g. px, %, et
+* @param {string} val - the id or DOM object reference to check
+* @returns {string} the measuring unit of the given value
+*/
+export function inferUnit(value) {
 	for (const unit of SUPPORTED_MEASURING_UNITS) {
 		if (value.endsWith(unit)) {
 		    return unit

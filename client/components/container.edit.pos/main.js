@@ -15,7 +15,7 @@ export class ContainerMover {
 	#touch = null
 
 	#handlers = {}
-	#passToAncestorExceptions = new Set(['ContainerOperationDenied'])
+	//#passToAncestorExceptions = new Set(['ContainerOperationDenied'])
 	#editableClass = 'editable:hover'
 	#selection = []
 

@@ -1,5 +1,6 @@
-import {Container, ACTIONS} from "./Container.js"
+import { Container, ACTIONS } from "./Container.js"
 import { ContainerOperationNotApplicable } from './ContainerExcepitons.js'
+import { inferUnit } from "./UnitConverter.js"
 
 const POSITIONABLE = new Set(['absolute','relative','fixed'])
 
@@ -69,8 +70,8 @@ Container.prototype.getTopCornerMargin = function(element) {
     let style = window.getComputedStyle(element);
     let marginTop = style.marginTop;
     let marginLeft = style.marginLeft;
-    let topUnit = this.detectUnit(marginTop);
-    let leftUnit = this.detectUnit(marginLeft);
+    let topUnit = inferUnit(marginTop);
+    let leftUnit = inferUnit(marginLeft);
 
     if (topUnit == '%') {
         marginTop = this.getHeight(element) * marginTop / 100 

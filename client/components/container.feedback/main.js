@@ -100,32 +100,32 @@ export class ContainerFeedback {
 
 	//[TODO]: show main loader rather than on every single container
 	markAsSyncing(id) {
-		// try {
-		// 	if (!this.#container.getMetadata(id, 'syncing')) {
-		// 		let clone = document.getElementById('nscf-infinite-loading-bar').cloneNode(true)
-		// 		clone.id = this.makeLoaderId(id)
-		// 		//use non container appendChild to avoid firing events about the loader
-		// 		this.#container.lookup(id).appendChild(clone)
-		// 		this.#container.setMetadata(id, 'syncing', true)
-		// 	}	
-		// } catch (e) {
-		// 	console.log(`${this.appId} failed to mark ${id} as syncing`)
-		// 	console.error(e)
-		// }
+		try {
+			if (!this.#container.getMetadata(id, 'syncing')) {
+				let clone = document.getElementById('nscf-infinite-loading-bar').cloneNode(true)
+				clone.id = this.makeLoaderId(id)
+				//use non container appendChild to avoid firing events about the loader
+				this.#container.lookup(id).appendChild(clone)
+				this.#container.setMetadata(id, 'syncing', true)
+			}	
+		} catch (e) {
+			console.log(`${this.appId} failed to mark ${id} as syncing`)
+			console.error(e)
+		}
 	}
 
 	onSynced(id) {
-		// delete this.#syncing[id]
-		// try {
-		// 	this.#container.setMetadata(id, 'syncing', false)
-		// 	//use non container appendChild to avoid firing events about the loader
-		// 	let loader = document.getElementById(this.makeLoaderId(id))
-		// 	if (loader) {
-		// 		loader.parentNode.removeChild(loader)
-		// 	}
-		// } catch (e) {
-		// 	console.log(`${this.appId} failed to mark ${id} as synced`)
-		// 	console.error(e)
-		// }
+		delete this.#syncing[id]
+		try {
+			this.#container.setMetadata(id, 'syncing', false)
+			//use non container appendChild to avoid firing events about the loader
+			let loader = document.getElementById(this.makeLoaderId(id))
+			if (loader) {
+				loader.parentNode.removeChild(loader)
+			}
+		} catch (e) {
+			console.log(`${this.appId} failed to mark ${id} as synced`)
+			console.error(e)
+		}
 	}
 }

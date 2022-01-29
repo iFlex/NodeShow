@@ -1,6 +1,7 @@
 import {Container} from "./Container.js";
 import "./container.serialization.js"
 import "./container.positioning.js";
+import "./container.sizing.js"
 import "./container.staticcontent.js";
 import "./container.actions.js";
 import "./container.summarize.js";

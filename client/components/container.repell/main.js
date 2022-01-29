@@ -1,7 +1,7 @@
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { queueWork } from '../../YeldingExecutor.js'
-import { ACTIONS } from '../../Container.js'
+//import { ACTIONS } from '../../Container.js'
 
 export class ContainerRepeller {
     appId = 'container.repell'
