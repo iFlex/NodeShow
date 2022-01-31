@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/socket-io.js"></script>
+    <script src="../libs/jquery.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>Test positioning under camera zoom!</title>
+  </head>
+  <body style="margin: 0px; padding:0px">
+
+</body>
+  <div id="nodeshow-interface" class="nodeshow-interface"></div>
+  <div id="nodeshow-content" class="nodeshow-content"></div>
+  <script type="module">
+    import { container } from "./test_core_setup.mjs";
+    import { ContainerSizer }             from "../components/container.edit.size/main.js"
+    import { ContainerMover }             from "../components/container.edit.pos/main.js"
+    import { TestMouseFollower } from "./components/mousefollower.js"
+
+    let cmover = new ContainerMover(container)
+    let csizer = new ContainerSizer(container)
+    let follow = new TestMouseFollower(container)
+
+    cmover.enable();
+    csizer.enable();
+    follow.enable();
+  </script>
+</html>
