@@ -132,6 +132,14 @@ export function findCommonStyleSubset(container, selection = []) {
 	return result
 }
 
+export function getTranslatedCursorPosition(x, y, container) {
+	let position = {x:x, y:y}
+	if (container.camera) {
+		return container.camera.viewPortToSurface(position.x, position.y)
+	}
+	return position
+}
+
 //TEMPORARY & EXPERIMENTAL
 export function positionVerticalMenu(container, interfNode, appId) {
 	try {

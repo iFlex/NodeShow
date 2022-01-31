@@ -93,7 +93,9 @@ export class ContainerSizer {
 			oy: `${e.position.y || 0}px`
 		}
 
-		this.container.camera.zoom(sign * 0.05, options)
+		if (this.container.camera) {
+			this.container.camera.zoom(sign * 0.05, options)
+		}
 	}
 
 	zoomRootCamera(target, details) {

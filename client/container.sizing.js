@@ -1,5 +1,8 @@
 import { Container, ACTIONS } from "./Container.js"
-import { convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
+import { ContainerOperationNotApplicable } from "./ContainerExcepitons.js"
+import { inferUnit, convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
+
+const NOT_SIZEABLE = new Set(['auto'])
 
 function getPercentage(total, fraction) {
     return fraction/total*100
@@ -53,12 +56,33 @@ Container.prototype.convertPixelPos = function(node, pos, units) {
     return result
 }
 
+Container.prototype.getUnit = function(id, property) {
+    let elem = this.lookup(id)
+    return elem.dataset[property]
+}
+
+Container.prototype.setWidthUnit = function(id, unit, callerId) {
+    this.setUnit(id, "widthUnit", unit)
+    let measurement = this.getWidth(id)
+    this.setWidth(id, measurement, callerId)
+}
+
+Container.prototype.setHeightUnit = function(id, unit, callerId) {
+    this.setUnit(id, "heightUnit", unit)
+    let measurement = this.getHeight(id)
+    this.setHeight(id, measurement, callerId)
+}
+
 //<size>
 //contextualise width and height based on type of element and wrapping
 //[DOC] width is always expressed in pixels. If a unitOverride is provided, a conversion from pixels to the provided unit will be carried out before setting the result.
 Container.prototype.setWidth = function(id, width, callerId, emit) {
     let elem = this.lookup(id)
     let unit = elem.dataset.widthUnit || 'px'
+    if (NOT_SIZEABLE.has(unit)) {
+        throw new ContainerOperationNotApplicable(id, 'setWidth')
+    }
+
     if (unit !== 'px') {
         width = convertPixelWidth(this, elem, width, unit)    
     }
@@ -73,6 +97,7 @@ Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emi
     if (unit == 'auto') {
         width = ''
     }
+    this.setUnit(elem, 'widthUnit', unit)
     jQuery(elem).css({width: `${width}${unit}`});
     if (emit != false) {
         this.emit(ACTIONS.setWidth, {
@@ -96,22 +121,13 @@ Container.prototype.setUnit = function(id, property, unit) {
     elem.dataset[property] = unit
 }
 
-Container.prototype.setWidthUnit = function(id, unit, callerId) {
-    this.setUnit(id, "widthUnit", unit)
-    let measurement = this.getWidth(id)
-    this.setWidth(id, measurement, callerId)
-}
-
-Container.prototype.setHeightUnit = function(id, unit, callerId) {
-    this.setUnit(id, "heightUnit", unit)
-    let measurement = this.getHeight(id)
-    this.setHeight(id, measurement, callerId)
-}
-
 Container.prototype.setHeight = function(id, height, callerId, emit) {
     let elem = this.lookup(id);
-
     let unit = elem.dataset.heightUnit || 'px'
+    if (NOT_SIZEABLE.has(unit)) {
+        throw new ContainerOperationNotApplicable(id, 'setHeight')
+    }
+
     if (unit !== 'px') {
         height = convertPixelHeight(this, elem, height, unit)    
     }
@@ -126,6 +142,7 @@ Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, e
     if (unit == 'auto') {
         height = ''
     }
+    this.setUnit(elem, 'heightUnit', unit)
     jQuery(elem).css({height: `${height}${unit}`});
     if (emit != false) {
         this.emit(ACTIONS.setHeight, {
@@ -165,6 +182,10 @@ Container.prototype.getContentWidth = function(id) {
 Container.prototype.getContentBoundingBox = function(id) {
     let node = this.lookup(id)
     let result = this.getPosition(node)
+    let positionTypes = new Set([])
+    let widthTypes = new Set([])
+    let heightTypes = new Set([])
+
     result.bottom = 0
     result.right = 0
 
@@ -176,7 +197,15 @@ Container.prototype.getContentBoundingBox = function(id) {
         if (result.bottom < bbox.bottom) {
             result.bottom = bbox.bottom
         }
+
+        positionTypes.add(child.style.position || "static")
+        widthTypes.add(inferUnit(child.style.width) || "auto")
+        heightTypes.add(inferUnit(child.style.height) || "auto")
     }
+
+    result.positionTypes = positionTypes
+    result.heightTypes = heightTypes
+    result.widthTypes = widthTypes
     return result;
 }
 
@@ -185,6 +214,10 @@ Container.prototype.getBoundingBox = function(id) {
     bbox.right = bbox.left + this.getWidth(id, true)
     bbox.bottom = bbox.top + this.getHeight(id, true)
     return bbox;
+}
+
+function decideFittingAction(units) {
+    //TODO: implement
 }
 
 //[TODO][WARNING]Highly experimental!
@@ -200,7 +233,7 @@ Container.prototype.fitVisibleContent = function(id, expandOnly, emit) {
     let oldW = this.getWidth(node)
     let oldH = this.getHeight(node)
 
-    let contentBbox = undefined
+    let contentBbox = this.getContentBoundingBox(node)
     if (oldW < node.scrollWidth) {
         this.setWidth(node, w)    
     } else if (expandOnly != true){

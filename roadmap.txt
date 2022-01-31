@@ -225,3 +225,38 @@ Performance Notes:
 mouseMove as of current implementation:
 Avg handler duration: 3.5ms
 MouseMove frequency: max 50hz
+
+
+
+
+
+fitContentRules:
+/* 1. DESCRIPTIVE */
+width: 300px;
+width: 25em;
+
+/* 2. RELATIVE */
+width: 75%;
+
+/* 3. CONTENT DETERMINED */
+width: fit-content(20em);
+width: auto;
+
+???
+/* Global values */
+width: max-content;
+width: min-content;
+width: inherit;
+width: initial;
+width: revert;
+width: unset;
+
+
+if at least one:
+    1. -> compute and set
+    3. -> compute and set (assuming content is present inside)
+
+if only of type:
+    1. -> compute and set
+    2. -> do nothing
+    3. -> set to auto

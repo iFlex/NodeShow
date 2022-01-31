@@ -51,13 +51,10 @@ function findAbsPos(obj, stopNode) {
     return [curleft,curtop];
 }
     
+//[TODO]: get rid of this function
 function findAbsolutePosition(obj, container) {
-    let pos = findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
-    // if (container.camera) {
-    //     let translated = container.camera.surfaceToViewPort(pos[0], pos[1])
-    //     return [translated.x, translated.y]
-    // }
-    return pos
+    //return findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
+    return findAbsPos(obj)
 }
 
 Container.prototype.localToGlobalPosition = function(id, x, y) {

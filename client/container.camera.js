@@ -65,18 +65,21 @@ export class Camera {
 
 
 	surfaceToViewPort(x,y) {
-		let zoomCoef = 1/this.#zoomLevel
+		let zoomCoef = this.#zoomLevel
+		let rect = this.#contentSurface.getBoundingClientRect();
 		return {
-			x: (x - this.#viewPort.scrollLeft) * zoomCoef, //this.#offsetLeft, 
-			y: (y - this.#viewPort.scrollTop) * zoomCoef  //this.#offsetTop
+			x: x * zoomCoef + rect.x,
+			y: y * zoomCoef + rect.y
 		}
 	}
 
 	viewPortToSurface(x,y) {
-		let zoomCoef = this.#zoomLevel
+		let zoomCoef = 1/this.#zoomLevel
+		let rect = this.#contentSurface.getBoundingClientRect();
+		console.log(`scrollTop: ${this.#viewPort.scrollTop} scrollLeft:${this.#viewPort.scrollLeft}`)
 		return {
-			x: (x - this.#viewPort.scrollLeft) * zoomCoef, //this.#offsetLeft, 
-			y: (y - this.#viewPort.scrollTop) * zoomCoef  //this.#offsetTop
+			x: (x - rect.x - this.#viewPort.scrollLeft) * zoomCoef,
+			y: (y - rect.y - this.#viewPort.scrollTop) * zoomCoef
 		}
 	}
 
@@ -117,6 +120,7 @@ export class Camera {
 	}
 
 	zoomTo (level, options = {speed:0}) {
+		this.recomputeOffsetsAfterZoom(level)
 		this.#zoomLevel = level
 		this.#contentSurface.style.transform = `scale(${level})`
 		this.#contentSurface.style.transformOrigin = `${options.ox || "50%"} ${options.oy || "50%"}`
@@ -146,5 +150,11 @@ export class Camera {
 
 	getViewport() {
 		return this.#viewPort
+	}
+
+	recomputeOffsetsAfterZoom(newLevel) {
+		let w = this.#container.getWidth(this.#contentSurface)
+		let h = this.#container.getHeight(this.#contentSurface)
+
 	}
 }

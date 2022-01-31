@@ -59,7 +59,7 @@ function handleStart(e) {
 			id:target.id,
 			dx: 0,
 			dy: 0,
-			position: {x:touch.pageX, y:touch.pageY},
+			position: getTranslatedCursorPosition(touch.pageX,touch.pageY,container),
 			moved: 0, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -81,7 +81,7 @@ function handleMove(e) {
 			id:target.id,
 			dx:dx,
 			dy:dy,
-			position: {x:touch.pageX, y:touch.pageY},
+			position: getTranslatedCursorPosition(touch.pageX,touch.pageY,container),
 			moved: moved, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -102,11 +102,13 @@ function handleCancel(e) {
 function handleEnd(e) {
 	if (target) {
 		e.preventDefault();
+		let position = getTranslatedCursorPosition(touch.pageX,touch.pageY,container);
+		
 		container.emit(EVENTS.DRAG_END,{
 			id:target.id,
 			dx: 0, //ToDo: incorrect
 			dy: 0,
-			position: {x:e.pageX, y:e.pageY},
+			position: position,
 			moved: moved,
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy, 
@@ -115,11 +117,11 @@ function handleEnd(e) {
 
 		if (moved <= FOCUS_TRESHOLD) {
 			container.emit('container.focus', {id:target.id})
-			container.emit(EVENTS.CLICK, {id:target.id, position: {x:e.pageX, y:e.pageY}, originalEvent:e})
+			container.emit(EVENTS.CLICK, {id:target.id, position: position, originalEvent:e})
 			//was click
 			let dnow = Date.now()
 			if (dnow - lastClickTime <= dblClickTreshold) {
-				container.emit(EVENTS.DOUBLE_CLICK, {id:target.id, position: {x:e.pageX, y:e.pageY}, originalEvent:e})
+				container.emit(EVENTS.DOUBLE_CLICK, {id:target.id, position: position, originalEvent:e})
 			}
 			lastClickTime = dnow
 		}
