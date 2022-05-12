@@ -20,7 +20,21 @@ var getStyle = function(e, styleName) {
   return parseInt(styleValue, 10);
 }
 
-function findAbsPos(obj, stopNode) {
+//operates in pixels only
+function findAbsPos(obj, stopNode, pos = [0,0]) {
+    console.log(pos)
+    if(!obj || !obj.getBoundingClientRect || (stopNode && obj == stopNode)) {
+        return pos
+    }
+
+    let bbox = obj.getBoundingClientRect()
+    pos[0] += bbox.left
+    pos[1] += bbox.top
+    return pos;
+    //return findAbsPos(obj.parentNode, stopNode, pos)
+}
+
+function findAbsPosSlow(obj, stopNode) {
     var curleft = 0;
     var curtop = 0;
     if(obj.offsetLeft) curleft += parseInt(obj.offsetLeft) + getStyle(obj, 'border-left-width');
@@ -32,16 +46,21 @@ function findAbsPos(obj, stopNode) {
     }
 
     if(obj.offsetParent) {
-        var pos = findAbsPos(obj.offsetParent, stopNode);
+        var pos = findAbsPosSlow(obj.offsetParent, stopNode);
         curleft += pos[0];
         curtop += pos[1];
     } else if(obj.ownerDocument) {
+        //console.log("ownerDocument")
         var thewindow = obj.ownerDocument.defaultView;
-        if(!thewindow && obj.ownerDocument.parentWindow)
+        if(!thewindow && obj.ownerDocument.parentWindow) {
+            //console.log("parentWindow")
             thewindow = obj.ownerDocument.parentWindow;
+        }
         if(thewindow) {
+            //console.log("noParentWindow")
             if(thewindow.frameElement) {
-                var abspos = findAbsPos(thewindow.frameElement, stopNode);
+                //console.log("frame elem")
+                var abspos = findAbsPosSlow(thewindow.frameElement, stopNode);
                 curleft += abspos[0];
                 curtop += abspos[1];
             }
@@ -52,7 +71,7 @@ function findAbsPos(obj, stopNode) {
 }
     
 //[TODO]: get rid of this function
-function findAbsolutePosition(obj, container) {
+function findAbsolutePosition(obj, referenceContainer) {
     //return findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
     return findAbsPos(obj)
 }
@@ -83,12 +102,16 @@ Container.prototype.getTopCornerMargin = function(element) {
 /**
  * @summary Sets a container's position
  * @description Position reference is always absolute pixels, the setPosition makes the translation to relative, percent or other types of positioning
-There should be an option to force absolute positioning force:true passed in the position argument
-ToDo: fix bug where absolute % doesn't work - caused by the height % being calculated as a lot lower than it should be
+   There should be an option to force absolute positioning force:true passed in the position argument
+   ToDo: fix bug where absolute % doesn't work - caused by the height % being calculated as a lot lower than it should be
     - seems like the page width and height that % calculations use are based on maybe viewport percentages rather than the actual document.body
     - the bug behaves differently depending on the final size of document.body (parent)
-ToDo: support more position types
- Absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower) 
+   ToDo: support more position types
+   Absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower) 
+
+   This positioning system uses a root container as a reference frame. This container is configurable via parameter and by default it is the document root.
+   The deeper the document, the slower these methods will be. In the future a workaround that uses the browser's internal computations for positioning should be used
+   rather than compute them in Javascript's Runtime Env.
  * @param {string} id - The id (or DOM Reference) of the DOM Object 
  * @param {object} position - object describing the new intended position
  * @param {string} callerId - the name of the caller of this method

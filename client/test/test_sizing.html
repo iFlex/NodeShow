@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/socket-io.js"></script>
+    <script src="../libs/jquery.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>This is the title of the webpage!</title>
+  </head>
+  <body style="margin: 0px; padding:0px">
+<div id="1" data-child-style="{}" data-abstraction-level="0" style="z-index: 25; position: absolute; width: 758px; height: 628px; margin: 5px; padding: 5px; background-color: rgb(131, 122, 117); top: 15px; left: 38px; border-width: 20px; border-style: outset; border-color: black;" data-width-unit="px" data-height-unit="px" class="ns-selected"><div id="2" data-child-style="{}" style="z-index: 26; position: absolute; width: 607px; height: 468px; margin: 5px; padding: 5px; background-color: rgb(172, 193, 138); top: 71px; left: 41px;"><div id="3" data-child-style="{}" style="z-index: 27; position: absolute; width: 406px; height: 344px; margin: 5px; padding: 5px; background-color: rgb(218, 254, 183); top: 8px; left: 23px; border-style: outset; border-width: 5px; border-color: black;"></div></div></div>
+</body>
+<!-- CORE -->
+  <script type="module" src="nodeshow.js"></script>
+  <script type="module">
+    import { container } from '../nodeshow.js'
+    let excount = 20
+    let positions = {}
+    function step() {
+        let containers = ["1","2","3"];
+        for (const id of containers) {
+            let w = container.getWidth(id, false)
+            let h = container.getHeight(id, false)
+            
+            container.setWidth(id, w)
+            container.setHeight(id, h)
+            let p_w = container.getWidth(id)
+            let p_h = container.getHeight(id)
+            
+            let deltaW = p_w - w
+            let deltaH = p_h - h
+            if( deltaW != 0 || deltaH  != 0) {
+              console.error(`Node ${id} has changed size and it shouldn't have. deltaHeight:${deltaH} deltaWidth:${deltaW}`)
+            }
+        }
+
+        excount--;
+        if (excount > 0)
+          setTimeout(step, 1000)
+    }
+    
+    alert("start?")
+    setTimeout(step, 1000)
+  </script>
+</html>

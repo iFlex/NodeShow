@@ -4,6 +4,11 @@ import { inferUnit, convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from
 
 const NOT_SIZEABLE = new Set(['auto'])
 
+/**
+ * Warning: the sizing code isn't completely stable. It is currently failing the test of e.setWidth(e.getWidth()) 
+ * where the dimension of the obejct should not change
+*/
+
 function getPercentage(total, fraction) {
     return fraction/total*100
 }
