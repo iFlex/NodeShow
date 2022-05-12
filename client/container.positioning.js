@@ -21,19 +21,19 @@ var getStyle = function(e, styleName) {
 }
 
 //operates in pixels only
-function findAbsPos(obj, stopNode, pos = [0,0]) {
+function findAbsPos(obj, pos = [0,0]) {
     console.log(pos)
-    if(!obj || !obj.getBoundingClientRect || (stopNode && obj == stopNode)) {
-        return pos
+    if(!obj || !obj.getBoundingClientRect) {
+        return pos //[null, null]
     }
 
     let bbox = obj.getBoundingClientRect()
     pos[0] += bbox.left
     pos[1] += bbox.top
-    return pos;
-    //return findAbsPos(obj.parentNode, stopNode, pos)
+    return pos
 }
 
+//Old and problematic. Should be retired
 function findAbsPosSlow(obj, stopNode) {
     var curleft = 0;
     var curtop = 0;
