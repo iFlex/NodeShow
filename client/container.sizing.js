@@ -169,27 +169,37 @@ Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, e
 }
 
 Container.prototype.getWidth = function(id, withMargin = false) {
+    let node = this.lookup(id)
+    let rect = node.getBoundingClientRect()
+    
     if (withMargin) {
-        return jQuery(this.lookup(id)).outerWidth()    
+        //return jQuery(this.lookup(id)).outerWidth()    
+        return rect.width
     }
 
-    let node = this.lookup(id)
     let style = window.getComputedStyle(node, null)
     let pleft = readAsPixels(style.getPropertyValue('padding-left'))
     let pright = readAsPixels(style.getPropertyValue('padding-right'))
-    return jQuery(node).innerWidth() - pleft - pright;
+    let bleft = readAsPixels(style.getPropertyValue('border-left-width'))
+    let bright = readAsPixels(style.getPropertyValue('border-right-width'))
+    return rect.width - pleft - pright - bleft - bright;
 }
 
 Container.prototype.getHeight = function(id, withMargin = false) {
+    let node = this.lookup(id)
+    let rect = node.getBoundingClientRect()
+    
     if (withMargin) {
-        return jQuery(this.lookup(id)).outerHeight()
+        //return jQuery(this.lookup(id)).outerHeight()
+        return rect.height
     }
     
-    let node = this.lookup(id)
     let style = window.getComputedStyle(node, null)
     let pleft = readAsPixels(style.getPropertyValue('padding-top'))
     let pright = readAsPixels(style.getPropertyValue('padding-bottom'))
-    return jQuery(node).innerHeight() - pleft - pright;
+    let bleft = readAsPixels(style.getPropertyValue('border-top-width'))
+    let bright = readAsPixels(style.getPropertyValue('border-bottom-width'))
+    return rect.height - pleft - pright - bleft - bright;
 }
 
 Container.prototype.getContentHeight = function(id) {

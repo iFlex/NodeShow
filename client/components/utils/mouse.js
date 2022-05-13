@@ -29,6 +29,9 @@ let dblClickTreshold = 300;
 let lastClickTime = 0;
 let lastClickedButton = null;
 
+let UniformPosX = "pageX"//"screenX"//
+let UniformPosY = "pageY"//"screenY"//
+
 export const EVENTS = {
 	'DOWN':'mouse.down',
 	'MOVE':'mouse.move',
@@ -63,7 +66,7 @@ function mouseDown(e) {
 			id:target.id,
 			dx: 0,
 			dy: 0,
-			position: getTranslatedCursorPosition(e.pageX, e.pageY, container),
+			position: getTranslatedCursorPosition(e[UniformPosX], e[UniformPosY], container),//(e.pageX, e.pageY, container),
 			moved: 0, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -86,7 +89,7 @@ function mouseMove(e) {
 			id:target.id,
 			dx:dx,
 			dy:dy,
-			position: getTranslatedCursorPosition(e.pageX, e.pageY, container),
+			position: getTranslatedCursorPosition(e[UniformPosX], e[UniformPosY], container),//(e.pageX, e.pageY, container),
 			moved: moved, 
 			targetOx: targetMetadata.targetOx,
 			targetOy: targetMetadata.targetOy,
@@ -105,7 +108,7 @@ function mouseUp(e) {
 	
 	if (target) {
 		clickTarget = target
-		let position = getTranslatedCursorPosition(e.pageX, e.pageY, container)
+		let position = getTranslatedCursorPosition(e[UniformPosX], e[UniformPosY], container)//(e.pageX, e.pageY, container),
 		container.emit('drag.end',{
 			id:target.id,
 			dx: 0, //ToDo: incorrect

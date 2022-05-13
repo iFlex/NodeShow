@@ -312,12 +312,13 @@ export class ContainerTextInjector {
 		}	
 
 		this.cursor.setTarget(this.target)
+		this.container.show(this.#interface, this.appId)
+		
 		let pos = this.container.getPosition(this.target)
 		//set interface position
 		pos.originX = 0.0
 		pos.originY = 1.0
 		this.container.setPosition(this.#interface, pos, this.appId)
-		this.container.show(this.#interface, this.appId)
 		this.#interface.style['min-width'] = this.container.getWidth(this.target)
 		
 		//bring up interface
@@ -853,9 +854,9 @@ export class ContainerTextInjector {
 		let globalPosition = this.container.localToGlobalPosition(localTarget, localPosition.left, localPosition.top)
 		let unitHeight = this.container.getHeight(localTarget)
 
-		this.container.setPosition(blinker, {top:globalPosition.y,left:globalPosition.x}, this.appId)
-		this.container.setHeight(blinker, unitHeight, this.appId)
 		this.container.show(blinker, this.appId)
+		this.container.setPosition(blinker, globalPosition, this.appId)
+		this.container.setHeight(blinker, unitHeight, this.appId)
 		this.container.bringToFront(blinker, this.appId)
 	}
 

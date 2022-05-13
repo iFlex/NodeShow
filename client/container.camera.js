@@ -131,6 +131,7 @@ export class Camera {
 	zoom (delta, options = {speed:0}) {
 		this.#zoomLevel += delta
 		this.zoomTo(this.#zoomLevel, options)
+		console.log(this.#container.getPosition(this.#contentSurface))
 	}
 
 	getZoomLevel () {

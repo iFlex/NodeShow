@@ -133,7 +133,9 @@ export function findCommonStyleSubset(container, selection = []) {
 }
 
 export function getTranslatedCursorPosition(x, y, container) {
-	let position = {x:x, y:y}
+	let rootPos = container.localToGlobalPosition(container.parent, x, y)
+	let position = {x:rootPos.left, y:rootPos.top} 
+	
 	if (container.camera) {
 		return container.camera.viewPortToSurface(position.x, position.y)
 	}

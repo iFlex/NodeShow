@@ -110,11 +110,11 @@ Container.prototype.getRelativePositionOffset = function(node) {
     return {dx: pleft + bleft, dy: ptop + btop}
 }
 
-//[TODO]: this doesn't really work
+//[TODO]: fix
 Container.prototype.localToGlobalPosition = function(id, x, y) {
     let node = this.lookup(id)
-    let pos = findAbsolutePosition(node, this)
-    return {x: pos[0] + x, y: pos[1] + y}
+    let result = findAbsPos(node, [x,y])
+    return {left: result[0], top: result[1]}
 }
 
 /**
