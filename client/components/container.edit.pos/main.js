@@ -91,7 +91,7 @@ export class ContainerMover {
 			originX: targetOx,
 			originY: targetOy
 		}
-
+		console.log(newPos)
 		this.container.setPosition(target, newPos, this.appId)
 		// try {
 		// 	this.container.callUntilAllowed(target, "setPosition", [target, newPos, this.appId],this.#passToAncestorExceptions,this.appId);

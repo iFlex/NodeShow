@@ -297,6 +297,7 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     
     this.updateZindexLimits(child)
     Container.applyPostHooks(this, 'update', [child, rawDescriptor, callerId, emit])
+    
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit != false) {

@@ -39,8 +39,8 @@ Container.prototype.collapse = function(id, callerId) {
     let maxAbsLevels = this.getAbstractionLevels(node)
 
     if (currentLvl < maxAbsLevels) {
-        this.setCurrentContentAbstractionLevel(node, currentLvl + 1)
-        this.notifyUpdate(node)
+        this.setCurrentContentAbstractionLevel(node, currentLvl + 1, callerId)
+        this.notifyUpdate(node, callerId)
         return true;
     } 
     return false;
@@ -58,8 +58,8 @@ Container.prototype.expand = function(id, callerId) {
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
     
     if (currentLvl > 0) {
-        this.setCurrentContentAbstractionLevel(node, currentLvl - 1)
-        this.notifyUpdate(node)
+        this.setCurrentContentAbstractionLevel(node, currentLvl - 1, callerId)
+        this.notifyUpdate(node, callerId)
     }
 }
 
@@ -79,7 +79,7 @@ Container.prototype.getAbstractionLevels = function(c) {
  * @description [TODO]
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  */
-Container.prototype.createAbstractionLevel = function(c) {
+Container.prototype.createAbstractionLevel = function(c, callerId) {
     let node = this.lookup(c);
     let maxAbsLevels = this.getAbstractionLevels(node);
     
@@ -89,7 +89,7 @@ Container.prototype.createAbstractionLevel = function(c) {
     }
 
     node.dataset[C_TOT_ABS_LVLS] = maxAbsLevels + 1
-    this.notifyUpdate(node)
+    this.notifyUpdate(node, callerId)
     return maxAbsLevels
 }
 
@@ -99,7 +99,7 @@ Container.prototype.createAbstractionLevel = function(c) {
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  * @param {number} level - The index of the abstraction level to remove
  */
-Container.prototype.removeAbstractionLevel = function(c, lvl) {
+Container.prototype.removeAbstractionLevel = function(c, lvl, callerId) {
     let node = this.lookup(c);
     let maxAbsLevels = this.getAbstractionLevels(node);
 
@@ -114,7 +114,7 @@ Container.prototype.removeAbstractionLevel = function(c, lvl) {
             this.setAbstractionLevel(child, i - 1)
         }
     }
-    this.notifyUpdate(node)
+    this.notifyUpdate(node, callerId)
 }
 
 /**
@@ -122,13 +122,13 @@ Container.prototype.removeAbstractionLevel = function(c, lvl) {
  * @description Effectively the container will on longer have any abstraction.
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  */
-Container.prototype.removeAllAbstraction = function(c) {
+Container.prototype.removeAllAbstraction = function(c, callerId) {
     let node = this.lookup(c);
 
     node.dataset[C_TOT_ABS_LVLS] = 0;
     node.dataset[C_ABS_LVL] = 0
     removeAll(this, node)
-    this.notifyUpdate(node)
+    this.notifyUpdate(node, callerId)
 }
 
 /**
@@ -151,8 +151,8 @@ Container.prototype.setCurrentContentAbstractionLevel = function(c, lvl, callerI
 
     node.dataset[C_ABS_LVL] = lvl
 
-    updateDisplayedAbstractionLevel(this, node, lvl)
-    this.notifyUpdate(node)
+    updateDisplayedAbstractionLevel(this, node, lvl, callerId)
+    this.notifyUpdate(node, callerId)
 }
 
 /**
@@ -224,7 +224,7 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
     } else {
         this.hide(node)
     }
-    this.notifyUpdate(node)
+    this.notifyUpdate(node, callerId)
 }
 
 /**
@@ -238,35 +238,37 @@ Container.prototype.getAbstractionLevel = function(c) {
     return parseInt(node.dataset[ABS_LVL] || 0)
 }
 
-//[TODO]: figure out what causes the event look feedback
+//[TODO]: check if events are still leaking
 Container.registerPostSetterHook('new', setUnignorableDataFields);
 Container.registerPostSetterHook('create', applyAbstractionView);
 Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbsLevel);
-//Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
+Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
-function setChildAbsLevelToParentContentAbsLevel(child, parent, force=true) {
+function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, ignore2, force=true) {
     //set current abstraction level based on the parent if abstraction level absent
     let currentLevel = this.getAbstractionLevel(child)
     let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
     if (force || (currentLevel == 0 && parentContentAbstractionLevel > 0)) {
-        this.setAbstractionLevel(child, parentContentAbstractionLevel)
+        this.setAbstractionLevel(child, parentContentAbstractionLevel, callerId)
     }
 }
 
-function applyAbstractionView(pid, node) {
+//missing callerId here causing bugs in consisntency accross instances...
+//needs a better solution for passing CallerID in general
+function applyAbstractionView(pid, node, callerId) {
     //content abstraction
     let maxLvl = this.getAbstractionLevels(node)
     if (maxLvl > 0) {
         let lvl = this.getCurrentContentAbstractionLevel(node)
-        updateDisplayedAbstractionLevel(this, node, lvl)
+        updateDisplayedAbstractionLevel(this, node, lvl, callerId)
     }
 
-    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, false])
+    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, null, false])
 }
 
-function applyAbstractionViewOnUpdate(node) {
-    applyAbstractionView.apply(this, [null, node])
+function applyAbstractionViewOnUpdate(node, rawDescriptor, callerId, emit) {
+    applyAbstractionView.apply(this, [node.parentNode.id, node, callerId])
 }
 
 function setUnignorableDataFields() {
@@ -295,12 +297,12 @@ function removeLevel(ctx, node, lvl) {
     }
 }
 
-function updateDisplayedAbstractionLevel(ctx, node, lvl) {
+function updateDisplayedAbstractionLevel(ctx, node, lvl, callerId) {
     for (const child of node.children) {
         if (lvl == ctx.getAbstractionLevel(child)) {
-            ctx.show(child)
+            ctx.show(child, callerId)
         } else {
-            ctx.hide(child)
+            ctx.hide(child, callerId)
         }
     }
 

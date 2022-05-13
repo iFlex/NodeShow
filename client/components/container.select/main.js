@@ -4,6 +4,7 @@ import { ContainerOverlap } from '../utils/overlap.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //[BUG]: selecting upwards no longer works - fix plz :(
+//[REQUIREMENT]: the positioning origin for the coordinates in the event must match the positioning origin for .getPos and .setPos
 export class ContainerSelect {
 	#container = null;
 	appId = "container.select"
@@ -127,7 +128,8 @@ export class ContainerSelect {
 			pos.top = py;
 		}
 
-		this.#container.setPosition(this.#selector, pos, this.appId);
+		//[TODO]: reintante and fix selection
+		//this.#container.setPosition(this.#selector, pos, this.appId);
 		this.#container.setWidth(this.#selector, w, this.appId)
 		this.#container.setHeight(this.#selector, h, this.appId)
 	}

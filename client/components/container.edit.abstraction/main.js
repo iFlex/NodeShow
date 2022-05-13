@@ -4,6 +4,7 @@ import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 //[TODO]:
 //        add function trigger editing existing abstraction level (call start())
 //        add visualisation of how much abstraction each container has + ability to random access any of them / edit any of them
+//[BUG]: fails to work when in collaboration mode (probably due to bad logic and event leakage)
 
 export class ContainerEditAbstraction {
     appId = 'container.edit.abstraction'
@@ -121,7 +122,7 @@ export class ContainerEditAbstraction {
 
         for (const e of existing) {
             this.#container.setParent(e.id, this.#preview.id, this.appId)
-            this.#container.setAbstractionLevel(e, 0)
+            this.#container.setAbstractionLevel(e, 0, this.appId)
         }
 
         return this.#preview
@@ -156,7 +157,7 @@ export class ContainerEditAbstraction {
 
             for (const e of toMove) {
                 this.#container.setParent(e.id, this.target.id, this.appId)
-                this.#container.setAbstractionLevel(e, this.#newLevel)
+                this.#container.setAbstractionLevel(e, this.#newLevel, this.appId)
             }
         }
 
@@ -172,7 +173,7 @@ export class ContainerEditAbstraction {
         this.target = this.findClosestDiv(target || this.target || this.#hoverTarget)
         if (this.target) {
             if(!this.#container.collapse(this.target, this.appId)) {
-                this.#container.createAbstractionLevel(target)
+                this.#container.createAbstractionLevel(target, this.appId)
                 this.start(this.target, this.#container.getAbstractionLevels(this.target))
             }
         }

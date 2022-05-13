@@ -107,7 +107,8 @@ export class ContainerGrouping {
 			pos.top = py;
 		}
 
-		this.#container.setPosition(this.#grouper, pos, this.appId);
+		//[TODO]: reintante and fix selection
+		//this.#container.setPosition(this.#grouper, pos, this.appId);
 		this.#container.setWidth(this.#grouper, w, this.appId)
 		this.#container.setHeight(this.#grouper, h, this.appId)
 	}

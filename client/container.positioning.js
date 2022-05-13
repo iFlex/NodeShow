@@ -3,7 +3,16 @@ import { ContainerOperationNotApplicable } from './ContainerExcepitons.js'
 import { inferUnit } from "./UnitConverter.js"
 
 const POSITIONABLE = new Set(['absolute','relative','fixed'])
+/**
+ * ToDo: - check if it passes the get then set test where the position shouldn't change.
+ *       - look into getBoundingClientRect()'s viewport perspective. i.e. will it work with transforms? 
+ *         do we need special changes for the camera?
+ * 
+ * BUG: When using setPosition the border of the target element can offset the positioning
+ * BUG: Scrolled root messes with position, for some friggin reason (despite getBoundingClientRect() claiming to take that into account...)
+*/
 
+//Old and problematic. Should be retired
 /** This is a description of the foo function. */
 //Stolen from stack overflow because I was hoping to get this directly from the browser somehow.
 //ToDo: find a way to simplify this
@@ -20,20 +29,6 @@ var getStyle = function(e, styleName) {
   return parseInt(styleValue, 10);
 }
 
-//operates in pixels only
-function findAbsPos(obj, pos = [0,0]) {
-    console.log(pos)
-    if(!obj || !obj.getBoundingClientRect) {
-        return pos //[null, null]
-    }
-
-    let bbox = obj.getBoundingClientRect()
-    pos[0] += bbox.left
-    pos[1] += bbox.top
-    return pos
-}
-
-//Old and problematic. Should be retired
 function findAbsPosSlow(obj, stopNode) {
     var curleft = 0;
     var curtop = 0;
@@ -69,49 +64,70 @@ function findAbsPosSlow(obj, stopNode) {
 
     return [curleft,curtop];
 }
-    
+
+
+function readAsPixels(stringValue) {
+    if (stringValue.endsWith('px')) {
+        return parseFloat(stringValue.substring(0, stringValue.length - 2))
+    }
+
+    console.error(`Failed to read string value ${stringValue} as pixels`)
+    return 0;
+}
+
+//operates in pixels only
+/**
+ * This positioning system uses a root container as a reference frame. This container is configurable via parameter and by default it is the document root.
+   The deeper the document, the slower these methods will be. In the future a workaround that uses the browser's internal computations for positioning should be used
+   rather than compute them in Javascript's Runtime Env.
+ */
+function findAbsPos(obj, pos = [0,0]) {
+    if(!obj || !obj.getBoundingClientRect) {
+        return pos //[null, null]
+    }
+
+    let bbox = obj.getBoundingClientRect()
+    pos[0] += bbox.left
+    pos[1] += bbox.top
+    return pos
+}
+   
 //[TODO]: get rid of this function
 function findAbsolutePosition(obj, referenceContainer) {
     //return findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
     return findAbsPos(obj)
 }
 
+
+//TODO: imperfect, this assumes equal border/parring/margin
+Container.prototype.getRelativePositionOffset = function(node) {
+    let style = window.getComputedStyle(node, null)
+    let pleft = readAsPixels(style.getPropertyValue('padding-left'))
+    let ptop = readAsPixels(style.getPropertyValue('padding-top'))
+    let bleft = readAsPixels(style.getPropertyValue('border-left-width'))
+    let btop = readAsPixels(style.getPropertyValue('border-top-width'))
+    
+    return {dx: pleft + bleft, dy: ptop + btop}
+}
+
+//[TODO]: this doesn't really work
 Container.prototype.localToGlobalPosition = function(id, x, y) {
     let node = this.lookup(id)
     let pos = findAbsolutePosition(node, this)
     return {x: pos[0] + x, y: pos[1] + y}
 }
 
-Container.prototype.getTopCornerMargin = function(element) {
-    let style = window.getComputedStyle(element);
-    let marginTop = style.marginTop;
-    let marginLeft = style.marginLeft;
-    let topUnit = inferUnit(marginTop);
-    let leftUnit = inferUnit(marginLeft);
-
-    if (topUnit == '%') {
-        marginTop = this.getHeight(element) * marginTop / 100 
-    }
-    if (leftUnit == '%') {
-        marginLeft = this.getWidth(element) * marginLeft / 100
-    }
-
-    return {top: parseInt(marginTop.replace(topUnit,""),10), left: parseInt(marginLeft.replace(leftUnit,""))}
-}
-
 /**
  * @summary Sets a container's position
- * @description Position reference is always absolute pixels, the setPosition makes the translation to relative, percent or other types of positioning
+ * @description Position reference is always absolute pixels (absolute with the origin being the main vewport: i.e. the screen), 
+ * the setPosition makes the translation to relative, percent or other types of positioning
    There should be an option to force absolute positioning force:true passed in the position argument
    ToDo: fix bug where absolute % doesn't work - caused by the height % being calculated as a lot lower than it should be
     - seems like the page width and height that % calculations use are based on maybe viewport percentages rather than the actual document.body
     - the bug behaves differently depending on the final size of document.body (parent)
    ToDo: support more position types
-   Absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower) 
-
-   This positioning system uses a root container as a reference frame. This container is configurable via parameter and by default it is the document root.
-   The deeper the document, the slower these methods will be. In the future a workaround that uses the browser's internal computations for positioning should be used
-   rather than compute them in Javascript's Runtime Env.
+   Browser absolute position is absolute in the sense that each element's origin point is the top left of its parent element. (margin and border and padding can push that lower) 
+   
  * @param {string} id - The id (or DOM Reference) of the DOM Object 
  * @param {object} position - object describing the new intended position
  * @param {string} callerId - the name of the caller of this method
@@ -129,18 +145,21 @@ Container.prototype.setPosition = function(id, position, callerId, force = false
     }
     //do position translation (even if the positioning is absolute, it still uses the parent x,y as the origin point)
     let parentPos = this.getPosition(elem.parentNode || this.parent)
+    
+    //New compensation style
+    let offsets = this.getRelativePositionOffset(elem.parentNode)
+    parentPos.top += offsets.dy
+    parentPos.left += offsets.dx
+
+    //Convert to relative position with origin=parent
     position.top -= parentPos.top
     position.left -= parentPos.left
-    
-    //remove margin offset
-    let margins = this.getTopCornerMargin(elem, position)
-    position.top -= margins.top
-    position.left -= margins.left
 
-    //use origin based placement
+    //In case the position is percentual:
     position.left -= (position.originX || 0) * this.getWidth(elem)
     position.top -= (position.originY || 0) * this.getHeight(elem)
 
+    //Unit conversion
     let leftUnit = elem.dataset.leftUnit || 'px'
     let topUnit = elem.dataset.topUnit  || 'px'
     position = this.convertPixelPos(elem, position, {top:topUnit, left:leftUnit})
@@ -154,7 +173,7 @@ Container.prototype.setPosition = function(id, position, callerId, force = false
 }
 
 /**
- * @summary Returns the absolute pixel position of the DOM element referenced by the argument.
+ * @summary Returns the absolute pixel position of the DOM element referenced by the argument. The reference for the absolute position is the main viewport i.e. the screen
  * @description [TODO]
  * @param {string} id - The id (or DOM Reference) of the DOM Object
  * @returns the position of the referenced container. 

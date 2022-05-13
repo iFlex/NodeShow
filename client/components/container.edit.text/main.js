@@ -207,7 +207,7 @@ export class ContainerTextInjector {
 	enable() {
 		if (!this.#enabled) {
 			for (const [key, value] of Object.entries(this.#handlers)) {
-				this.container.addEventListener(key, value)
+				this.container.addEventListener(key, value, this.appId)
 			}
 			document.addEventListener("selectionchange", this.#handlers['selectionchange'])
 			this.#enabled = true
@@ -218,7 +218,7 @@ export class ContainerTextInjector {
 		if (this.#enabled) {
 			this.stop();
 			for (const [key, value] of Object.entries(this.#handlers)) {
-				this.container.removeEventListener(key, value)
+				this.container.removeEventListener(key, value, this.appId)
 			}
 			document.removeEventListener("selectionchange", this.#handlers['selectionchange'])
 			this.container.hide(this.#interface, this.appId)
@@ -321,7 +321,7 @@ export class ContainerTextInjector {
 		this.#interface.style['min-width'] = this.container.getWidth(this.target)
 		
 		//bring up interface
-		this.container.bringToFront(this.#interface)
+		this.container.bringToFront(this.#interface, this.appId)
 		this.container.show(this.#cursorDiv, this.appId)
 		this.container.bringToFront(this.#cursorDiv, this.appId)
 

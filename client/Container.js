@@ -97,7 +97,7 @@ export class Container {
         'create',   //params: ParentId, Child Node, CallerId
         'update',   //params: DOM node, update descriptor, callerId
         'style',    //params: DOM node, style descriptor, callerId
-        'setParent' //params: DOME node, new parent DOM node, prev parent Id, callerId
+        'setParent' //params: DOME node, new parent DOM node, callerId, options, prev parent Id
     ])
     static #preSetterHooks = {}
     static #postSetterHooks = {}
@@ -273,6 +273,7 @@ export class Container {
                     presentationId: this.presentationId, 
                     parentId: (item.parentNode || this.root).id, 
                     id: item.id
+                    //TODO: add caller id somehow
                 });
             }
 		} while(index < queue.length)
@@ -288,11 +289,18 @@ export class Container {
 		//ToDo: check element type and enforce dom object
 		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
 		this.index();
-		this.emit("Container.init", {presentationId:this.presentationId});
+        this.emit("Container.init", {
+            presentationId:this.presentationId,
+            //TODO: add caller_id somehow    
+        });
 	}
     //</utils>
 
     //<hooks>   
+    //WARNING: This system is incredibly easy to missuse. 
+    // 1. it is critical that every wook you implement passes down the CallerId it is given
+    // 2. need to be very careful with the parameter as they are not named and are positional (for performance reasons)
+    //    making it very easy to omit or even have a parameter loaded with an unexpected value
     /**
     * @summary Registers a method to be called before the normal operation of a setter method from core functionality.
     * @param {string} setter - setter name
@@ -517,7 +525,8 @@ export class Container {
 
         console.log(`Registered ${name}`);
         this.emit(ACTIONS.componentAdded, {
-            name: name
+            name: name,
+            //TODO: add callerId somehow
         }) 
     }
 
@@ -526,7 +535,8 @@ export class Container {
         delete this.components[component.appId]
         console.log(`Unregistered component ${component.appId}`)
         this.emit(ACTIONS.componentRemoved, {
-            name: component.appId
+            name: component.appId,
+            //TODO: add callerId somehow
         }) 
     }
 
@@ -654,14 +664,13 @@ export class Container {
             id:node.id, 
             //prevAngle:prevAngle,
             // prevOrigin:{
-
             // },
             angle: angle,
             origin:{
                 originX: originX,
                 originY: originY
             },
-            callerId:id
+            callerId:callerId
         })
     }
 
@@ -707,7 +716,10 @@ export class Container {
 
         Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
         if(emit != false) {
-            this.emit(ACTIONS.update, {id:child.id, changes:{"computedStle":style}, callerId:callerId})
+            this.emit(ACTIONS.update, {
+                id:child.id, 
+                changes:{"computedStle":style}, 
+                callerId:callerId})
         }
     }
 
@@ -722,6 +734,14 @@ export class Container {
             if (value == null || value == currentValue) {
                 child.style.removeProperty(tag)
             }
+        }
+
+        Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
+        if(emit != false) {
+            this.emit(ACTIONS.update, {
+                id:child.id, 
+                changes:{"computedStle":style}, 
+                callerId:callerId})
         }        
     }
 
@@ -867,32 +887,34 @@ export class Container {
         }
     }
 
-    bringToFront(id) {
+    bringToFront(id, callerId) {
         let node = this.lookup(id)
         this.#currentMaxZindex++;
         node.style.zIndex = `${this.#currentMaxZindex}`
 
         this.emit(ACTIONS.bringToFront, {
-            id: id
+            id: id,
+            callerId: callerId
         }) 
-        this.notifyUpdate(node)
+        this.notifyUpdate(node, callerId)
     }
 
-    sendToBottom(id) {
+    sendToBottom(id, callerId) {
         let node = this.lookup(id)
         this.#currentMinZindex--;
         node.style.zIndex = `${this.#currentMinZindex}` 
 
         this.emit(ACTIONS.sendToBack, {
-            id: id
+            id: id,
+            callerId: callerId
         }) 
-        this.notifyUpdate(node)
+        this.notifyUpdate(node, callerId)
     }
 
-    setZIndex(id, index) {
+    setZIndex(id, index, callerId) {
         let node = this.lookup(id)
         node.style.zIndex = `${index}` 
-        this.notifyUpdate(node)
+        this.notifyUpdate(node, callerId)
     }
 
     setMetadata (id, key, value) {
@@ -943,6 +965,7 @@ export class Container {
         return e
     }
 
+    //Experimental
     callUntilAllowed(id, methodName, parameters, expectedExceptionsSet, callerId, stopNode = this.parent, exactMatch = false) {
         if (!this.#callUntilAllowedAbleMethods.has(methodName)) {
             throw new ContainerException(id,"callUntilAllowed",callerId,`${methodName} can't be called until allowed`)
@@ -975,6 +998,10 @@ export class Container {
 
     //<events>
     notifyUpdate(id, callerId, subset) {
+        if (!callerId) {
+            throw `Failed to notifyUpdate, no caller id provided...`
+        }
+
         let node = (id) ? this.lookup(id) : this.parent
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId, subset:subset})
     }
@@ -985,6 +1012,11 @@ export class Container {
     // updating can be very slow. E.g. moving a 5K content node container on screen works just fine with defferred=false and lags behind with deffered=true
     // - defferred - is an important performance consideration
     emit(type, details, deffered=false) {
+        // if (!details.callerId) {
+        //     console.error(details)
+        //     throw `Missing mandatory caller_id in event ${type}`
+        // }
+
         details['type'] = type;
 		const event = new CustomEvent(type, {
 		  bubbles: true,
@@ -1044,6 +1076,7 @@ export class Container {
         node.parentNode.removeChild(node)
     }
 
+    //experimental
     endTransaction(id) {
         let node = this.lookup(id)
         this.#transactions[node.id].appendChild(node)

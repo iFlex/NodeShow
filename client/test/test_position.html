@@ -8,7 +8,7 @@
   </head>
   <body style="margin: 0px; padding:0px">
     <div id="1" class='ns-grid' style="border-radius: 15px;
-    border-width: 2px;
+    border-width: 15px;
     border-color: aqua;
     background: #bbbbbb;
     padding: 20px;
@@ -69,10 +69,14 @@
     </div>
 
     <div id="7" style="border-radius: 15px 50px 30px;
+    margin: 5px; 
+    padding: 5px; 
+    border-width: 20px; 
+    border-style: outset; 
+    border-color: black;
     position:absolute;
     top:30px;
     left:600px;
-    border-width: 2px;
     border-color: aqua;
     background: #f0f0f0;
     padding: 20px;
@@ -191,7 +195,11 @@
         let containers = ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"];
         for (const id of containers) {
             let pos1 = container.getPosition(id)
-            container.setPosition(id, pos1)
+            try {
+              container.setPosition(id, pos1)  
+            } catch (e) {
+              //pass
+            }
             let pos2 = container.getPosition(id)
             
             console.log(id)

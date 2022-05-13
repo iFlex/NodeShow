@@ -69,6 +69,7 @@ export class LiveBridge {
 	}
 
     //no caller id, current user or component
+    //[TODO]: This might not be enough, figure out how to make it easier to prevent cascading events back over the network
     /**
      * @summary Method determines if a callerId is local or remote
      * @description This method checks if a provided caller id originates from the local machine or comes from the network.
@@ -76,7 +77,7 @@ export class LiveBridge {
      * @return {boolean} wether or not the caller is local.
      */
     isCallerIdLocal(callerId) {
-        return (!callerId || callerId == this.sessionId || this.container.getComponent(callerId))
+        return (callerId == this.sessionId || this.container.getComponent(callerId))
     }
 
     queueUpdate(e) {
@@ -222,6 +223,7 @@ export class LiveBridge {
             //populate with userId in case it's not there. all network updates should have a value for the userid
             data.sessionId = this.host
         }
+        let callerId = data.sessionId
 
         try {
             let detail = data.detail
@@ -231,16 +233,16 @@ export class LiveBridge {
             || data.event == ACTIONS.setHeight
             ) {
                 let child = this.container.lookup(detail.id)
-                this.container.updateChild(child, detail.descriptor, data.sessionId)
+                this.container.updateChild(child, detail.descriptor, callerId)
             }
             if(data.event == ACTIONS.delete) {
-                this.container.delete(detail.id, data.sessionId)
+                this.container.delete(detail.id, callerId)
             }
             if(data.event == ACTIONS.create) {
-                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, data.sessionId);
+                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId);
             }
             if(data.event == ACTIONS.setParent) {
-                this.container.setParent(detail.id, detail.parentId, data.sessionId)
+                this.container.setParent(detail.id, detail.parentId, callerId)
             }
         } catch (e) {
             console.error(`Failed to handle update ${data.event}`, e);

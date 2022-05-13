@@ -9,6 +9,15 @@ const NOT_SIZEABLE = new Set(['auto'])
  * where the dimension of the obejct should not change
 */
 
+function readAsPixels(stringValue) {
+    if (stringValue.endsWith('px')) {
+        return parseFloat(stringValue.substring(0, stringValue.length - 2))
+    }
+
+    console.error(`Failed to read string value ${stringValue} as pixels`)
+    return 0;
+}
+
 function getPercentage(total, fraction) {
     return fraction/total*100
 }
@@ -163,14 +172,24 @@ Container.prototype.getWidth = function(id, withMargin = false) {
     if (withMargin) {
         return jQuery(this.lookup(id)).outerWidth()    
     }
-    return jQuery(this.lookup(id)).innerWidth()
+
+    let node = this.lookup(id)
+    let style = window.getComputedStyle(node, null)
+    let pleft = readAsPixels(style.getPropertyValue('padding-left'))
+    let pright = readAsPixels(style.getPropertyValue('padding-right'))
+    return jQuery(node).innerWidth() - pleft - pright;
 }
 
 Container.prototype.getHeight = function(id, withMargin = false) {
     if (withMargin) {
         return jQuery(this.lookup(id)).outerHeight()
     }
-    return jQuery(this.lookup(id)).innerHeight()
+    
+    let node = this.lookup(id)
+    let style = window.getComputedStyle(node, null)
+    let pleft = readAsPixels(style.getPropertyValue('padding-top'))
+    let pright = readAsPixels(style.getPropertyValue('padding-bottom'))
+    return jQuery(node).innerHeight() - pleft - pright;
 }
 
 Container.prototype.getContentHeight = function(id) {
@@ -226,7 +245,7 @@ function decideFittingAction(units) {
 }
 
 //[TODO][WARNING]Highly experimental!
-Container.prototype.fitVisibleContent = function(id, expandOnly, emit) {
+Container.prototype.fitVisibleContent = function(id, expandOnly, callerId, emit) {
     let node = this.lookup(id)
     let computedStyle = window.getComputedStyle(node)
     let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
@@ -240,18 +259,18 @@ Container.prototype.fitVisibleContent = function(id, expandOnly, emit) {
 
     let contentBbox = this.getContentBoundingBox(node)
     if (oldW < node.scrollWidth) {
-        this.setWidth(node, w)    
+        this.setWidth(node, w, callerId)    
     } else if (expandOnly != true){
         contentBbox = this.getContentBoundingBox(node)
-        this.setWidth(node, contentBbox.right + paddingRight)
+        this.setWidth(node, contentBbox.right + paddingRight, callerId)
     }
 
     if (oldH < node.scrollHeight) {
-        this.setHeight(node, h)
+        this.setHeight(node, h, callerId)
     } else if (expandOnly != true){
         if (!contentBbox) {
             contentBbox = this.getContentBoundingBox(node)
         }
-        this.setHeight(node, contentBbox.bottom + paddingBottom)
+        this.setHeight(node, contentBbox.bottom + paddingBottom, callerId)
     }
 }
