@@ -155,6 +155,8 @@ export class ContainerEditAbstraction {
                 }
             }
 
+            let previewStyle = this.#container.toSerializableStyle(this.#preview, true)
+            this.#container.saveStyleForLevel(this.target.id, previewStyle, this.#newLevel, this.appId, true)
             for (const e of toMove) {
                 this.#container.setParent(e.id, this.target.id, this.appId)
                 this.#container.setAbstractionLevel(e, this.#newLevel, this.appId)

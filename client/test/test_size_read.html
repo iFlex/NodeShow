@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="../libs/socket-io.js"></script>
+    <script src="../libs/jquery.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <title>This is the title of the webpage!</title>
+  </head>
+  <body style="margin: 0px; padding:0px">
+
+<!-- Static values -->
+<div id="1"
+style="position: absolute; width: 64px; height: 64px; margin: 5px; padding: 5px; background-color: rgb(131, 122, 117); 
+top: 0px; left: 0px; border-width: 5px; border-style: outset; border-color: black;" >
+1 - 64x64
+</div>
+
+<!-- Relative values -->
+<!-- Fit Content -->
+<div id="2"
+style="position: absolute; width: auto; height: auto; margin: 2px; padding: 2px; border-width: 2px;  
+top: 90px; left: 0px;  border-style: outset; border-color: black;
+background-color: rgb(131, 122, 117);" >
+  <div id="x"
+  style="width: 60px; height: 60px; margin: 7px; padding: 7px; border-width: 7px; background-color: rgb(131, 100, 117); 
+   border-style: outset; border-color: black;" >
+  </div>
+</div>
+
+<!-- % -->
+<div id="y"
+style="position: absolute; width: auto; height: auto; margin: 2px; padding: 2px; border-width: 2px;
+width: 100px; height: 50px; top: 0px; left: 90px;  border-style: outset; border-color: black;
+background-color: rgb(131, 122, 117);" >
+  <div id="3"
+  style="width: 50%; height: 50%; margin: 7px; padding: 7px; border-width: 7px; background-color: rgb(131, 100, 117); 
+   border-style: outset; border-color: black;" >
+  </div>
+</div>
+
+</body>
+<!-- CORE -->
+  <script type="module" src="nodeshow.js"></script>
+  <script type="module">
+    import { container } from '../nodeshow.js'
+    
+    let success = true
+
+    function step() {
+      let expected = {
+        "1":{width:64, height:64, owterWidth:84, outerHeight:84},
+        "2":{width:102, height:102, owterWidth:114, outerHeight:114},
+        "3":{width:50, height:25, owterWidth:0, outerHeight:0}
+      };
+      for (const key in expected) {
+        let node = container.lookup(key)
+        let w = container.getWidth(node)
+        let h = container.getHeight(node)
+        let ow = container.getWidth(node, true)
+        let oh = container.getHeight(node, true)
+
+        if (w != expected[key].width || h != expected[key].height) {
+          success = false
+          console.error(`FAILED! Missmatch on container ${key}. expected w:${expected[key].width} actual w:${w} expected h:${expected[key].height} actual h:${h}`)
+        }
+
+        // if (ow != expected[key].owterWidth || oh != expected[key].outerHeight) {
+        //   success = false
+        //   console.error(`FAILED! Missmatch on container ${key}. expected ow:${expected[key].owterWidth} actual ow:${ow} expected oh:${expected[key].outerHeight} actual oh:${oh}`)
+        // } 
+      }
+
+      if (!success) {
+        alert("FAILED")
+      }
+    }
+    
+    alert("start?")
+    setTimeout(step, 1000)
+  </script>
+</html>

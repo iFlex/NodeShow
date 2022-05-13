@@ -255,11 +255,11 @@ function decideFittingAction(units) {
 }
 
 //[TODO][WARNING]Highly experimental!
-Container.prototype.fitVisibleContent = function(id, expandOnly, callerId, emit) {
+Container.prototype.fitVisibleContent = function(id, expandOnly = false, callerId, emit) {
     let node = this.lookup(id)
-    let computedStyle = window.getComputedStyle(node)
-    let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
-    let paddingBottom = convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
+    let computedStyle = window.getComputedStyle(node, null)
+    let paddingRight = 0;//convertToStandard(computedStyle.getPropertyValue("padding-right"))
+    let paddingBottom = 0;//convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
     
     let w = node.scrollWidth + paddingRight
     let h = node.scrollHeight + paddingBottom
@@ -268,19 +268,19 @@ Container.prototype.fitVisibleContent = function(id, expandOnly, callerId, emit)
     let oldH = this.getHeight(node)
 
     let contentBbox = this.getContentBoundingBox(node)
-    if (oldW < node.scrollWidth) {
-        this.setWidth(node, w, callerId)    
-    } else if (expandOnly != true){
-        contentBbox = this.getContentBoundingBox(node)
+    if (expandOnly) {
+        if (oldW < node.scrollWidth) {
+            this.setWidth(node, w, callerId)    
+        }
+    } else {
         this.setWidth(node, contentBbox.right + paddingRight, callerId)
     }
 
-    if (oldH < node.scrollHeight) {
-        this.setHeight(node, h, callerId)
-    } else if (expandOnly != true){
-        if (!contentBbox) {
-            contentBbox = this.getContentBoundingBox(node)
+    if (expandOnly) {
+        if (oldH < node.scrollHeight) {
+            this.setHeight(node, h, callerId)
         }
+    } else {
         this.setHeight(node, contentBbox.bottom + paddingBottom, callerId)
     }
 }

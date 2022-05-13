@@ -21,11 +21,13 @@ import {Container, ACTIONS} from "./Container.js"
  * Test removal functions
  */
 
-//[TODO]: think about styling and padding
-//[TODO]: Make it work well for non positioned elements. e.g. text
+//[TODO]: figure out what properties to save regarding the style of each level. Some properties will be global (i.e. position) some local (i.e. width, height, background colour)
+//        - we'll start by just persisting width and height and nothing else.
 let C_ABS_LVL = 'contentAstractionLevel'
 let C_TOT_ABS_LVLS = 'contentTotalAbstractionLevels'
 let ABS_LVL = 'abstractionLevel'
+let LAYER_STYLE_PREFIX = 'abstractionLevelStyle'
+let RELEVANT_STYLE_SUBSET = new Set(['width','height'])
 
 /**
  * @summary Increases container's abstraction level
@@ -60,6 +62,62 @@ Container.prototype.expand = function(id, callerId) {
     if (currentLvl > 0) {
         this.setCurrentContentAbstractionLevel(node, currentLvl - 1, callerId)
         this.notifyUpdate(node, callerId)
+    }
+}
+
+/**
+ * @summary Saves the container's current style as the current layer's style
+ * */
+Container.prototype.persistLevelStyle = function(node, callerId, emit)  {
+    let style = this.toSerializableStyle(node, true, RELEVANT_STYLE_SUBSET)
+    let level = this.getCurrentContentAbstractionLevel(node)
+
+    this.saveStyleForLevel(node, style, level, callerId, emit)
+}
+
+/**
+ * @summary Persists a provided style configuration for a provided abstraction level
+ * @param {ID or Node} id - The node for which this style is persisted
+ * @param {Map} style - The style configuration to serialise and persist 
+ * @param {integer} level - the abstraction level for which to persist the provided style
+ * @param {CallerId} callerId - the id of the caller of this method
+ * 
+ * TODO: ensure style object only contains the RELEVANT_STYLE_SUBSET properties
+ * */
+Container.prototype.saveStyleForLevel = function(id, style, level, callerId, emit = true)  {
+    let node = this.lookup(id);
+    let filteredStyle = {}
+    for (const key of RELEVANT_STYLE_SUBSET) {
+        filteredStyle[key] = style[key]
+    }
+
+    node.dataset[`${LAYER_STYLE_PREFIX}${level}`] = JSON.stringify(filteredStyle)
+    if (emit) {
+        this.notifyUpdate(node, callerId)
+    }
+}
+
+/**
+ * @summary Fetch an abstraction layer specific style configuration
+ * @param {Node} node - The node for which to fetch the level style
+ * @param {integer} level - the level
+ * */
+Container.prototype.fetchStyleForLevel = function(node, level) {
+    let rawStyle = node.dataset[`${LAYER_STYLE_PREFIX}${level}`]
+    if (rawStyle) {
+        return JSON.parse(rawStyle)
+    }
+}
+
+/**
+ * @summary Applies the style corresponding to the current abstraction layer to the a container
+ * */
+Container.prototype.loadStyleForCurrentLevel = function(id, callerId, emit = true) {
+    let node = this.lookup(id);
+    let level = this.getCurrentContentAbstractionLevel(node)
+    let style = this.fetchStyleForLevel(node, level)
+    if (style) {
+        this.styleChild(node, style, callerId, emit)
     }
 }
 
@@ -142,15 +200,18 @@ Container.prototype.removeAllAbstraction = function(c, callerId) {
 Container.prototype.setCurrentContentAbstractionLevel = function(c, lvl, callerId) {
     let node = this.lookup(c);
     this.isOperationAllowed(ACTIONS.setContentAbstractionLevel, node, callerId);
-
+    
     lvl = parseInt(lvl)
     let maxAbsLevels = this.getAbstractionLevels(node);
     if (lvl < 0 || lvl > maxAbsLevels) {
         throw `Abstraction level ${lvl} out of bounds [${0}:${maxAbsLevels}]`
     }
 
-    node.dataset[C_ABS_LVL] = lvl
+    if (node.dataset[C_ABS_LVL] != lvl) {
+        this.persistLevelStyle(node, callerId, false)    
+    }
 
+    node.dataset[C_ABS_LVL] = lvl
     updateDisplayedAbstractionLevel(this, node, lvl, callerId)
     this.notifyUpdate(node, callerId)
 }
@@ -298,6 +359,7 @@ function removeLevel(ctx, node, lvl) {
 }
 
 function updateDisplayedAbstractionLevel(ctx, node, lvl, callerId) {
+    ctx.loadStyleForCurrentLevel(node, callerId, false)
     for (const child of node.children) {
         if (lvl == ctx.getAbstractionLevel(child)) {
             ctx.show(child, callerId)
@@ -305,7 +367,4 @@ function updateDisplayedAbstractionLevel(ctx, node, lvl, callerId) {
             ctx.hide(child, callerId)
         }
     }
-
-    //[TODO]: experimental
-    ctx.fitVisibleContent(node, false)
 }

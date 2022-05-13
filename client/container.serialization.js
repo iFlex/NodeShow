@@ -175,7 +175,9 @@ Container.prototype.toSerializableStyle = function(id, snapshot, subset) {
 
     let result = {}
     for (const item of computedStyle) {
-        result[item] = computedStyle.getPropertyValue(item)
+        if (!subset || subset.has(item)) {
+            result[item] = computedStyle.getPropertyValue(item)
+        }
     }
 
     return result;
