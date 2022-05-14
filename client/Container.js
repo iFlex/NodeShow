@@ -441,13 +441,14 @@ export class Container {
     * @param {string=} opCaller - the name of the caller subject to this permission. If not provided, all permissions for the given permName are removed.
     * @param {string} callerId  - the name of the caller of the setPermission method
     */
+    //TODO: better integrate isLocal in the entier permissions system
     removePermission(id, permName, opCaller, callerId) {
         let elem = this.lookup(id);
         let operation = `remove.${permName || '*'}`
         this.isOperationAllowed(operation, elem, callerId)
         
         if (this.#permissions[elem.id]){
-            if (this.#permissions[elem.id][permName]){
+            if (permName){ //this.#permissions[elem.id][permName]){
                 if (opCaller) {
                     if (opCaller in this.#permissions[elem.id][permName]) {
                         delete this.#permissions[elem.id][permName][opCaller]
@@ -461,13 +462,15 @@ export class Container {
                 delete elem.dataset.containerPermissions
             }
         }
-       
-       this.emit(ACTIONS.removePermission, {
-        id:id,
-        permission: permName,
-        subject: opCaller,
-        callerId: callerId
-       })
+        
+        //TODO: differentiate among local and global permissions
+        this.emit(ACTIONS.removePermission, {
+            id:id,
+            permission: permName,
+            subject: opCaller,
+            callerId: callerId,
+            //isLocal: ?
+        })
     }
 
     //ToDo: permission matching e.g. container.set.*
@@ -836,6 +839,11 @@ export class Container {
 
         if (child != this.parent) {
             child.parentNode.removeChild(child);
+            
+            //remove any local metadata
+            this.removeMetadata(child.id)
+            //TODO: remove local permissions if any
+
             this.emit(ACTIONS.delete, {
                 id: child.id,
                 callerId: callerId
@@ -936,7 +944,11 @@ export class Container {
         }
 
         if (this.localmetadata[node.id]) {
-            delete this.localmetadata[node.id][key]
+            if (key) {
+                delete this.localmetadata[node.id][key]
+            } else {
+                delete this.localmetadata[node.id]
+            }
         }
     }
     

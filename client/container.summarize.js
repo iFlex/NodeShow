@@ -25,9 +25,10 @@ import {Container, ACTIONS} from "./Container.js"
 //        - we'll start by just persisting width and height and nothing else.
 let C_ABS_LVL = 'contentAstractionLevel'
 let C_TOT_ABS_LVLS = 'contentTotalAbstractionLevels'
-let ABS_LVL = 'abstractionLevel'
 let LAYER_STYLE_PREFIX = 'abstractionLevelStyle'
 let RELEVANT_STYLE_SUBSET = new Set(['width','height'])
+
+let ABS_LVL = 'abstractionLevel'
 
 /**
  * @summary Increases container's abstraction level
@@ -265,8 +266,9 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
     lvl = parseInt(lvl)
     let maxAbsLevels = this.getAbstractionLevels(node.parentNode);
     if (lvl < 0 || lvl > maxAbsLevels) {
-        console.error(`Abstraction level ${lvl} out of bounds [${0}:${maxAbsLevels}]`)
-        lvl = maxAbsLevels
+        let cap = Mat.min(Math.max(0, lvl), maxAbsLevels)
+        console.error(`Abstraction level ${lvl} out of bounds [${0}:${maxAbsLevels}]. Capped at: ${cap}`)
+        lvl = cap
     }
     
     if (lvl > 0) {
@@ -274,7 +276,7 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
         let prevLvlCount = this.getAllInAbstractionLevel(node.parentNode, lvl - 1).length
         
         if (targetLvlCount + 1 > prevLvlCount) {
-            console.error(`Cannot make abstraction level contain more nodes than its previous abstraction level`)
+            console.error(`Cannot make abstraction level contain more nodes than its previous abstraction level. Defaulting to lowest level (0).`)
             lvl = 0;
         }
     }
@@ -306,17 +308,17 @@ Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbs
 Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
-function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, ignore2, force=true) {
+function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, ignore2) {
     //set current abstraction level based on the parent if abstraction level absent
     let currentLevel = this.getAbstractionLevel(child)
     let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
-    if (force || (currentLevel == 0 && parentContentAbstractionLevel > 0)) {
+    
+    if (this.isContainerReady(parent)) {
+        //if parent is complete, then it override's child's abstraction level
         this.setAbstractionLevel(child, parentContentAbstractionLevel, callerId)
     }
 }
 
-//missing callerId here causing bugs in consisntency accross instances...
-//needs a better solution for passing CallerID in general
 function applyAbstractionView(pid, node, callerId) {
     //content abstraction
     let maxLvl = this.getAbstractionLevels(node)
@@ -325,7 +327,7 @@ function applyAbstractionView(pid, node, callerId) {
         updateDisplayedAbstractionLevel(this, node, lvl, callerId)
     }
 
-    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, null, false])
+    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, null])
 }
 
 function applyAbstractionViewOnUpdate(node, rawDescriptor, callerId, emit) {

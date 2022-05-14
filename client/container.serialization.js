@@ -2,6 +2,7 @@ import {Container, ACTIONS} from "./Container.js"
 
 let orphans = {}
 let initQueue = {}
+let CONTAINER_COMPLETE_INDICATOR = "is_complete"
 
 function shouldNotIgnore(context, tag, key) {
     //core permissions storage tag.
@@ -33,6 +34,8 @@ function stripClassName(classList, toStrip) {
 }
 
 function emitContainerCreated(context, parent, child, callerId) {
+    context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
+    
     //this container has finally been initialized
     //console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
     Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
@@ -137,7 +140,10 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
     Container.applyPreHooks(this, 'create', [parentId, null, rawDescriptor, insertBefore, callerId])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
+    
     let child = makeAndInsertChild(this, rawDescriptor, parent, insertBefore)
+    this.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, false)
+
     //set all properties and configurations & child order
     this.updateChild(child, rawDescriptor, callerId, false) //PERF: HEAVY
     
@@ -316,6 +322,12 @@ Container.prototype.serializerCannotIgnore = function(tag, key) {
     }
 
     this.serializerKeeps[tag].add(key)
+}
+
+
+Container.prototype.isContainerReady = function(id) {
+    let node = this.lookup(id) //throws if inexistent container
+    return this.getMetadata(node.id, CONTAINER_COMPLETE_INDICATOR) || false
 }
 
 /**

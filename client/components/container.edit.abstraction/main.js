@@ -115,11 +115,11 @@ export class ContainerEditAbstraction {
 
         pos.left += w
         this.#container.setPosition(this.#preview, pos, this.appId)
-
+        
+        this.#container.show(this.#finalize, this.appId)
         pos.top -= this.#container.getHeight(this.#finalize)
         this.#container.setPosition(this.#finalize, pos, this.appId)
-        this.#container.show(this.#finalize, this.appId)
-
+        
         for (const e of existing) {
             this.#container.setParent(e.id, this.#preview.id, this.appId)
             this.#container.setAbstractionLevel(e, 0, this.appId)
