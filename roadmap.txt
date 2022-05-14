@@ -44,10 +44,12 @@ Current Prios:
 --------------------------------------------
 [TODO]: !! Harden positioning & sizing + add page based tests for it.
 
-[BUG]: Fit content seems to not work corretly on collapse/expand
+[BUG]: Fit content seems to not work corretly - work on it a bit more
+
 [TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 
-[TODO]: Tidy up LiveBridge & make it compact events before sending.
+[TODO]: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
+
 [BUG]:  certain events cause feedback loops between collaborators. E.g. link maintenance
          - this could be due to: hook system being easy to missuse and miss adding CallerId in the following calls
          - maybe event handlers triggering calls to Container methods not passing over CallerId
@@ -55,7 +57,8 @@ Current Prios:
 [TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
     - [DECISION]: do not support nested cameras
 
-[TODO]: call Container method with cascade up on failure:
+[TODO]: call Container method with cascade up on failure: - in orther words target picking for certain operations should cascade up to the first available container (available = one that allows such an operation)
+This might be overkill and potentially introduce lots of bugs...
         - ability to specify what failures will cause it to cascade up to the parent
         - returns what container the op was applied to
         - ability to disallow cascading (either as local or global permission) per container (which will cause the cascader to throw an exception)

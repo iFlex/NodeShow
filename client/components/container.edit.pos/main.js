@@ -121,8 +121,8 @@ export class ContainerMover {
 
 		let preTargetPos = this.container.getPosition(tnode)
 		this.modifyContainer(tnode,
-			d.position.x, 
-			d.position.y,
+			d.originalEvent.clientX, //d.position.x, //TODO: make position indicate it is the global position
+			d.originalEvent.clientY, //d.position.y,
 			d.targetOx, 
 			d.targetOy)
 		let postTargetPos = this.container.getPosition(tnode)

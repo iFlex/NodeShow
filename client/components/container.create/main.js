@@ -146,7 +146,7 @@ export class ContainerCreator {
 	}
 
 	onDoubleClick (e) {
-		let pos = e.detail.position
+		let pos = {x:e.detail.originalEvent.clientX, y:e.detail.originalEvent.clientY} //e.detail.position
 		this.target = this.container.lookup(e.detail.id)
 		this.create(pos.x, pos.y)
 	}
