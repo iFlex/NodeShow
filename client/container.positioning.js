@@ -92,10 +92,13 @@ function findAbsPos(obj, pos = [0,0]) {
     return pos
 }
    
-//[TODO]: get rid of this function
-function findAbsolutePosition(obj, referenceContainer) {
-    //return findAbsPos(obj, (container.camera)?container.camera.getSurface():container.parent)
-    return findAbsPos(obj)
+function findAbsolutePosition(obj, container) {
+    let pos = findAbsPos(obj)
+    //if (container.camera) {
+        //let translated = container.camera.surfaceToViewPort(pos[0], pos[1])
+        //return [translated.x, translated.y]
+    //}
+    return pos
 }
 
 
@@ -154,7 +157,18 @@ Container.prototype.setPosition = function(id, position, callerId, force = false
     //Convert to relative position with origin=parent
     position.top -= parentPos.top
     position.left -= parentPos.left
+    
+    //Camera translation (if it exists)
+    if (this.camera) {
+        let translated = this.camera.zoomTranslate(position.left, position.top)
+        position.left = translated.x
+        position.top = translated.y
+    }
 
+    this.setPositionRelative(elem, position, callerId)
+}
+
+Container.prototype.setPositionRelative = function(elem, position, callerId) {
     //In case the position is percentual:
     position.left -= (position.originX || 0) * this.getWidth(elem)
     position.top -= (position.originY || 0) * this.getHeight(elem)

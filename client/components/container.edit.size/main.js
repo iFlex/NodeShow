@@ -120,17 +120,26 @@ export class ContainerSizer {
 		let h = this.container.getHeight(target, true)
 		
 		if (this.#presenveRatio) {
-			let change = this.keepRatio(target, w, h, dx, dy)
+			let change = this.keepRatio(target, w, h, dx, dy)	
 			dx = change.dx;
 			dy = change.dy;
 		}
+		w += dx
+		h += dy
+
+		if (this.container.camera) {
+			let translated = this.container.camera.zoomTranslate(w, h)
+			w = translated.x
+			h = translated.y
+		}
+
 		try {
-			this.container.setWidth(target, w + dx, this.appId);	
+			this.container.setWidth(target, w, this.appId);	
 		} catch (e) {
 			//pass
 		}
 		try {
-			this.container.setHeight(target, h + dy, this.appId);
+			this.container.setHeight(target, h, this.appId);
 		} catch (e) {
 			//pass
 		}

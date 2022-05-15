@@ -109,8 +109,8 @@ export class ContextMenu {
 		this.#triggerEvent = e
 		this.#target = e.target
 		this.#container.setPosition(this.#interface, {
-			top: e.pageY,
-			left: e.pageX
+			top: e.clientY,
+			left: e.clientX
 		}, 
 		this.appId)
 		this.#container.show(this.#interface, this.appId)

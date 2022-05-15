@@ -145,6 +145,7 @@ export class Container {
         return JSON.parse(JSON.stringify(obj))
     }
 
+    //TODO: rename this and move
 	static getQueryVariable(variable) {
 		var query = window.location.search.substring(1);
 		var vars = query.split('&');
@@ -290,7 +291,7 @@ export class Container {
 		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
 		this.index();
         this.emit("Container.init", {
-            presentationId:this.presentationId,
+            presentationId: this.presentationId,
             //TODO: add caller_id somehow    
         });
 	}
@@ -691,6 +692,7 @@ export class Container {
             id:elem.id,
             callerId:callerId
         });
+        //this.notifyUpdate(id, call)
     }
 
     show(id, callerId) {
@@ -702,6 +704,7 @@ export class Container {
             id:elem.id,
             callerId:callerId
         });
+        //this.notifyUpdate(id, call)
     }
 
     //[TODO]: permissions
@@ -968,6 +971,7 @@ export class Container {
         return null;
     }
 
+    //Experimental
     #exceptionToComparable(e, exactMatch) {
         let matchMethod = (exactMatch)?"exactComparableString":"comparableString"
         if (typeof e == 'object' && typeof e[matchMethod] == 'function') {

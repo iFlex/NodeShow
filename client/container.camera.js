@@ -64,7 +64,7 @@ export class Camera {
 	}
 
 
-	surfaceToViewPort(x,y) {
+	surfaceToViewPort(x, y) {
 		let zoomCoef = this.#zoomLevel
 		let rect = this.#contentSurface.getBoundingClientRect();
 		return {
@@ -73,13 +73,20 @@ export class Camera {
 		}
 	}
 
-	viewPortToSurface(x,y) {
+	viewPortToSurface(x, y) {
 		let zoomCoef = 1/this.#zoomLevel
 		let rect = this.#contentSurface.getBoundingClientRect();
 		console.log(`scrollTop: ${this.#viewPort.scrollTop} scrollLeft:${this.#viewPort.scrollLeft}`)
 		return {
 			x: (x - rect.x - this.#viewPort.scrollLeft) * zoomCoef,
 			y: (y - rect.y - this.#viewPort.scrollTop) * zoomCoef
+		}
+	}
+
+	zoomTranslate(x, y) {
+		return {
+			x: x * 1/this.#zoomLevel,
+			y: y * 1/this.#zoomLevel
 		}
 	}
 

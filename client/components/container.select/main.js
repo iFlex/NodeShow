@@ -96,8 +96,8 @@ export class ContainerSelect {
 		this.start();
 		this.#selectParent = this.#container.lookup(e.detail.id)
 		this.#startPos = {
-			top: e.detail.position.y,
-			left: e.detail.position.x
+			top: e.detail.originalEvent.clientY, //e.detail.position.y,
+			left: e.detail.originalEvent.clientX //e.detail.position.x
 		}
 		console.log(this.#startPos)
 	}
@@ -115,11 +115,17 @@ export class ContainerSelect {
 		//update selection container
 		let pos = this.#container.getPosition(this.#selector);
 		
-		let px = e.detail.position.x;
-		let py = e.detail.position.y;
+		let px = e.detail.originalEvent.clientX // e.detail.position.x;
+		let py = e.detail.originalEvent.clientY // e.detail.position.y;
 		let w = Math.abs(pos.left - px);
 		let h = Math.abs(pos.top - py);
 		
+		if (this.#container.camera) {
+			let translated = this.#container.camera.zoomTranslate(w, h)
+			w = translated.x
+			h = translated.y
+		}
+
 		if ( px < pos.left ) {
 			pos.left = px;
 		}

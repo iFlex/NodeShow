@@ -41,7 +41,8 @@ export class ContainerEditAbstraction {
                 "top":"0px",
                 "left":"0px",
                 "display":"none",
-                "background-color":"black"
+                "background-color":"black",
+                "display":"none"
             },
             "data":{
                 "ignore":true,
@@ -53,8 +54,8 @@ export class ContainerEditAbstraction {
         },
         null,
         this.appId)
+        //this.#container.hide(this.#finalize, this.appId)
         this.#container.loadHtml(this.#finalize, "interface.html", this.appId)
-        this.#container.hide(this.#finalize, this.appId)
     }
 
     enable() {
@@ -119,6 +120,7 @@ export class ContainerEditAbstraction {
         this.#container.show(this.#finalize, this.appId)
         pos.top -= this.#container.getHeight(this.#finalize)
         this.#container.setPosition(this.#finalize, pos, this.appId)
+        this.#container.bringToFront(this.#finalize, this.appId)
         
         for (const e of existing) {
             this.#container.setParent(e.id, this.#preview.id, this.appId)

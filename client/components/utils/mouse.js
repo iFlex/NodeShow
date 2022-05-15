@@ -29,8 +29,8 @@ let dblClickTreshold = 300;
 let lastClickTime = 0;
 let lastClickedButton = null;
 
-let UniformPosX = "pageX"//"screenX"//
-let UniformPosY = "pageY"//"screenY"//
+let UniformPosX = "clientX"//"screenX"//
+let UniformPosY = "clientY"//"screenY"//
 
 export const EVENTS = {
 	'DOWN':'mouse.down',
