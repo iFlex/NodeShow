@@ -97,6 +97,11 @@ Container.prototype.setWidth = function(id, width, callerId, emit) {
         throw new ContainerOperationNotApplicable(id, 'setWidth')
     }
 
+    if (this.camera) {
+        let translated = this.camera.zoomTranslate(width, 0)
+        width = translated.x
+    }
+
     if (unit !== 'px') {
         width = convertPixelWidth(this, elem, width, unit)    
     }
@@ -140,6 +145,11 @@ Container.prototype.setHeight = function(id, height, callerId, emit) {
     let unit = elem.dataset.heightUnit || 'px'
     if (NOT_SIZEABLE.has(unit)) {
         throw new ContainerOperationNotApplicable(id, 'setHeight')
+    }
+
+    if (this.camera) {
+        let translated = this.camera.zoomTranslate(0, height)
+        height = translated.y
     }
 
     if (unit !== 'px') {

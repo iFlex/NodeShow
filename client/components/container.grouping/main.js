@@ -77,8 +77,8 @@ export class ContainerGrouping {
 		}
 		
 		this.#startPos = {
-			top:e.detail.position.y,
-			left:e.detail.position.x,
+			top: e.detail.originalEvent.y, //e.detail.position.y,
+			left: e.detail.originalEvent.x //e.detail.position.x,
 		}
 	}
 
@@ -94,8 +94,8 @@ export class ContainerGrouping {
 		//update selection container
 		let pos = this.#container.getPosition(this.#grouper);
 		
-		let px = e.detail.position.x;
-		let py = e.detail.position.y;
+		let px = e.detail.originalEvent.x // e.detail.position.x;
+		let py = e.detail.originalEvent.y // e.detail.position.y;
 		let w = Math.abs(pos.left - px);
 		let h = Math.abs(pos.top - py);
 		

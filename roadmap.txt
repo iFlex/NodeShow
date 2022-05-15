@@ -23,6 +23,7 @@ Client Features:
 12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
     [NICE-TO-HAVE]: make it a bit more advanced?: e.g. read status from target, show sliders, etc?
 15. Camera implementation: focus, move, zoom
+     - integrate zoom level with sizing (i.e. fitContent) + check if read and write style works under zoom
 ------------------------------------------------------------------------------
 13  [IN_PROGRESS] !Link Containers ::container.link
 Link are currently a performance issue - they seem to slow down the server

@@ -124,14 +124,9 @@ export class ContainerSizer {
 			dx = change.dx;
 			dy = change.dy;
 		}
+
 		w += dx
 		h += dy
-
-		if (this.container.camera) {
-			let translated = this.container.camera.zoomTranslate(w, h)
-			w = translated.x
-			h = translated.y
-		}
 
 		try {
 			this.container.setWidth(target, w, this.appId);	

@@ -119,12 +119,6 @@ export class ContainerSelect {
 		let py = e.detail.originalEvent.clientY // e.detail.position.y;
 		let w = Math.abs(pos.left - px);
 		let h = Math.abs(pos.top - py);
-		
-		if (this.#container.camera) {
-			let translated = this.#container.camera.zoomTranslate(w, h)
-			w = translated.x
-			h = translated.y
-		}
 
 		if ( px < pos.left ) {
 			pos.left = px;
