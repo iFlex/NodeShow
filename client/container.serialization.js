@@ -35,7 +35,7 @@ function stripClassName(classList, toStrip) {
 
 function emitContainerCreated(context, parent, child, callerId) {
     context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
-    
+    context.conformToParentRules(child)
     //this container has finally been initialized
     //console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
     Container.applyPostHooks(context, 'create', [parent.id, child, callerId])

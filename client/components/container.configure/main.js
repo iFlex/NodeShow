@@ -221,6 +221,9 @@ export class ContainerConfig {
 		this.selection = getSelection(this.container)
 		for (const target of this.selection) {	
 			let node = this.container.lookup(target)
+			this.container.setChildStyleRules(node,layoutConfig.childStyle)
+			
+			//ToDo: deprecate below functions
 			node.setAttribute("data-child-style", JSON.stringify(layoutConfig.childStyle))
 			this.setParentLayout(node, layoutConfig.parentStyle)
 			this.setChildrenLayouts(node, layoutConfig.childStyle)

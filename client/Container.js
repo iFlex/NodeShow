@@ -56,6 +56,8 @@ let ACTIONS_CHAIN = {}
 //[TODO]: use WeakSet to account for deallocations -> allow GC to collect the container ref
 export const INSTANCES = new Set()//new WeakSet([])
 
+const CHILD_RULES_PREFIX = "childrules"
+
 /** @class */
 export class Container {
 	//[TODO]: integrate hook callers wherever relevant
@@ -101,7 +103,10 @@ export class Container {
     ])
     static #preSetterHooks = {}
     static #postSetterHooks = {}
+
+    //[VirtualDOM] Incomplete feature meant to optimize speed of rendering and grouping up large amounts of changes (in order to minimise the amount of redraw events caused by using the Container API)
     virtualDOM = {}
+    
     /*
     Permissions describing what operations can be performed on containers
     Format {"containerId":{"operation":{"callerId":true/false}}}
@@ -622,6 +627,42 @@ export class Container {
         return count;
     }
 
+    //ToDo: add a system to impose style on children being added to parents with restrictions (including when changing parent) 
+    conformToParentRules(elementId) {
+        let child = this.lookup(elementId);
+        let parent = child.parentNode
+        let rules = this.getChildStyleRules(parent)
+        if (rules && Object.entries(rules).length > 0) {
+            this.styleChild(child, rules, null, false);
+        }
+    }
+
+    getChildStyleRules(parentId) {
+        let node = this.lookup(parentId)
+        let rules = {}
+        
+        //ToDo: find a way to make this more efficient
+        for (const [key, value] of Object.entries(node.dataset)) {
+            if (key.includes(CHILD_RULES_PREFIX)) {
+                rules[key.replace(CHILD_RULES_PREFIX,"")] = value
+            }
+        }
+        return rules 
+    }
+
+    setChildStyleRules(parentId, rules) {
+        console.log(`Set child rules to ${JSON.stringify(rules)}`)
+
+        let node = this.lookup(parentId)
+        for (const [key, value] of Object.entries(rules)) {
+            node.dataset[`${CHILD_RULES_PREFIX}${key}`] = value
+        }
+    }
+
+    unsetChildStyleRules(node, rules) {
+        //ToDo: implement
+    }
+
     //<nesting>
 	setParent(childId, parentId, callerId, options) {
         let parent = this.lookup(parentId);
@@ -642,6 +683,7 @@ export class Container {
         } else {
             jQuery(child).detach().appendTo(parent);    
         }
+        this.conformToParentRules(child)
 
         Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, prevParentId])
         this.emit(ACTIONS.setParent, {
@@ -823,6 +865,7 @@ export class Container {
 
             Container.applyPostHooks(this, 'create', [domNode.parentNode, domNode, callerId])
             this.updateZindexLimits(domNode)
+            this.conformToParentRules(domNode)
             this.virtualDOM[domNode.id] = domNode
 
             if (emit !== false) {
