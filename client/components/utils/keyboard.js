@@ -4,9 +4,8 @@ import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessM
 
 //[TODO][FIX]: in certian situations the keyboar will believe certain keys are still pressed when they are not.
 //[TODO]: different press modes. 
-// e.g. trigger action when a,b,c and only those are pressed //mode:strict
-//      trigger action when a is press regardless of any other keys //mode:default
-//      trigger action when a,b,c are pressed regardless of any others //mode:default
+// e.g.              trigger action when a,b,c and only those are pressed //mode:strict
+//NOT_WORKING: FIX!  trigger action when a,b,c are pressed regardless of any others //mode:nonStrict
 //      onKeyUp should trigger per single key as there is no way to depress simultaneously
 export const EVENTS = {
     'keydown':'container.keydown',
@@ -110,7 +109,7 @@ export class Keyboard {
         return new Set([...left].filter(x => right.has(x)));
     }
 
-    setAction(keys, context, handler, preventDefault, strict = false) {
+    setAction(keys, context, handler, preventDefault, strict = true) {
         this.#actions[this.setToKey(keys)] = {
             keys: keys,
             context: context,
@@ -205,10 +204,10 @@ export class Keyboard {
             let intersection = this.#setIntersection(detail.keys, allPressed);
             let match = (intersection.size === detail.keys.size)
             let isStrict = (allPressed.size === intersection.size)
-
+            
             if (match && (!detail.strict || isStrict)) {
                 if (detail.preventDefault) {
-                    console.log(`Key: Action prevent default by ${this.#callerId}`)
+                    console.log(`[KEYBOARD] Key: Action prevent default by ${this.#callerId}`)
                     e.preventDefault();
                 }
                 if (detail.handler) {
@@ -223,6 +222,8 @@ export class Keyboard {
     }
 
     handleKeydown(e) {
+        console.log(`[KEYBOARD][KEY DOWN] ${e.key}`)
+        
         let isPrintable = this.isPrintable(e.key)        
         if (isPrintable) {
             this.#pressedPrintables.add(e.key)
@@ -233,7 +234,7 @@ export class Keyboard {
         this.#applyActionAndDefault(e, this.#actions)
 
         if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintable)) {
-            console.log(`KeyDown: Printable prevent default by ${this.#callerId}`)
+            console.log(`[KEYBOARD] KeyDown: Printable prevent default by ${this.#callerId}`)
             e.preventDefault();
         }
         
@@ -244,17 +245,18 @@ export class Keyboard {
             this.#onPrintable.handler.apply(this.#onPrintable.context, [e.key])
         }
 
-        // console.log(`KEY DOWN ${e.key}`)
-        // console.log(this.#pressedPrintables)
-        // console.log(this.#pressedNonPrintables)
+        console.log(this.#pressedPrintables)
+        console.log(this.#pressedNonPrintables)
     }
 
     handleKeyUp(e) {
+        console.log(`[KEYBOARD] KEY_UP(${this.#callerId}) ${e.key}`)
+        
         let isPrintable = this.isPrintable(e.key)
         this.#applyActionAndDefault(e, this.#actionsUp)
         
         if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintableUp)) {
-            console.log(`KeyUp: Printable prevent default by ${this.#callerId}`)
+            console.log(`[KEYBOARD] KeyUp: Printable prevent default by ${this.#callerId}`)
             e.preventDefault();
         }
 
@@ -280,7 +282,6 @@ export class Keyboard {
             this.#depressUppercaseIfNeeded()
         }
 
-        console.log(`KEY_UP(${this.#callerId}) ${e.key}`)
         console.log(this.#pressedPrintables)
         console.log(this.#pressedNonPrintables)
 	}

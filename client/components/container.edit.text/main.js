@@ -232,10 +232,11 @@ export class ContainerTextInjector {
 
 	initKeyboard () {
 		this.#keyboard.onPritable(this, (key) => this.addPrintable(key), true)
-		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true)
-		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true)
-		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true)
-		this.#keyboard.setAction(new Set(['Escape']), this,    (key) => this.stop(), true)
+		//                               keys, context,  handler, preventDefault, strict
+		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true, true)
+		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true, true)
+		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true, false)
+		this.#keyboard.setAction(new Set(['Escape']), this,    (key) => this.stop(), true, true)
 		this.#keyboard.setAction(new Set(['Tab']), this,       (key) => this.tab(), true, true)
 		
 		this.#keyboard.setAction(new Set(['Shift']), this,     (key) => {
@@ -922,6 +923,7 @@ export class ContainerTextInjector {
 		if (!this.target) {
 			return;
 		}
+		console.log('DBG.addPrintable:'+text)
 
 		//if there's a selection delete it first
 		this.deleteSelection();
@@ -997,6 +999,7 @@ export class ContainerTextInjector {
 			return;
 		}
 
+		console.log('DBG.removePrintable')
 		//ToDo: update cursor in deleteSelection
 		if (this.deleteSelection()) {
 			return;
