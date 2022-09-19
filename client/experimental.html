@@ -38,7 +38,8 @@
     import { UserDialogue }               from "./components/user.dialogue/main.js"
     import { ContainerHax0r }             from "./components/container.hax0r/main.js"
     import { ContainerExtensionsManager } from "./components/container.extensions.manager/main.js"
-
+    import { DefaultColorPicker }         from "./components/edit.defaults.colors/main.js"
+    
     import { container } from "./nodeshow.js"
     
     //start components
@@ -53,15 +54,16 @@
     new UserDialogue(container)
     new ContainerHax0r(container)
 
+    let defaultColorPicker = new DefaultColorPicker(container)
     let clinker = new ContainerLink(container)
     let cmover = new ContainerMover(container)
-    let ccreator = new ContainerCreator(container)
+    let ccreator = new ContainerCreator(container, defaultColorPicker)
     let editlinks = new ContainerEditLinks(container)
     let orchestrator = new ContainerEditOrchestrator(container)
     let csizer = new ContainerSizer(container)
-    let ctexter = new ContainerTextInjector(container, false)
+    let ctexter = new ContainerTextInjector(container, defaultColorPicker, false)
     let cfeedback = new ContainerFeedback(container)
-    let cgrouper = new ContainerGrouping(container)
+    let cgrouper = new ContainerGrouping(container, defaultColorPicker)
     let cselect = new ContainerSelect(container)
     let contextMenu = new ContextMenu(container)
     let clipboard = new ContainerClipboard(container)

@@ -13,9 +13,11 @@ export class ContainerCreator {
 	#keyboard = null;
 	#mouse = null;
 	#enabled = false
+	#colorPicker = null;
 
-	constructor (container) {
+	constructor (container, colorPicker = {"overlayWith":() => {return "rgb(0,0,0)";}}) {
 		this.container = container;
+		this.#colorPicker = colorPicker
 		container.registerComponent(this);
 
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
@@ -88,7 +90,7 @@ export class ContainerCreator {
 			'height':'150px',
 			'margin': '5px',
 			'padding': '5px',
-			'background-color': this.pickColor()	
+			'background-color': this.#colorPicker.overlayWith([this.target.parentNode])	
 		}
 		let div = {
 			"nodeName":"div",

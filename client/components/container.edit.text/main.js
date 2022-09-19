@@ -135,9 +135,11 @@ export class ContainerTextInjector {
 	}
 
 	cursor = null
+	#colorPicker = null;
 
-	constructor (container, debug) {
+	constructor (container, colorPicker = {"overlayWith":() => {return "rgb(0,0,0)";}}, debug) {
 		this.container = container;
+		this.#colorPicker = colorPicker;
 		container.registerComponent(this);
 		
 		this.#debug = debug
@@ -311,7 +313,9 @@ export class ContainerTextInjector {
 				this.container.setPosition(this.target, overrideNewBoxPos, this.appId)
 			}
 		}	
-
+		
+		//restart text editor picks a new default text color
+		this.state.textColor = this.#colorPicker.overlayWith([this.target]);
 		this.cursor.setTarget(this.target)
 		this.container.show(this.#interface, this.appId)
 		
@@ -334,7 +338,6 @@ export class ContainerTextInjector {
 		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
 		
 		
-
 		this.#keyboard.enable();
 		this.#clipboard.enable();
 
