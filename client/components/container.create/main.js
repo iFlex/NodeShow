@@ -97,8 +97,6 @@ export class ContainerCreator {
 			"computedStyle": childStyle
 		}
 
-		this.overrideStyleWithStylerSettings(childStyle)
-
 		let parentSuggestion = this.target.getAttribute("data-child-style")
 		if (parentSuggestion) {
 			parentSuggestion = JSON.parse(parentSuggestion)
@@ -141,19 +139,13 @@ export class ContainerCreator {
 		this.target = null
 	}
 
-	pickColor() {
-		let index = this.container.nodeCountToRoot(this.target) % this.palette.length;
-		console.log(`Picking color ${index} = ${this.palette[index]} :: ${this.target.id}(${this.container.nodeCountToRoot(this.target)})`)
-	 	return this.palette[index]
-	}
-
 	onDoubleClick (e) {
 		let pos = {x:e.detail.originalEvent.clientX, y:e.detail.originalEvent.clientY} //e.detail.position
 		this.target = this.container.lookup(e.detail.id)
 		this.create(pos.x, pos.y)
 	}
 	
-	overrideStyleWithStylerSettings(style) {
+	applyStyleWithStylerSettings(style) {
 		let styler = this.container.getComponent('container.edit.style')
 		let stylerKeys = styler.getStyleKeys()
 		for (const key of stylerKeys) {
