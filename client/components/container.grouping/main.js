@@ -90,7 +90,7 @@ export class ContainerGrouping {
 		}
 
 		if (!this.#grouper) {
-			this.#groupDescriptor.computedStyle["background-color"] = this.#colorPicker.overlayWith(this.#groupParent);
+			this.#groupDescriptor.computedStyle["background-color"] = this.#colorPicker.overlayWith([this.#groupParent]);
 			this.#grouper = this.#container.createFromSerializable(this.#groupParent, this.#groupDescriptor, null, this.appId)
 			this.#container.setPosition(this.#grouper, this.#startPos, this.appId)
 		}
