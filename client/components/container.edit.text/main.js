@@ -86,7 +86,8 @@ export class ContainerTextInjector {
 			"width":"auto",
 			"height":"auto",
 			"min-width":"32px",
-			"min-height":"32px"
+			"min-height":"32px",
+			"padding":"5px",
 		},
 		data:{}//[TODO]
 	}
@@ -116,7 +117,7 @@ export class ContainerTextInjector {
 	textUnitDescriptor = {
 		nodeName: "SPAN", 
 		className: "text-document-unit",
-		computedStyle:{},
+		computedStyle:{"margin-left":"10px","margin-right":"10px"},
 		"data":{
 			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}],
 			"containerPermissions":textItemPerms
