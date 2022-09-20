@@ -749,6 +749,17 @@ export class Container {
         //this.notifyUpdate(id, call)
     }
 
+    getComputedStyle(node, properties) {
+        node = this.lookup(node)
+        let computedStyle = window.getComputedStyle(node)
+        let result = {}
+        for (const prop of properties) {
+            result[prop] = computedStyle[prop]
+        }
+
+        return result
+    }
+
     //[TODO]: permissions
     styleChild(child, style, callerId, emit) {
         Container.applyPreHooks(this, 'style', [child, style, callerId, emit])

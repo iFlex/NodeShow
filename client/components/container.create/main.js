@@ -90,7 +90,7 @@ export class ContainerCreator {
 			'height':'150px',
 			'margin': '5px',
 			'padding': '5px',
-			'background-color': this.#colorPicker.overlayWith([this.target.parentNode])	
+			'background-color': this.#colorPicker.overlayWith([this.target])	
 		}
 		let div = {
 			"nodeName":"div",
