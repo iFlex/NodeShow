@@ -632,6 +632,13 @@ export class Container {
         let child = this.lookup(elementId);
         let parent = child.parentNode
         let rules = this.getChildStyleRules(parent)
+        
+        //Flow based positioning rules:
+        if (parent.style.position == "static") {
+            //static parents force their children to be static as well - otherwise positioning becomes incorrect.
+            rules.position = "static"
+        }
+
         if (rules && Object.entries(rules).length > 0) {
             this.styleChild(child, rules, null, false);
         }
