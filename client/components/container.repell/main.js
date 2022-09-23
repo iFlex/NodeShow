@@ -104,7 +104,7 @@ export class ContainerRepeller {
                 } 
             }
         }
-        queueWork(this.#container.fitVisibleContent, this.#container, [node.parentNode, true])
+        queueWork(this.#container.fitVisibleContent, this.#container, [node.parentNode])
     }
 
     onDragUpdate (ev) {

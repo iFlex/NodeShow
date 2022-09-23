@@ -107,7 +107,11 @@ export class ContainerTextInjector {
 
 	lineDescriptor = {
 		nodeName: "DIV", 
-		className: "text-document-line", 
+		className: "text-document-line",
+		computedStyle: {
+			"padding-left":"10px",
+			"padding-right":"10px"
+		},
 		"data":{
 			//"containerActions":[{"trigger":"click","call":"container.edit.text.onLineClick","params":[]}],
 			"containerPermissions":textLinePerms
@@ -117,7 +121,7 @@ export class ContainerTextInjector {
 	textUnitDescriptor = {
 		nodeName: "SPAN", 
 		className: "text-document-unit",
-		computedStyle:{"margin-left":"10px","margin-right":"10px"},
+		computedStyle:{},
 		"data":{
 			"containerActions":[{"trigger":"click","call":"container.edit.text.onTextUnitClick","params":[]}],
 			"containerPermissions":textItemPerms
@@ -245,19 +249,19 @@ export class ContainerTextInjector {
 		this.#keyboard.setAction(new Set(['Shift']), this,     (key) => {
 			this.#toggleSelectionModify = true
 			this.#anchorCursor = this.cursor.get()
-		}, true)
+		}, true, false)
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this,     (key) => this.#toggleSelectionModify = false, true)	
 
-		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true)
-		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true)
-		this.#keyboard.setAction(new Set(['Up']), this,            (key) => this.cursorUp(), true)
-		this.#keyboard.setAction(new Set(['ArrowUp']), this,       (key) => this.cursorUp(), true)
-		this.#keyboard.setAction(new Set(['Left']), this,          (key) => this.cursorLeft(), true)
-		this.#keyboard.setAction(new Set(['ArrowLeft']), this,     (key) => this.cursorLeft(), true)
-		this.#keyboard.setAction(new Set(['Right']), this,         (key) => this.cursorRight(), true)
-		this.#keyboard.setAction(new Set(['ArrowRight']), this,    (key) => this.cursorRight(), true)
-		this.#keyboard.setAction(new Set(['End']), this,           (key) => this.toLineEnd(), true)
-		this.#keyboard.setAction(new Set(['Home']), this,          (key) => this.toLineStart(), true)
+		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true, false)
+		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true, false)
+		this.#keyboard.setAction(new Set(['Up']), this,            (key) => this.cursorUp(), true, false)
+		this.#keyboard.setAction(new Set(['ArrowUp']), this,       (key) => this.cursorUp(), true, false)
+		this.#keyboard.setAction(new Set(['Left']), this,          (key) => this.cursorLeft(), true, false)
+		this.#keyboard.setAction(new Set(['ArrowLeft']), this,     (key) => this.cursorLeft(), true, false)
+		this.#keyboard.setAction(new Set(['Right']), this,         (key) => this.cursorRight(), true, false)
+		this.#keyboard.setAction(new Set(['ArrowRight']), this,    (key) => this.cursorRight(), true, false)
+		this.#keyboard.setAction(new Set(['End']), this,           (key) => this.toLineEnd(), true, false)
+		this.#keyboard.setAction(new Set(['Home']), this,          (key) => this.toLineStart(), true, false)
 
 		this.#keyboard.setAction(new Set(['Control','u']), this, (key) => this.underlined(), true)
 		this.#keyboard.setAction(new Set(['Control','i']), this, (key) => this.italic(), true)
@@ -351,6 +355,7 @@ export class ContainerTextInjector {
 		if (this.target) {
 			console.log(`${this.appId} stop text editing`)
 			this.container.componentStoppedWork(this.appId)
+			this.clearSelection()
 			this.#keyboard.disable()
 			this.#clipboard.disable()
 			
@@ -616,7 +621,7 @@ export class ContainerTextInjector {
 
 	styleTarget() {
 		if ( this.target ) {
-			this.container.fitVisibleContent(this.target, true)
+			this.container.fitVisibleContent(this.target)
 		}
 	}
 	
@@ -863,6 +868,7 @@ export class ContainerTextInjector {
 		this.container.setPosition(blinker, globalPosition, this.appId)
 		this.container.setHeight(blinker, unitHeight, this.appId)
 		this.container.bringToFront(blinker, this.appId)
+		this.container.styleChild(blinker, {"background-color": this.#colorPicker.overlayWith([localTarget])}, this.appId)
 	}
 
 	splitTextUnit(unit, offset) {

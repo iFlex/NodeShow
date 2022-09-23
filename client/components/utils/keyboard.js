@@ -3,10 +3,14 @@ import { KeyboardManager } from "./KeyboardManager.js"
 import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessManager.mjs"
 
 //[TODO][FIX]: in certian situations the keyboar will believe certain keys are still pressed when they are not.
-//[TODO]: different press modes. 
-// e.g.              trigger action when a,b,c and only those are pressed //mode:strict
-//NOT_WORKING: FIX!  trigger action when a,b,c are pressed regardless of any others //mode:nonStrict
-//      onKeyUp should trigger per single key as there is no way to depress simultaneously
+/*
+    Key Press Handler Modes:
+        1. strict: trigger action when a,b,c and only those are pressed.
+        2. nonStrict: trigger action when a,b,c become pressed at the same time, regardless of any other keys
+    
+    Key Up Handler:
+        # This triggers per single key, no grouping option.
+*/
 export const EVENTS = {
     'keydown':'container.keydown',
     'keyup':'container.keyup'
@@ -30,9 +34,12 @@ export const keyboardManager = new KeyboardManager(InputAccessManager);
  *  @description TODO
  * */
 export class Keyboard {
+
+    #debug = true
     
     #pressedPrintables = new Set()
     #pressedNonPrintables = new Set()
+    #setAlreadyMatched = new Set()
     #toggled = new Set()
 
     #toggleStyleKeys = new Set(['CapsLock'])
@@ -54,9 +61,10 @@ export class Keyboard {
         this.#callerId = appId;
         this.#accessMode = accessMode
 
-        this.#windowBlur = (e) => this.onBlur(e)
+        this.#windowBlur = (e) => this.clearState(e)
         this.#handlers["keyup"] = (e) => this.handleKeyUp(e)
         this.#handlers["keydown"] = (e) => this.handleKeydown(e)
+        window.addEventListener('blur', this.#windowBlur);
     }
     
     getId () {
@@ -72,20 +80,25 @@ export class Keyboard {
     }
 
     enable() {
-        window.addEventListener('blur', this.#windowBlur);
         this.#manager.register(this)
+        if (this.#debug) {
+            console.log(`[KEYBOARD_${this.#callerId}] enabled`)
+        }
     }
 
     disable() {
-        window.removeEventListener('blur', this.#windowBlur);
-        this.onBlur()
+        this.clearState()
         this.#manager.unregister(this)
+        if (this.#debug) {
+            console.log(`[KEYBOARD_${this.#callerId}] disabled`)
+        }
     }
 
-    onBlur(e) {
-        console.log(`[KEYBOARD]: onBlur`)
+    clearState(e) {
+        console.log(`[KEYBOARD_${this.#callerId}]: onBlur`)
         this.#pressedPrintables = new Set()
         this.#pressedNonPrintables = new Set()
+        this.#setAlreadyMatched = new Set()
         this.#toggled = new Set()
     }
 
@@ -159,6 +172,10 @@ export class Keyboard {
         return Object.keys(map).sort().join('_')
     }
 
+    keyToSet(key) {
+        return new Set(key.split("_"))
+    }
+
     shouldActOnPrintable() {
         for (const n of this.#keysPreventingPrintable) {
             if (this.#pressedNonPrintables.has(n)) {
@@ -198,21 +215,59 @@ export class Keyboard {
         }
     }
 
+    #invokeMatchHandler(detail, e, intersection) {
+        if (detail.preventDefault) {
+            if (this.#debug) {
+                console.log(`[KEYBOARD_${this.#callerId}] Key: Action prevent default by ${this.#callerId}`)
+            }
+            e.preventDefault();
+        }
+        if (detail.handler) {
+            try {
+                detail.handler.apply(detail.context, [e.key, intersection]);
+            } catch(e) {
+                console.error(`[KEYBOARD_${this.#callerId}] Handler Exception ${e}`);
+            }
+        }
+    }
+
     #applyActionAndDefault(e, actionSet) {
         let allPressed = this.getPressed()
         for (const [key, detail] of Object.entries(actionSet)) {
             let intersection = this.#setIntersection(detail.keys, allPressed);
             let match = (intersection.size === detail.keys.size)
             let isStrict = (allPressed.size === intersection.size)
-            
-            if (match && (!detail.strict || isStrict)) {
-                if (detail.preventDefault) {
-                    console.log(`[KEYBOARD] Key: Action prevent default by ${this.#callerId}`)
-                    e.preventDefault();
-                }
-                if (detail.handler) {
-                    detail.handler.apply(detail.context, [e.key, intersection]) 
-                }
+            let intersectionAsKey = this.setToKey(intersection)
+            let alreadyMatched = ((allPressed.size > 1) && this.#setAlreadyMatched.has(intersectionAsKey))
+
+            if (match && (!detail.strict || isStrict) && !alreadyMatched) {
+                this.#setAlreadyMatched.add(intersectionAsKey);
+                this.#invokeMatchHandler(detail, e, intersection);
+            }
+        }
+    }
+
+    #keyUpUnmatch(key) {
+        let rmlist = []
+        for (const keys of this.#setAlreadyMatched) {
+            let set = this.keyToSet(keys)
+            if (set.has(key)) {
+                rmlist.push(keys)
+            }
+        }
+        for (const rm of rmlist) {
+            this.#setAlreadyMatched.delete(rm)
+        }
+    }
+
+    #applyActioAndDefaultnOnKeyUp(e, actionSet) {
+        let matchSet = new Set([e.key])
+        for (const [tag, detail] of Object.entries(actionSet)) {
+            let intersection = this.#setIntersection(detail.keys, matchSet);
+            let match = (intersection.size === detail.keys.size)
+            let isStrict = (matchSet.size === intersection.size)
+            if (match && isStrict) {
+                this.#invokeMatchHandler(detail, e, intersection);
             }
         }
     }
@@ -222,8 +277,10 @@ export class Keyboard {
     }
 
     handleKeydown(e) {
-        console.log(`[KEYBOARD][KEY DOWN] ${e.key}`)
-        
+        if (this.#debug) {
+            console.log(`[KEYBOARD_${this.#callerId}][KEY DOWN] ${e.key}`)
+        }
+
         let isPrintable = this.isPrintable(e.key)        
         if (isPrintable) {
             this.#pressedPrintables.add(e.key)
@@ -234,7 +291,9 @@ export class Keyboard {
         this.#applyActionAndDefault(e, this.#actions)
 
         if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintable)) {
-            console.log(`[KEYBOARD] KeyDown: Printable prevent default by ${this.#callerId}`)
+            if (this.#debug) {
+                console.log(`[KEYBOARD_${this.#callerId}] KeyDown: Printable prevent default by ${this.#callerId}`)
+            }
             e.preventDefault();
         }
         
@@ -245,25 +304,20 @@ export class Keyboard {
             this.#onPrintable.handler.apply(this.#onPrintable.context, [e.key])
         }
 
-        console.log(this.#pressedPrintables)
-        console.log(this.#pressedNonPrintables)
+        if (this.#debug) {
+            console.log(this.#pressedPrintables)
+            console.log(this.#pressedNonPrintables)
+            console.log(this.#setAlreadyMatched)
+        }
     }
 
     handleKeyUp(e) {
-        console.log(`[KEYBOARD] KEY_UP(${this.#callerId}) ${e.key}`)
-        
+        if (this.#debug) {
+            console.log(`[KEYBOARD_${this.#callerId}] KEY_UP(${this.#callerId}) ${e.key}`)
+        }
+
+        this.#keyUpUnmatch(e.key)
         let isPrintable = this.isPrintable(e.key)
-        this.#applyActionAndDefault(e, this.#actionsUp)
-        
-        if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintableUp)) {
-            console.log(`[KEYBOARD] KeyUp: Printable prevent default by ${this.#callerId}`)
-            e.preventDefault();
-        }
-
-        if (isPrintable && this.shouldActOnPrintable() && this.#onPrintableUp) {
-            this.#onPrintableUp.handler.apply(this.#onPrintableUp.context, [e.key])
-        }
-
         if (isPrintable) {
             this.#pressedPrintables.delete(e.key)
         } else {
@@ -282,7 +336,28 @@ export class Keyboard {
             this.#depressUppercaseIfNeeded()
         }
 
-        console.log(this.#pressedPrintables)
-        console.log(this.#pressedNonPrintables)
+        this.#applyActioAndDefaultnOnKeyUp(e, this.#actionsUp)
+        
+        if (isPrintable && this.shouldActOnPrintable() && this.shouldPreventDefault(this.#onPrintableUp)) {
+            if (this.#debug) {
+                console.log(`[KEYBOARD_${this.#callerId}] KeyUp: Printable prevent default by ${this.#callerId}`)
+            }
+            e.preventDefault();
+        }
+
+        if (isPrintable && this.shouldActOnPrintable() && this.#onPrintableUp) {
+            try {
+                this.#onPrintableUp.handler.apply(this.#onPrintableUp.context, [e.key]);
+            } catch(e) {
+                console.error(`[KEYBOARD_${this.#callerId}] Handler Exception ${e}`);
+            }
+            
+        }
+
+        if (this.#debug) {
+            console.log(this.#pressedPrintables)
+            console.log(this.#pressedNonPrintables)
+            console.log(this.#setAlreadyMatched)
+        }
 	}
 }

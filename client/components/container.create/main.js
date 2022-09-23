@@ -88,8 +88,8 @@ export class ContainerCreator {
 			'position':'absolute',
 			'width':'150px',
 			'height':'150px',
-			'margin': '5px',
-			'padding': '5px',
+			'margin': '0px',
+			'padding': '0px',
 			'background-color': this.#colorPicker.overlayWith([this.target])	
 		}
 		let div = {
@@ -114,7 +114,7 @@ export class ContainerCreator {
 			
 			let pointer = node.parentNode
 			while (pointer && pointer != this.parent) {
-				this.container.fitVisibleContent(pointer, true)	
+				this.container.fitVisibleContent(pointer)	
 				pointer = pointer.parentNode
 			}
 		}

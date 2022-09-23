@@ -759,11 +759,11 @@ export class Container {
     getComputedStyle(node, properties) {
         node = this.lookup(node)
         let computedStyle = window.getComputedStyle(node)
+        
         let result = {}
-        for (const prop of properties) {
+        for (const prop of (properties || computedStyle)) {
             result[prop] = computedStyle[prop]
         }
-
         return result
     }
 

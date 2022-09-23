@@ -47,10 +47,14 @@ export class DefaultColorPicker {
         return this.#getRandomColor();
     }
 
-	getNodeColor(node) {
+	getNodeColor(node, upperLayerColour) {
 		node = this.container.lookup(node);
 		let style = this.container.getComputedStyle(node, ["background-color"]);
-		return this.convertColor(style["background-color"])
+		let color = this.convertColor(style["background-color"]);
+		if (node != document.documentElement && this.isCompletelyTransparent(color)) {
+			return this.getNodeColor(node.parentNode, color)
+		}
+		return color
 	}
 
 	colorToCssColor(color) {
@@ -74,24 +78,11 @@ export class DefaultColorPicker {
 		//////////////////////////////////
 		if (color[0]=='r')
 		{
-			// Find the index of the redValue.  Using subscring function to 
-			// get rid off "rgb(" and ")" part.  
-			// The indexOf function returns the index of the "(" and ")" which we 
-			// then use to get inner content.  
 			color=color.substring(color.indexOf('(')+1, color.indexOf(')'));
-		
-			// Notice here that we don't know how many digits are in each value,
-			// but we know that every value is separated by a comma.
-			// So split the three values using comma as the separator.
-			// The split function returns an object.
-			rgbColors=color.split(',', 3);
-
-			// Convert redValue to integer
-			rgbColors[0]=parseInt(rgbColors[0]);
-			// Convert greenValue to integer
-			rgbColors[1]=parseInt(rgbColors[1]);
-			// Convert blueValue to integer
-			rgbColors[2]=parseInt(rgbColors[2]);		
+			rgbColors=color.split(',');
+			for(var i in rgbColors) {
+				rgbColors[i] = parseInt(rgbColors[i]);
+			}	
 		}
 
 		////////////////////////////////
@@ -104,7 +95,7 @@ export class DefaultColorPicker {
 			rgbColors[0]=color.substring(1, 3);  // redValue
 			rgbColors[1]=color.substring(3, 5);  // greenValue
 			rgbColors[2]=color.substring(5, 7);  // blueValue
-
+			
 			// We need to convert the value into integers, 
 			//   but the value is in hex (base 16)!
 			// Fortunately, the parseInt function takes a second parameter 
@@ -112,7 +103,16 @@ export class DefaultColorPicker {
 			rgbColors[0]=parseInt(rgbColors[0], 16);
 			rgbColors[1]=parseInt(rgbColors[1], 16);
 			rgbColors[2]=parseInt(rgbColors[2], 16);
-			}
+			rgbColors[3]=0; //ToDo parse alpha if present
+		}
 		return rgbColors;
+	}
+	
+	alphaBlendColors(left, right) {
+		//Naive implementation
+	}
+
+	isCompletelyTransparent(color) {
+		return color.length > 3 && color[3] == 0
 	}
 }

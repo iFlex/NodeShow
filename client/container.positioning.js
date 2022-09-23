@@ -2,7 +2,7 @@ import { Container, ACTIONS } from "./Container.js"
 import { ContainerOperationNotApplicable } from './ContainerExcepitons.js'
 import { inferUnit } from "./UnitConverter.js"
 
-const POSITIONABLE = new Set(['absolute','relative','fixed'])
+const POSITIONABLE = new Set(['absolute','relative','fixed', 'sticky'])
 /**
  * ToDo: - check if it passes the get then set test where the position shouldn't change.
  *       - look into getBoundingClientRect()'s viewport perspective. i.e. will it work with transforms? 

@@ -1,3 +1,6 @@
+import { Keyboard } from '../utils/keyboard.js'
+import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
+
 export class ContainerHax0r {
 	appId = 'container.hax0r'
 	container = null;
@@ -7,11 +10,13 @@ export class ContainerHax0r {
 
 	#enabled = false;
 	#interface = null;
-	
+	#keyboard = null;
+
 	constructor (container) {
 		this.container = container;
 		container.registerComponent(this);
-		
+		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)
+
 		this.#interface = this.container.createFromSerializable(document.body, {
 			"nodeName":"div",
 			"computedStyle":{
@@ -39,6 +44,7 @@ export class ContainerHax0r {
 
 			this.container.show(this.#interface, this.appId)
 			this.container.bringToFront(this.#interface, this.appId)
+			this.#keyboard.enable()
 		}
 	}
 
@@ -47,6 +53,7 @@ export class ContainerHax0r {
 			this.#enabled = false
 
 			this.container.hide(this.#interface, this.appId)
+			this.#keyboard.disable()
 		}
 	}
 

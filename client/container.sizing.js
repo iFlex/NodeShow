@@ -87,9 +87,40 @@ Container.prototype.setHeightUnit = function(id, unit, callerId) {
     this.setHeight(id, measurement, callerId)
 }
 
+Container.prototype.adjustWidthToBoxMode = function (node, value){
+    let computedStyle = this.getComputedStyle(node)
+    if (computedStyle["box-sizing"] != "border-box") {
+        return value
+    }
+
+    let paddingRight = convertToStandard(computedStyle["padding-right"])
+    let paddingLeft = convertToStandard(computedStyle["padding-left"])
+    let bleft = convertToStandard(computedStyle['border-left-width'])
+    let bright = convertToStandard(computedStyle['border-right-width'])
+    
+    return value + paddingLeft + paddingRight + bleft + bright
+}
+
+Container.prototype.adjustHeightToBoxMode = function(node, value) {
+    let computedStyle = this.getComputedStyle(node)
+    if (computedStyle["box-sizing"] != "border-box") {
+        return value
+    }
+
+    let paddingBottom = convertToStandard(computedStyle["padding-bottom"])
+    let paddingTop = convertToStandard(computedStyle["padding-top"])
+    let btop = convertToStandard(computedStyle['border-top-width'])
+    let bbottom = convertToStandard(computedStyle['border-bottom-width'])
+
+    return value + paddingTop + paddingBottom + btop + bbottom
+}
+
 //<size>
 //contextualise width and height based on type of element and wrapping
 //[DOC] width is always expressed in pixels. If a unitOverride is provided, a conversion from pixels to the provided unit will be carried out before setting the result.
+/*
+... Frigging hell... can this be any more situational... https://developer.mozilla.org/en-US/docs/Web/CSS/width
+*/
 Container.prototype.setWidth = function(id, width, callerId, emit) {
     let elem = this.lookup(id)
     let unit = elem.dataset.widthUnit || 'px'
@@ -102,6 +133,7 @@ Container.prototype.setWidth = function(id, width, callerId, emit) {
         width = translated.x
     }
 
+    width = this.adjustWidthToBoxMode(elem, width)
     if (unit !== 'px') {
         width = convertPixelWidth(this, elem, width, unit)    
     }
@@ -117,7 +149,9 @@ Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emi
         width = ''
     }
     this.setUnit(elem, 'widthUnit', unit)
-    jQuery(elem).css({width: `${width}${unit}`});
+    //jQuery(elem).css({width: `${width}${unit}`});
+    elem.style.width = `${width}${unit}`
+
     if (emit != false) {
         this.emit(ACTIONS.setWidth, {
             id: elem.id, 
@@ -151,7 +185,8 @@ Container.prototype.setHeight = function(id, height, callerId, emit) {
         let translated = this.camera.zoomTranslate(0, height)
         height = translated.y
     }
-
+    
+    height = this.adjustHeightToBoxMode(elem, height)
     if (unit !== 'px') {
         height = convertPixelHeight(this, elem, height, unit)    
     }
@@ -178,6 +213,10 @@ Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, e
     }
 }
 
+/*
+https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+w + pading + border-width
+*/
 Container.prototype.getWidth = function(id, withMargin = false) {
     let node = this.lookup(id)
     let rect = node.getBoundingClientRect()
@@ -265,32 +304,50 @@ function decideFittingAction(units) {
 }
 
 //[TODO][WARNING]Highly experimental!
-Container.prototype.fitVisibleContent = function(id, expandOnly = false, callerId, emit) {
+/*
+The scrollWidth value is equal to the minimum width the element would require in order to fit all the content in the viewport 
+without using a horizontal scrollbar. 
+he width is measured in the same way as clientWidth: 
+it includes the element's padding, but not its border, margin or vertical scrollbar (if present)
+w + p
+*/
+Container.prototype.fitVisibleContent = function(id, contract = false, callerId, emit) {
     let node = this.lookup(id)
     let computedStyle = window.getComputedStyle(node, null)
-    let paddingRight = 0;//convertToStandard(computedStyle.getPropertyValue("padding-right"))
-    let paddingBottom = 0;//convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
-    
-    let w = node.scrollWidth + paddingRight
-    let h = node.scrollHeight + paddingBottom
 
+    let mRight = convertToStandard(computedStyle.getPropertyValue("margin-right"))
+    let mLeft = convertToStandard(computedStyle.getPropertyValue("margin-left"))
+    let mBottom = convertToStandard(computedStyle.getPropertyValue("margin-bottom"))
+    let mTop = convertToStandard(computedStyle.getPropertyValue("margin-top"))
+
+    let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
+    let paddingLeft = convertToStandard(computedStyle.getPropertyValue("padding-left"))
+    let paddingBottom = convertToStandard(computedStyle.getPropertyValue("padding-bottom"))
+    let paddingTop = convertToStandard(computedStyle.getPropertyValue("padding-top"))
+    let bleft = convertToStandard(computedStyle.getPropertyValue('border-left-width'))
+    let bright = convertToStandard(computedStyle.getPropertyValue('border-right-width'))
+    let btop = convertToStandard(computedStyle.getPropertyValue('border-top-width'))
+    let bbottom = convertToStandard(computedStyle.getPropertyValue('border-bottom-width'))
+
+    let w = node.scrollWidth + bleft + bright - paddingLeft - paddingRight - mRight
+    let h = node.scrollHeight + btop + bbottom - paddingTop - paddingBottom - mBottom
     let oldW = this.getWidth(node)
     let oldH = this.getHeight(node)
-
-    let contentBbox = this.getContentBoundingBox(node)
-    if (expandOnly) {
-        if (oldW < node.scrollWidth) {
-            this.setWidth(node, w, callerId)    
-        }
-    } else {
-        this.setWidth(node, contentBbox.right + paddingRight, callerId)
+    let fullW = this.getWidth(node, true)
+    let fullH = this.getHeight(node, true)
+    
+    if (w > oldW) {
+        this.setWidth(node, w, callerId)
     }
-
-    if (expandOnly) {
-        if (oldH < node.scrollHeight) {
-            this.setHeight(node, h, callerId)
-        }
-    } else {
-        this.setHeight(node, contentBbox.bottom + paddingBottom, callerId)
+    if (h > oldH) {
+        this.setHeight(node, h, callerId)
+    }
+    
+    
+    //ToDo check contracting correctness
+    if (contract) {
+        let contentBbox = this.getContentBoundingBox(node)
+        this.setWidth(node, contentBbox.right, callerId)
+        this.setHeight(node, contentBbox.bottom, callerId)
     }
 }
