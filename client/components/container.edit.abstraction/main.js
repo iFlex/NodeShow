@@ -1,4 +1,4 @@
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //[TODO]:
@@ -27,8 +27,8 @@ export class ContainerEditAbstraction {
         this.#container.registerComponent(this);
 
         this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
-        this.#keyboard.setAction(new Set(["ArrowDown"]), this, (e) => this.collapse(), false);
-        this.#keyboard.setAction(new Set(["ArrowUp"]), this, (e) => this.expand(), false);
+        this.#keyboard.setKeyDownAction(new Set(["ArrowDown"]), this, (e) => this.collapse(), false);
+        this.#keyboard.setKeyDownAction(new Set(["ArrowUp"]), this, (e) => this.expand(), false);
         
         this.#handlers['container.select.selected'] = (e) => this.onSelection(e.detail.selection)
         this.#handlers["mouseover"] = (e) => { this.#hoverTarget = e.target }

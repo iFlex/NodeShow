@@ -1,4 +1,4 @@
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
@@ -32,8 +32,8 @@ export class ContainerLineage {
         this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.onDragEnd(e))
 
         // /[TODO] update target
-        // this.#keyboard.setAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true, true)
-        // this.#keyboard.setAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true, true)
+        // this.#keyboard.setKeyDownAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true, true)
+        // this.#keyboard.setKeyDownAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true, true)
     }
 
     enable () {

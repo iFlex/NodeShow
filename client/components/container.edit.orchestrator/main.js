@@ -1,6 +1,6 @@
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, MiceManager, getCursorPosition } from '../utils/mouse.js'
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 import { InputAccessManagerInstance, ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { getSelection } from '../utils/common.js'
 
@@ -32,17 +32,17 @@ export class ContainerEditOrchestrator {
 		container.registerComponent(this);	
 		
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
-		this.#keyboard.onPritable(this, (e) => this.tryAddText(e), false)
-		this.#keyboard.setAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
-		this.#keyboard.setAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
-		this.#keyboard.setAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), true)
-		this.#keyboard.setAction(new Set(['Control','4']), this, (e) => this.routeByIndex(4), true)
-		this.#keyboard.setAction(new Set(['Control','5']), this, (e) => this.routeByIndex(5), true)
-		this.#keyboard.setAction(new Set(['Control','6']), this, (e) => this.routeByIndex(6), true)
-		this.#keyboard.setAction(new Set(['Control','7']), this, (e) => this.routeByIndex(7), true)
-		this.#keyboard.setAction(new Set(['Control','8']), this, (e) => this.routeByIndex(8), true)
-		this.#keyboard.setAction(new Set(['Control','9']), this, (e) => this.routeByIndex(9), true)
-		this.#keyboard.setAction(new Set(['Control','0']), this, (e) => this.routeByIndex(0), true)
+		this.#keyboard.setPrintableKeyDownAction(this, (e) => this.tryAddText(e), false)
+		this.#keyboard.setKeyDownAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','4']), this, (e) => this.routeByIndex(4), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','5']), this, (e) => this.routeByIndex(5), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','6']), this, (e) => this.routeByIndex(6), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','7']), this, (e) => this.routeByIndex(7), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','8']), this, (e) => this.routeByIndex(8), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','9']), this, (e) => this.routeByIndex(9), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','0']), this, (e) => this.routeByIndex(0), true)
 
 		this.setupQuickEditShortcuts()
 
@@ -130,7 +130,7 @@ export class ContainerEditOrchestrator {
 	}
 
 	setupQuickEditShortcuts() {
-		this.#keyboard.setAction(new Set(['Control']), this, (e) => {
+		this.#keyboard.setKeyDownAction(new Set(['Control']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
 				this.#componentToInputInstance['container.edit.size'])
 			this.updateMenu()
@@ -142,7 +142,7 @@ export class ContainerEditOrchestrator {
 			this.updateMenu()
 		}, false)
 
-		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
+		this.#keyboard.setKeyDownAction(new Set(['Shift']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
 				this.#componentToInputInstance['container.grouping'])
 			this.updateMenu()
@@ -154,7 +154,7 @@ export class ContainerEditOrchestrator {
 			this.updateMenu()
 		}, true)
 
-		this.#keyboard.setAction(new Set(['Alt']), this, (e) => {
+		this.#keyboard.setKeyDownAction(new Set(['Alt']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
 				this.#componentToInputInstance['container.select'])
 			this.updateMenu()
