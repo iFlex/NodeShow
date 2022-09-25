@@ -116,8 +116,8 @@ export class ContainerSizer {
 	modifyContainer(targetId, dx, dy, x, y, targetOx, targetOy) {
 		let target = this.container.lookup(targetId)
 
-		let w = this.container.getWidth(target, true)
-		let h = this.container.getHeight(target, true)
+		let w = this.container.getWidth(target, false)
+		let h = this.container.getHeight(target, false)
 		
 		if (this.#presenveRatio) {
 			let change = this.keepRatio(target, w, h, dx, dy)	
