@@ -1,6 +1,6 @@
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 
 export class ContainerSizer {
 	container = null;
@@ -25,7 +25,7 @@ export class ContainerSizer {
 		this.#mouse.setAction(MouseEvents.ZOOM, (e) => this.zoomRootCameraWithWheel(e.detail))
 
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
-		this.#keyboard.setAction(new Set(['Shift']), this, (e) => {
+		this.#keyboard.setKeyDownAction(new Set(['Shift']), this, (e) => {
 			this.#presenveRatio = true
 		}, true)
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => { 

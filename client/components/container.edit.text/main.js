@@ -2,7 +2,7 @@ import { ACTIONS, Container } from '../../Container.js'
 import { Cursor } from './cursor.js'
 import { TextSize } from './TextSize.js'
 import { FontManager } from './fonts.js'
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 import { EVENTS as ClipboardEvents, Clipboard } from '../utils/clipboard.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { findCommonStyleSubset } from '../utils/common.js'
@@ -238,46 +238,46 @@ export class ContainerTextInjector {
 	}
 
 	initKeyboard () {
-		this.#keyboard.onPritable(this, (key) => this.addPrintable(key), true)
+		this.#keyboard.setPrintableKeyDownAction(this, (key) => this.addPrintable(key), true)
 		//                               keys, context,  handler, preventDefault, strict
-		this.#keyboard.setAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true, true)
-		this.#keyboard.setAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true, true)
-		this.#keyboard.setAction(new Set(['Enter']), this,     (key) => this.newLine(), true, false)
-		this.#keyboard.setAction(new Set(['Escape']), this,    (key) => this.stop(), true, true)
-		this.#keyboard.setAction(new Set(['Tab']), this,       (key) => this.tab(), true, true)
+		this.#keyboard.setKeyDownAction(new Set(['Backspace']), this, (key) => this.removePrintable(-1), true, true)
+		this.#keyboard.setKeyDownAction(new Set(['Delete']), this,    (key) => this.removePrintable(1), true, true)
+		this.#keyboard.setKeyDownAction(new Set(['Enter']), this,     (key) => this.newLine(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['Escape']), this,    (key) => this.stop(), true, true)
+		this.#keyboard.setKeyDownAction(new Set(['Tab']), this,       (key) => this.tab(), true, true)
 		
-		this.#keyboard.setAction(new Set(['Shift']), this,     (key) => {
+		this.#keyboard.setKeyDownAction(new Set(['Shift']), this,     (key) => {
 			this.#toggleSelectionModify = true
 			this.#anchorCursor = this.cursor.get()
 		}, true, false)
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this,     (key) => this.#toggleSelectionModify = false, true)	
 
-		this.#keyboard.setAction(new Set(['Down']), this,          (key) => this.cursorDown(), true, false)
-		this.#keyboard.setAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true, false)
-		this.#keyboard.setAction(new Set(['Up']), this,            (key) => this.cursorUp(), true, false)
-		this.#keyboard.setAction(new Set(['ArrowUp']), this,       (key) => this.cursorUp(), true, false)
-		this.#keyboard.setAction(new Set(['Left']), this,          (key) => this.cursorLeft(), true, false)
-		this.#keyboard.setAction(new Set(['ArrowLeft']), this,     (key) => this.cursorLeft(), true, false)
-		this.#keyboard.setAction(new Set(['Right']), this,         (key) => this.cursorRight(), true, false)
-		this.#keyboard.setAction(new Set(['ArrowRight']), this,    (key) => this.cursorRight(), true, false)
-		this.#keyboard.setAction(new Set(['End']), this,           (key) => this.toLineEnd(), true, false)
-		this.#keyboard.setAction(new Set(['Home']), this,          (key) => this.toLineStart(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['Down']), this,          (key) => this.cursorDown(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['ArrowDown']), this,     (key) => this.cursorDown(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['Up']), this,            (key) => this.cursorUp(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['ArrowUp']), this,       (key) => this.cursorUp(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['Left']), this,          (key) => this.cursorLeft(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['ArrowLeft']), this,     (key) => this.cursorLeft(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['Right']), this,         (key) => this.cursorRight(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['ArrowRight']), this,    (key) => this.cursorRight(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['End']), this,           (key) => this.toLineEnd(), true, false)
+		this.#keyboard.setKeyDownAction(new Set(['Home']), this,          (key) => this.toLineStart(), true, false)
 
-		this.#keyboard.setAction(new Set(['Control','u']), this, (key) => this.underlined(), true)
-		this.#keyboard.setAction(new Set(['Control','i']), this, (key) => this.italic(), true)
-		this.#keyboard.setAction(new Set(['Control','b']), this, (key) => this.bold(), true)
-		this.#keyboard.setAction(new Set(['Control','a']), this, (key) => this.selectAll(), true)
-		this.#keyboard.setAction(new Set(['Control','1']), this, (key) => this.align('left'), true)
-		this.#keyboard.setAction(new Set(['Control','2']), this, (key) => this.align('center'), true)
-		this.#keyboard.setAction(new Set(['Control','3']), this, (key) => this.align('right'), true)
-		this.#keyboard.setAction(new Set(['Control','4']), this, (key) => this.align('justify'), true)
-		this.#keyboard.setAction(new Set(['Control','+']), this, (key) => this.changeFontSize(1), true)
-		this.#keyboard.setAction(new Set(['Control','-']), this, (key) => this.changeFontSize(-1), true)
-		this.#keyboard.setAction(new Set(['Control','/']), this, (key) => this.underlined(), true)
-		this.#keyboard.setAction(new Set(['Control',';']), this, (key) => this.underlined(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','u']), this, (key) => this.underlined(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','i']), this, (key) => this.italic(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','b']), this, (key) => this.bold(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','a']), this, (key) => this.selectAll(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','1']), this, (key) => this.align('left'), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','2']), this, (key) => this.align('center'), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','3']), this, (key) => this.align('right'), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','4']), this, (key) => this.align('justify'), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','+']), this, (key) => this.changeFontSize(1), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','-']), this, (key) => this.changeFontSize(-1), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','/']), this, (key) => this.underlined(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control',';']), this, (key) => this.underlined(), true)
 
-		this.#keyboard.setAction(new Set(['Control','c']), this, (key) => {}, false)
-		this.#keyboard.setAction(new Set(['Control','v']), this, (key) => {}, false)
+		this.#keyboard.setKeyDownAction(new Set(['Control','c']), this, (key) => {}, false)
+		this.#keyboard.setKeyDownAction(new Set(['Control','v']), this, (key) => {}, false)
 	}
 	
 	#loadFontsInInterface () {

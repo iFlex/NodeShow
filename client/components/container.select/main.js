@@ -1,5 +1,5 @@
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 import { ContainerOverlap } from '../utils/overlap.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
@@ -56,7 +56,7 @@ export class ContainerSelect {
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#container.serializerIgnore('className', this.selectedClass)
 		
-		this.#keyboard.setAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
+		this.#keyboard.setKeyDownAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
 	}
 
 	enable () {

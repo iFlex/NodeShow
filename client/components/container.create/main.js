@@ -1,4 +1,4 @@
-import { Keyboard } from '../utils/keyboard.js'
+import { Keyboard } from '../utils/Keyboards.js'
 import { getSelection, clearSelection, lookupStyleRules } from '../utils/common.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { EVENTS as MouseEvents, Mouse, getCursorPosition } from '../utils/mouse.js'
@@ -21,8 +21,8 @@ export class ContainerCreator {
 		container.registerComponent(this);
 
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
-		this.#keyboard.setAction(new Set(['Delete']), this, (e) => this.delete(false), false)
-		this.#keyboard.setAction(new Set(['End']), this, (e) => this.delete(true), true)
+		this.#keyboard.setKeyDownAction(new Set(['Delete']), this, (e) => this.delete(false), false)
+		this.#keyboard.setKeyDownAction(new Set(['End']), this, (e) => this.delete(true), true)
 		
 		this.#mouse = new Mouse(this.appId, container)
 		this.#mouse.setAction(MouseEvents.DOUBLE_CLICK, (e) => this.onDoubleClick(e))
