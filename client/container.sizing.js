@@ -254,13 +254,17 @@ Container.prototype.getContentWidth = function(id) {
 //wonder if the browser is willing to give this up... rather than having to compute it in JS
 Container.prototype.getContentBoundingBox = function(id) {
     let node = this.lookup(id)
-    let result = this.getPosition(node)
+    let containerPos = this.getPosition(node)
     let positionTypes = new Set([])
     let widthTypes = new Set([])
     let heightTypes = new Set([])
-
-    result.bottom = 0
-    result.right = 0
+    let result = {
+        containerPosition: containerPos,
+        top: containerPos.top,
+        left: containerPos.left,
+        bottom: 0,
+        right: 0,
+    }
 
     for (const child of node.children) {
         let bbox = this.getBoundingBox(child)
@@ -269,6 +273,12 @@ Container.prototype.getContentBoundingBox = function(id) {
         }
         if (result.bottom < bbox.bottom) {
             result.bottom = bbox.bottom
+        }
+        if (result.left > bbox.left) {
+            result.left = bbox.left
+        }
+        if (result.top > bbox.top) {
+            result.top = bbox.top
         }
 
         positionTypes.add(child.style.position || "static")
@@ -325,19 +335,19 @@ Container.prototype.fitVisibleContent = function(id, contract = false, callerId,
     let oldH = this.getHeight(node)
     let fullW = this.getWidth(node, true)
     let fullH = this.getHeight(node, true)
-    
+    let contentBbox = null
+
     if (w > oldW) {
         this.setWidth(node, w, callerId)
+    } else if(contract) {
+        contentBbox = contentBbox || this.getContentBoundingBox(node)
+        this.setWidth(node, contentBbox.right - contentBbox.left, callerId)
     }
+    
     if (h > oldH) {
         this.setHeight(node, h, callerId)
-    }
-    
-    
-    //ToDo check contracting correctness
-    if (contract) {
-        let contentBbox = this.getContentBoundingBox(node)
-        this.setWidth(node, contentBbox.right, callerId)
-        this.setHeight(node, contentBbox.bottom, callerId)
+    } else if (contract) {
+        contentBbox = contentBbox || this.getContentBoundingBox(node)
+        this.setHeight(node, contentBbox.bottom - contentBbox.top, callerId)
     }
 }
