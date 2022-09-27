@@ -1,5 +1,5 @@
 import { ACTIONS } from '../../Container.js'
-import { getSelection, lookupStyleRules, positionVerticalMenu } from '../utils/common.js'
+import { positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
@@ -140,7 +140,7 @@ export class ContainerConfig {
 	}
 
 	onFocus(id) {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 	}
 
 	onUnfocus(e) {
@@ -148,46 +148,46 @@ export class ContainerConfig {
 	}
 
 	applyChanges() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 	}
 
 	lockPosition() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		for (const target of this.selection) {
 			this.container.setPermission(target, ACTIONS.setPosition, "*", false, this.appId)
 		}
 	}
 
 	unlockPosition() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setPosition, null, this.appId)
 		}
 	}
 
 	lockWidth() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		for (const target of this.selection) {
 			this.container.setPermission(target, ACTIONS.setWidth, "*", false, this.appId)
 		}
 	}
 
 	unlockWidth() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setWidth, null, this.appId)
 		}
 	}
 
 	lockHeight() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		for (const target of this.selection) {
 			this.container.setPermission(target, ACTIONS.setHeight, "*", false, this.appId)
 		}
 	}
 
 	unlockHeight() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setHeight, null, this.appId)
 		}
@@ -195,7 +195,7 @@ export class ContainerConfig {
 
 	changePosType() {
 		let type = document.getElementById('ns-pos-type').value
-		this.selection = getSelection(this.container)
+		this.selection = this.container.tryExecuteWithComponent("getSelection")
 		for (const target of this.selection) {	
 			let node = this.container.lookup(target)
 			if (type == 'absolute') {
@@ -240,7 +240,7 @@ export class ContainerConfig {
 	//all layouts are iterated and removed from the parent and 1st level children and then the desired ones are applied
 	changeContentLayout() {
 		let type = document.getElementById('ns-content-layout').value
-		this.selection = getSelection(this.container)
+		this.selection = this.container.tryExecuteWithComponent("getSelection")
 		this.changeContentLayoutAs(type, this.selection)
 	}
 
@@ -263,7 +263,7 @@ export class ContainerConfig {
 	changeHeightUnit() {
 		let newUnit = document.getElementById('ns-height-unit').value
 
-		this.selection = getSelection(this.container)
+		this.selection = this.container.tryExecuteWithComponent("getSelection")
 		for (const target of this.selection) {	
 			this.container.setHeightUnit(target, newUnit, this.appId)
 		}
@@ -272,7 +272,7 @@ export class ContainerConfig {
 	changeWidthUnit() {
 		let newUnit = document.getElementById('ns-width-unit').value
 
-		this.selection = getSelection(this.container)
+		this.selection = this.container.tryExecuteWithComponent("getSelection")
 		for (const target of this.selection) {	
 			this.container.setWidthUnit(target, newUnit, this.appId)
 		}
@@ -281,7 +281,7 @@ export class ContainerConfig {
 	changePosYUnit() {
 		let newUnit = document.getElementById('ns-pos-y-unit').value
 
-		this.selection = getSelection(this.container)
+		this.selection = this.container.tryExecuteWithComponent("getSelection")
 		for (const target of this.selection) {	
 			this.container.setPositionUnits(target, {top:newUnit}, this.appId)
 		}
@@ -290,7 +290,7 @@ export class ContainerConfig {
 	changePosXUnit() {
 		let newUnit = document.getElementById('ns-pos-x-unit').value
 
-		this.selection = getSelection(this.container)
+		this.selection = this.container.tryExecuteWithComponent("getSelection")
 		for (const target of this.selection) {	
 			this.container.setPositionUnits(target, {left:newUnit}, this.appId)
 		}
@@ -301,7 +301,7 @@ export class ContainerConfig {
 		if (newIndex && newIndex.length > 0) {
 			newIndex = parseInt(newIndex)
 			
-			this.selection = getSelection(this.container)
+			this.selection = this.container.tryExecuteWithComponent("getSelection")
 			for (const target of this.selection) {	
 				this.container.setSiblingPosition(target, newIndex, this.appId)
 			}
@@ -314,7 +314,7 @@ export class ContainerConfig {
 		if (value && value.length > 0) {
 			value = parseInt(value)
 			
-			this.selection = getSelection(this.container)
+			this.selection = this.container.tryExecuteWithComponent("getSelection")
 			for (const target of this.selection) {	
 				this.container.setExplicitWidth(target, value, unit, this.appId)
 			}
@@ -327,7 +327,7 @@ export class ContainerConfig {
 		if (value && value.length > 0) {
 			value = parseInt(value)
 
-			this.selection = getSelection(this.container)
+			this.selection = this.container.tryExecuteWithComponent("getSelection")
 			for (const target of this.selection) {	
 				this.container.setExplicitHeight(target, value, unit, this.appId)
 			}

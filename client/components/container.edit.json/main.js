@@ -1,4 +1,4 @@
-import { getSelection, positionVerticalMenu } from '../utils/common.js'
+import { positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
@@ -93,7 +93,7 @@ export class ContainerJsonEdit {
 	}
 
 	onFocus(id) {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 		
 		if (this.selection.length > 0) {
 			console.log(`${this.appId} - onFocus() loading up actions and premissions for`)
@@ -118,7 +118,7 @@ export class ContainerJsonEdit {
 	}
 
 	applyChanges() {
-		this.selection = getSelection(this.container);
+		this.selection = this.container.tryExecuteWithComponent("getSelection");
 
 		let actions = {}
 		let perms   = {}
