@@ -10,6 +10,12 @@ export class TextSize {
 		
 		this.#measurer = this.#container.createFromSerializable(document.body, {
 			nodeName: 'DIV',
+			"data":{
+		    	"ignore":true,
+		    	"containerPermissions":{
+					"container.bridge":{"*":false}
+				}
+		    },
 			computedStyle: {
 				'width':'auto',
 				'height':'auto',
