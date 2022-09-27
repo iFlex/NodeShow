@@ -158,6 +158,10 @@ export class Keyboard {
         }
 	}
 
+	getCurrentKeyState() {
+		return KeyboardTracker.getCurrentKeyState();
+	}
+
 	formHandlerSpec(scope, handler, preventDefault, isStrict) {
 		let handlerSpec = {scope:scope, handler:handler, preventDefault: preventDefault, strict: isStrict}
 		KeyboardTracker.validateKeyHandlerSpecifier(handlerSpec)

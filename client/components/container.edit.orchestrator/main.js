@@ -353,6 +353,12 @@ export class ContainerEditOrchestrator {
 	}
 
 	tryAddText (key) {
+		let keyboardState = this.#keyboard.getCurrentKeyState();
+		if (keyboardState.get("pressedNonPrintables").size > 0) {
+			//we want to trigger the text editor only if a printable character was pressed. No other funtional keys should be pressed.
+			return;
+		}
+
 		let sel = getSelection(this.#container)
 		if (sel.length == 1 ) {
 			try {
@@ -455,8 +461,7 @@ export class ContainerEditOrchestrator {
 			this.updateMenu()
 		}, true)
 		
-		//this.#keyboard.setPrintableKeyDownAction(this, (e) => this.tryAddText(e), false)
-
+		this.#keyboard.setPrintableKeyDownAction(this, (e) => this.tryAddText(e), false)
 		this.#keyboard.setKeyDownAction(new Set(['Control','ArrowUp']), this, () => this.collapse(), true, true)
 		this.#keyboard.setKeyDownAction(new Set(['Control','ArrowDown']), this, () => this.expand(), true, true)
 		this.#keyboard.setKeyDownAction(new Set(['Control',' ']), this, () => this.fitContent(), true, true)
