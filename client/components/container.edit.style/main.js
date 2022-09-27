@@ -1,4 +1,4 @@
-import { getSelection, positionVerticalMenu } from '../utils/common.js'
+import { positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
@@ -84,7 +84,7 @@ export class ContainerStyler {
 	}
 
 	#applyChange(style) {
-		let selection = getSelection(this.container);
+		let selection = this.container.tryExecuteWithComponent("getSelection");
 		console.log(`${this.appId} got selection:`)
 		console.log(selection)
 		for ( const item of selection ) {

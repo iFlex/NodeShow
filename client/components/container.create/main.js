@@ -1,5 +1,5 @@
 import { Keyboard } from '../utils/Keyboards.js'
-import { getSelection, clearSelection, lookupStyleRules } from '../utils/common.js'
+import { lookupStyleRules } from '../utils/common.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 import { EVENTS as MouseEvents, Mouse, getCursorPosition } from '../utils/mouse.js'
 
@@ -67,8 +67,8 @@ export class ContainerCreator {
 	}
 
 	delete (spareChildren) {
-		let selection = getSelection(this.container);
-		clearSelection(this.container);
+		let selection = this.container.tryExecuteWithComponent("getSelection");
+		this.container.tryExecuteWithComponent("clearSelection");
 		for (const sid of selection) {
 			this.deleteNode(sid, spareChildren)
 		}
@@ -146,7 +146,7 @@ export class ContainerCreator {
 	}
 
 	onKeyboardCreate () {
-		let selection = getSelection(this.container)
+		let selection = this.container.tryExecuteWithComponent("getSelection")
 		let target = this.container.parent
 		if (selection) {
 			target = selection[0]

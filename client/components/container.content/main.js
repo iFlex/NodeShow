@@ -1,4 +1,4 @@
-import { getSelection, positionVerticalMenu } from '../utils/common.js'
+import { positionVerticalMenu } from '../utils/common.js'
 import { post } from '../utils/http.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/Keyboards.js'
@@ -156,7 +156,7 @@ export class ContainerContent {
   }
 
   createFromData(contentType, data) {
-    let selection = getSelection(this.container)
+    let selection = this.container.tryExecuteWithComponent("getSelection")
     let target = this.container.parent
     if (selection.length > 0) {
       target = selection[0]

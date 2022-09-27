@@ -1,5 +1,4 @@
 import { EVENTS as TouchEvents, Touch } from '../utils/touch.js'
-import { clearSelection, getSelection, makeSelection } from '../utils/common.js'
 
 //ToDo: state based button text and action
 export class ContextMenu {
@@ -175,10 +174,10 @@ export class ContextMenu {
 	}
 
 	userOrMakeSelection(e) {
-		let selection = getSelection(this.#container)
+		let selection = this.container.tryExecuteWithComponent("getSelection")
 		if (selection.length == 0) {
-			makeSelection(this.#container, e.target)
-			return getSelection(this.#container)
+			this.#container.tryExecuteWithComponent("makeSelection", [e.target])
+			return this.container.tryExecuteWithComponent("getSelection")
 		} 
 
 		return selection
@@ -188,7 +187,7 @@ export class ContextMenu {
 		console.log(`${this.appId} - call action ${JSON.stringify(details)}`)
 		let toCall = this.#container.lookupMethod(details.action)
 	    if (toCall) {
-	    	let selection = getSelection(this.#container)
+	    	let selection = this.container.tryExecuteWithComponent("getSelection")
 
             let params = []
             //[TODO]: make a better system for determining what params the call will be made with
@@ -220,7 +219,7 @@ export class ContextMenu {
 	}
 
 	deselect() {
-		clearSelection(this.#container)
+		this.container.tryExecuteWithComponent("clearSelection")
 	}
 
 	tmpFocusOn(target) {

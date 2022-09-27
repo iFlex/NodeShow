@@ -1,28 +1,5 @@
 import { ACTIONS } from "../../Container.js"
 
-export function clearSelection(container) {
-	let selectorApp = container.getComponent('container.select')
-	if (selectorApp) {
-		selectorApp.clearSelection();
-	}
-}
-
-export function makeSelection(container, items) {
-	let selectorApp = container.getComponent('container.select')
-	if (selectorApp) {
-		selectorApp.makeSelection(items)
-	}
-}
-
-export function getSelection(container) {
-	let selectorApp = container.getComponent('container.select')
-	if (!selectorApp) {
-		return []
-	}
-
-	return selectorApp.getSelection() || []
-}
-
 //TODO get rid of this
 export function findActionableAnchestor(container, target, appId) {
 	if (!target) {
