@@ -1,4 +1,3 @@
-//[TODO][FIX]: in certian situations the keyboar will believe certain keys are still pressed when they are not.
 /*
     Key Press Handler Modes:
         1. strict: trigger action when a,b,c and only those are pressed.
@@ -8,6 +7,8 @@
         # This triggers per single key, no grouping option.
 */
 
+//[TODO][FIX]: prevent default doesn't seem to prevent browser shortcuts from working. They seem to take precendence and prevent the handlers from firing.
+//example: CTRL + C + F
 /** @class
  *  @summary Component implementing consistent access to keyboard input. 
  *  @description TODO

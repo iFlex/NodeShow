@@ -21,6 +21,7 @@ export class ContainerCreator {
 		container.registerComponent(this);
 
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
+		this.#keyboard.setKeyDownAction(new Set(['Alt','n']), this, (e) => this.onKeyboardCreate(), true, true)
 		this.#keyboard.setKeyDownAction(new Set(['Delete']), this, (e) => this.delete(false), false)
 		this.#keyboard.setKeyDownAction(new Set(['End']), this, (e) => this.delete(true), true)
 		
@@ -80,8 +81,8 @@ export class ContainerCreator {
 		}
 		if (x == undefined || y == undefined) {
 			let pos = getCursorPosition()
-			x = pos.x
-			y = pos.y
+			x = pos.left
+			y = pos.top
 		}
 		
 		let childStyle = {
@@ -142,6 +143,16 @@ export class ContainerCreator {
 
 	unfocus() {
 		this.target = null
+	}
+
+	onKeyboardCreate () {
+		let selection = getSelection(this.container)
+		let target = this.container.parent
+		if (selection) {
+			target = selection[0]
+		}
+
+		this.create()
 	}
 
 	onDoubleClick (e) {

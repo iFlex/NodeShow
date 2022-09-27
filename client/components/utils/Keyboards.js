@@ -6,7 +6,6 @@ import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessM
  *  @description TODO
  * */ 
 
-//ToDo adapt keyboard manager to new way of keyboard functioning
 class KeyboardManager {
 	
 	#accessMgr = null;

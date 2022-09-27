@@ -854,9 +854,10 @@ export class Container {
     setSiblingPosition(siblingId, index, callerId) {
         let sibling = this.lookup(siblingId)
         this.isOperationAllowed(ACTIONS.setSiblingPosition, sibling, callerId);
+        let curPos = this.getSiblingPosition(sibling)
         let parent = sibling.parentNode
-
-        let switchSibling = this.getChildAt(parent, index)
+        
+        let switchSibling = this.getChildAt(parent, index + ((curPos < index) ? 1 : 0))
         
         if(this.debug) {
             console.log(`Moving ${siblingId} before:`)
@@ -989,6 +990,7 @@ export class Container {
         this.notifyUpdate(node, callerId)
     }
 
+    //ToDo: FIX - this makes the container invisitble...
     sendToBottom(id, callerId) {
         let node = this.lookup(id)
         this.#currentMinZindex--;
