@@ -359,7 +359,7 @@ export class ContainerEditOrchestrator {
 			return;
 		}
 
-		let sel = getSelection(this.#container)
+		let sel = this.#container.tryExecuteWithComponent("getSelection")
 		if (sel.length == 1 ) {
 			try {
 				let textEditor = this.#container.getComponent('container.edit.text');
@@ -383,53 +383,53 @@ export class ContainerEditOrchestrator {
 	}
 
 	collapse() {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			this.#container.collapse(target, this.appId)
 		}
 	}
 
 	expand() {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			this.#container.expand(target, this.appId)
 		}
 	}
 
 	fitContent() {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			this.#container.fitVisibleContent(target, true, this.appId, true)
 		}
 	}
 
 	bringToFront() {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			this.#container.bringToFront(target, this.appId)
 		}
 	}
 
 	sendToBack() {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			this.#container.sendToBottom(target, this.appId)
 		}
 	}
 
 	shiftChild(direction) {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			this.#container.changeSiblingPosition(target, direction, this.appId)
 		}
 	}
 
 	contentLayout(type) {
-		this.#container.tryExecuteWithComponent("changeContentLayout", type, getSelection(this.#container), this.appId)
+		this.#container.tryExecuteWithComponent("changeContentLayout", type, this.#container.tryExecuteWithComponent("getSelection"), this.appId)
 	}
 
 	positionType(type) {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		for (const target of targets) {
 			if (type == 'absolute') {
 				this.#container.styleChild(target, {"position": "absolute"}, this.appId)
@@ -441,7 +441,7 @@ export class ContainerEditOrchestrator {
 	}
 
 	selectParent() {
-		let targets = getSelection(this.#container)
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
 		if (targets) {
 			let target = this.#container.lookup(targets[0])
 			if (target === this.#container.parent) { 
