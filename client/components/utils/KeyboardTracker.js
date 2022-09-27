@@ -205,7 +205,7 @@ class KeyboardTracker {
             try {
                 detail.handler.apply(detail.scope, [e.key, intersection]);
             } catch(e) {
-                console.error(`[KEYBOARD] Handler Exception ${e}`);
+                console.error(`[KEYBOARD] Handler Exception`, e);
             }
         }
     }

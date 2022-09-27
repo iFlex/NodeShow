@@ -18,29 +18,55 @@ export class ContainerConfig {
 	#interface = null;
 	#clipboard = null
 	#keyboard = null
-	#handlers = {}
+	#handlers = {}	  
+
 	layouts = {
+
 		"none":{
-			"childClassName":"", 
-			"parentClassName":""
+			"childStyle":{
+			}, 
+			"parentStyle":{
+			}
 		},
 		"horizontal-list":{
-			"childClassName":"ns-horizontal-list-unit", 
-			"parentClassName":"ns-horizontal-list"
+			"childStyle":{
+				position: "static",
+				height: "inherit"
+			}, 
+			"parentStyle":{
+				"min-width": "64px",
+				"width": "auto",
+				"display": "flex"
+			}
 		},
 		"vertical-list":{
-			"childClassName":"ns-vertical-list-unit", 
-			"parentClassName":"ns-vertical-list"
+			"childStyle":{
+				margin: "0px",
+				padding: "15px",
+				"min-height": "64px",
+				height: "auto"
+			}, 
+			"parentStyle":{
+				margin: "5px",
+				position: "static",
+				width: "98%"
+			}
 		},
-		"grid":{
-			"childClassName":"ns-grid-unit", 
-			"parentClassName":"ns-grid"
+		"grid": {
+			"childStyle":{
+				position: "static",
+				float: "left"
+			}, 
+			"parentStyle":{
+				height: "auto",
+				"min-height": "100px"
+			}
 		}
 	}
 
 	constructor (container) {
 		this.container = container;
-		container.registerComponent(this);
+		container.registerComponent(this, new Set([{operation:"changeContentLayout", method:this.changeContentLayoutAs}]));
 		
 		this.#handlers['container.select.selected'] = (e) => this.onFocus(e.detail.id)
 		this.#handlers['container.blur'] = (e) => this.onUnfocus(e)
@@ -66,11 +92,11 @@ export class ContainerConfig {
 		this.container.hide(this.#interface, this.appId)
 		this.container.loadHtml(this.#interface, "interface.html", this.appId)
 
-		//preload
-		for (let entry of Object.entries(this.layouts)) {
-			entry.parentStyle = lookupStyleRules(entry.parentClassName)
-			entry.childStyle = lookupStyleRules(entry.childClassName)
-		}
+		// //preload
+		// for (let entry of Object.entries(this.layouts)) {
+		// 	entry.parentStyle = lookupStyleRules(entry.parentClassName)
+		// 	entry.childStyle = lookupStyleRules(entry.childClassName)
+		// }
 
 		this.#clipboard = new Clipboard(this.appId);
 		for (let evid of Object.values(ClipboardEvents)) {
@@ -184,7 +210,7 @@ export class ContainerConfig {
 
 	removeParentLayout(node) {
 		for (let config of Object.entries(this.layouts)) {
-			let style = config.parentStyle || lookupStyleRules(config.parentClassName)
+			let style = config.parentStyle
 			this.container.removeStyle(node, style, this.appId)
 			config.parentStyle = style
 		}
@@ -192,7 +218,7 @@ export class ContainerConfig {
 	
 	removeChildLayout(node) {
 		for (let config of Object.entries(this.layouts)) {
-			let style = config.childStyle || lookupStyleRules(config.childClassName)
+			let style = config.childStyle
 			this.container.removeStyle(node, style, this.appId)
 			config.childStyle = style
 		}
@@ -214,12 +240,16 @@ export class ContainerConfig {
 	//all layouts are iterated and removed from the parent and 1st level children and then the desired ones are applied
 	changeContentLayout() {
 		let type = document.getElementById('ns-content-layout').value
-		let layoutConfig = this.layouts[type]
-		layoutConfig.parentStyle = layoutConfig.parentStyle || lookupStyleRules(layoutConfig.parentClassName)
-		layoutConfig.childStyle = layoutConfig.childStyle || lookupStyleRules(layoutConfig.childClassName)
-
 		this.selection = getSelection(this.container)
-		for (const target of this.selection) {	
+		this.changeContentLayoutAs(type, this.selection)
+	}
+
+	changeContentLayoutAs(type, targets) {
+		let layoutConfig = this.layouts[type]
+		layoutConfig.parentStyle = layoutConfig.parentStyle
+		layoutConfig.childStyle = layoutConfig.childStyle
+		
+		for (const target of targets) {	
 			let node = this.container.lookup(target)
 			this.container.setChildStyleRules(node,layoutConfig.childStyle)
 			
