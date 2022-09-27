@@ -1,4 +1,5 @@
 import { Container } from '../../Container.js'
+import { NoSuitableComponentPresent } from '../../ContainerExcepitons.js'
 import { getSelection, clearSelection } from '../utils/common.js'
 import { getCursorPosition } from '../utils/mouse.js'
 import { Clipboard, EVENTS as ClipboardEvents } from "../utils/clipboard.js"
@@ -188,16 +189,33 @@ export class ContainerClipboard {
 		return data
 	}
 
+	//ToDo: set appropriate data type based on what's copied. I.e. groups of containers = json, picture element: image, text editor selection: rich text
+	//add URL detection
 	onCopy(e) {
 		let data = this.copy()
 		if (data) {
-			e.clipboardData.setData("text/plain", data)
+			e.clipboardData.setData("application/json", data)
 			e.preventDefault()
 		}
 	}
 
+	//ToDo: add decoders for supported data types
 	onPaste(e) {
-		let data = (e.clipboardData || window.clipboardData).getData('text')
+		console.log(`[${this.appId}] pasted data types ${JSON.stringify(e.clipboardData.types)}`)
+		for (const type of e.clipboardData.types) {
+			let operation = `materialize:${type}`
+			try {
+				this.#container.tryExecuteWithComponent(operation, e.clipboardData, getSelection(this.#container), this.appId)
+				return;
+			} catch (e) {
+				if (!(e instanceof NoSuitableComponentPresent)) {
+					console.error(`Failed to process clipboard data as ${type} using ${operation}`, e);
+					return;
+				}
+			}
+		}
+
+		let data = (e.clipboardData || window.clipboardData).getData("application/json")
 		if (data) {
 			this.paste(data)
 		}
@@ -206,7 +224,7 @@ export class ContainerClipboard {
 	onCut(e) {
 		let data = this.cut()
 		if (data) {
-			e.clipboardData.setData("text/plain", data)
+			e.clipboardData.setData("application/json", data)
 			e.preventDefault()
 		}
 	}

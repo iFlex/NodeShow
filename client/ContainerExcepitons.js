@@ -57,3 +57,9 @@ export class ContainerOperationNotApplicable {
         return `ContainerOperationNotApplicable`   
     }
 }
+
+export class NoSuitableComponentPresent {
+    constructor(msg) {
+
+    }
+}

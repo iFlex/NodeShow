@@ -3,7 +3,7 @@
  * @module Container 
  */
 import { queueWork } from './YeldingExecutor.js'
-import { ContainerException, ContainerOperationDenied } from './ContainerExcepitons.js'
+import { ContainerException, ContainerOperationDenied, NoSuitableComponentPresent } from './ContainerExcepitons.js'
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
@@ -126,6 +126,7 @@ export class Container {
     localmetadata = {}
 	
     components = {}
+    #exportedOperations = new Map()
     skipSetOnDOM = {"nodeName":true, "children":true, "childNodes":true}
 
     constructor(parentDom, debug) {
@@ -521,8 +522,10 @@ export class Container {
     /**
     * @summary Registers an extension component into the Container Framework instance.
     * @param {reference} pointer - Component instance reference 
+    * @param {Set} exportedFunctionality - A set of operations the component implements that can be used by any other component / code. e.g. decoding and importing a certain image format into a container.
+        exportedFunctionality = [{operation:"decode:text/html", method:methodToCall}] - call format method(input, List[targets (ids or DOMNodes)] - returns result if any
     */
-    registerComponent(pointer) {
+    registerComponent(pointer, exportedFunctionality = new Set([])) {
         let name = pointer.appId
         if (name in this.components) {
             throw `${name} component is already registered`
@@ -530,6 +533,13 @@ export class Container {
 
         this.components[name] = {
             pointer:pointer
+        }
+
+        //ToDo: adapt to work with components getting unregistered as well
+        for (const ophandler of exportedFunctionality) {
+            if (!this.#exportedOperations.has(ophandler.operation)) {
+                this.#exportedOperations.set(ophandler.operation, {scope:pointer, method:ophandler.method})
+            }
         }
 
         console.log(`Registered ${name}`);
@@ -573,6 +583,14 @@ export class Container {
         }
 
         return null;
+    }
+
+    tryExecuteWithComponent(operation, input, targets, callerId) {
+        let handler = this.#exportedOperations.get(operation)
+        if (!handler) {
+            throw new NoSuitableComponentPresent(operation);
+        }
+        return handler.method.apply(handler.scope, [input, targets, callerId, operation])
     }
 
     /**

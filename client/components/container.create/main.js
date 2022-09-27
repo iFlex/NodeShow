@@ -86,6 +86,7 @@ export class ContainerCreator {
 		
 		let childStyle = {
 			'position':'absolute',
+			'overflow':'hidden',
 			'width':'150px',
 			'height':'150px',
 			'margin': '0px',
@@ -110,11 +111,15 @@ export class ContainerCreator {
 		if (x != undefined && y!= undefined) {
 			console.log(`Creating new container @abspos{${x}x${y}}`)
 			console.log(node)
-			this.container.setPosition(node.id, {top:y, left:x}, this.appId)
+
+			try {
+				this.container.setPosition(node.id, {top:y, left:x}, this.appId)
+			} catch (e) {
+			}			
 			
 			let pointer = node.parentNode
 			while (pointer && pointer != this.parent) {
-				this.container.fitVisibleContent(pointer)	
+				this.container.fitVisibleContent(pointer, true)	
 				pointer = pointer.parentNode
 			}
 		}

@@ -145,7 +145,10 @@ export class ContainerTextInjector {
 	constructor (container, colorPicker = {"overlayWith":() => {return "rgb(0,0,0)";}}, debug) {
 		this.container = container;
 		this.#colorPicker = colorPicker;
-		container.registerComponent(this);
+		container.registerComponent(this, new Set([{
+			"operation":"materialize:text/plain",
+			"method":this.pasteInText
+		}]));
 		
 		this.#debug = debug
 		if(debug) {
@@ -289,6 +292,14 @@ export class ContainerTextInjector {
 			fontRow.value = fontName
 			fontRow.innerHTML = fontName
 			root.appendChild(fontRow)
+		}
+	}
+
+	pasteInText(data, targets, callerId, operation) {
+		for (const target of targets) {
+			this.start(target)
+			this.addPrintable(data.getData('text/plain'))
+			this.stop()
 		}
 	}
 
