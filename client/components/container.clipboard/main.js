@@ -1,6 +1,5 @@
 import { Container } from '../../Container.js'
 import { NoSuitableComponentPresent } from '../../ContainerExcepitons.js'
-import { getSelection, clearSelection } from '../utils/common.js'
 import { getCursorPosition } from '../utils/mouse.js'
 import { Clipboard, EVENTS as ClipboardEvents } from "../utils/clipboard.js"
 
@@ -111,7 +110,7 @@ export class ContainerClipboard {
 	}
 
 	copy (subset) {
-		let selection = getSelection(this.#container)
+		let selection = this.#container.tryExecuteWithComponent("getSelection")
 		if (selection.length > 0) {
 			let clipboard = []
 			let travqueue = []
@@ -157,7 +156,7 @@ export class ContainerClipboard {
 
 	paste (data) {
 		let parent = this.#container.parent
-		let selection = getSelection(this.#container)
+		let selection = this.#container.tryExecuteWithComponent("getSelection")
 		let cursorPos = getCursorPosition()
 
 		if (selection.length > 0) {
@@ -181,8 +180,8 @@ export class ContainerClipboard {
 		let data = this.copy()
 		console.log(`${this.appId} - cut ${data.length}B`)
 		
-		let selection = getSelection(this.#container)
-		clearSelection(this.#container)
+		let selection = this.#container.tryExecuteWithComponent("getSelection")
+		this.#container.tryExecuteWithComponent("clearSelection")
 		for (const id of selection) {
 			this.#container.delete(id, this.appId)
 		}
@@ -205,7 +204,7 @@ export class ContainerClipboard {
 		for (const type of e.clipboardData.types) {
 			let operation = `materialize:${type}`
 			try {
-				this.#container.tryExecuteWithComponent(operation, e.clipboardData, getSelection(this.#container), this.appId)
+				this.#container.tryExecuteWithComponent(operation, e.clipboardData, this.#container.tryExecuteWithComponent("getSelection"), this.appId)
 				return;
 			} catch (e) {
 				if (!(e instanceof NoSuitableComponentPresent)) {
