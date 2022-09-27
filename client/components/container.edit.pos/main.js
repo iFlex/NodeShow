@@ -1,4 +1,3 @@
-import { getSelection } from '../utils/common.js'
 import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Touch, EVENTS as TouchEvents } from '../utils/touch.js'
@@ -103,7 +102,7 @@ export class ContainerMover {
 	start(id) {
 		//this.container.componentStartedWork(this.appId, {})
 		this.target = this.container.lookup(id)
-		this.#selection = new Set(getSelection(this.container))
+		this.#selection = new Set(this.container.tryExecuteWithComponent("getSelection"))
 	}
 
 	handleDragUpdate(e) {
