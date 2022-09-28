@@ -500,8 +500,10 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowLeft']), this, () => this.shiftChild(-1), true, true)
 		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowRight']), this, () => this.shiftChild(+1), true, true)
 
-		this.#keyboard.setKeyDownAction(new Set(['Alt']), this, () => {}, true, false)
-		this.#keyboard.setKeyDownAction(new Set(['Shift']), this, () => {}, true, false)
+		//temporary workaround as the browser is very eager to execute its own shortcuts...
+		const keyboard = new Keyboard(this.appId, this.#container, ACCESS_REQUIREMENT.DEFAULT)
+		keyboard.setKeyDownAction(new Set(['Alt']), this, () => {}, true, false)
+		keyboard.setKeyDownAction(new Set(['Shift']), this, () => {}, true, false)
 		
 		this.#keyboard.setKeyDownAction(new Set(['Alt','ArrowUp']), this, () => this.selectParent(), true, true)
 		this.#keyboard.setKeyDownAction(new Set(['Alt','p','0']), this, () => this.positionType('static'), true, true)
