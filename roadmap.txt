@@ -25,6 +25,8 @@ Client Features:
 15. Camera implementation: focus, move, zoom
      - integrate zoom level with sizing (i.e. fitContent) + check if read and write style works under zoom
 ------------------------------------------------------------------------------
+16. Optimize event sending and heavy loading (e.g. books)
+    Implement BulkBridge maybe?
 13  [IN_PROGRESS] !Link Containers ::container.link
 Link are currently a performance issue - they seem to slow down the server
     - [DONE] create links
@@ -35,9 +37,7 @@ Link are currently a performance issue - they seem to slow down the server
     - optimize drawing: stop sending update events on every link unit, let the client do the redrawing
     [BUG]: some links don't update at all untill you move one of the linked containers
 
-14. Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
-16. Optimize event sending and heavy loading (e.g. books)
-    Implement BulkBridge maybe?
+14. [NICE-TO-HAVE|MAYBE-TOO-MUCH]Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
 --------------------------------------------
 
 
@@ -46,7 +46,9 @@ Current Prios:
 [TODO]: make content layout a Container feature rather than a suggestion within a bunch of apps
 [TODO]: !! Harden positioning & sizing + add page based tests for it.
 
-[BUG]: Fit content seems to not work corretly - work on it a bit more
+[BUG]: Fit content seems to not work corretly:
+    NOTE: width/height = auto will result in getWidth just returning the current size, not sure how to compute what's the minimum width that can fit said object without traveling through all children
+          witdh/height = inherit ?
 
 [TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 
@@ -65,11 +67,9 @@ This might be overkill and potentially introduce lots of bugs...
         - returns what container the op was applied to
         - ability to disallow cascading (either as local or global permission) per container (which will cause the cascader to throw an exception)
 
-[BUG]:  TextEditor: quickly pressing backspace and printable will cause one letter to be lost
 [TODO]: TextEditor Top of text and bottom of text padding edit
 [TODO]: TextEditor paragraph spacing
 [TODO]: textEditor line left and right spacing
-
 
 [BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two 
 receivers rather than just one.
@@ -77,10 +77,6 @@ receivers rather than just one.
 [TODO]: support auto values for height and width. E.g. if you set width:auto then it will fit static content? & maybe implement content fit on child add and remove?
      -> set rules of how this should work.
      -> maybe we don't need a fitContent function to be integrated in core but rather offered on demand + good integration with width:auto/inherit height:same
-
-[TODO]: Implement functionality to make container fit content (including abs pos content)
- - without harming non positioned elements? (can it be done?)
- : currently a shitty but relatively working implementation exists
 
 [TODO]: Text editor with configurable auto sizing of the text box.
 

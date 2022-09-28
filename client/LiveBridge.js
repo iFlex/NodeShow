@@ -112,6 +112,7 @@ export class LiveBridge {
         if (eventType != 'container.delete') {
             raw = this.container.toSerializable(targetId);
             try {
+                //ToDo: is this the right place for permissions check?
                 this.container.isOperationAllowed(ACTIONS.bridge, this.container.lookup(targetId), e.detail.callerId)    
             } catch (e) {
                 return;

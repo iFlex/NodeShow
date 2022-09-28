@@ -100,6 +100,15 @@ class KeyboardTracker {
         }
     }
 
+    getCurrentKeyState() {
+        let state = new Map();
+        state.set("pressedPrintables", new Set(this.#pressedPrintables))
+        state.set("pressedNonPrintables", new Set(this.#pressedNonPrintables))
+        state.set("toggled", new Set(this.#toggled))
+
+        return state;
+    }
+
     setKeyDownAction(keys, listenerId, handlerSpecifier) {
         this.validateKeyHandlerSpecifier(handlerSpecifier)
         this.#addToNestedMap(this.#actions, this.setToKey(keys), listenerId, handlerSpecifier)
@@ -196,7 +205,7 @@ class KeyboardTracker {
             try {
                 detail.handler.apply(detail.scope, [e.key, intersection]);
             } catch(e) {
-                console.error(`[KEYBOARD] Handler Exception ${e}`);
+                console.error(`[KEYBOARD] Handler Exception`, e);
             }
         }
     }

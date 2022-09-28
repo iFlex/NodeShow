@@ -41,7 +41,11 @@ export class ContainerSelect {
 
 	constructor (container) {
 		this.#container = container;
-		container.registerComponent(this);
+		container.registerComponent(this, new Set([
+			{"operation":"getSelection", "method":this.getSelection},
+			{"operation":"clearSelection", "method":this.clearSelection},
+			{"operation":"makeSelection", "method":this.makeSelection}
+		]));
 		
 		this.#overlap = new ContainerOverlap(container);
 		
@@ -56,7 +60,7 @@ export class ContainerSelect {
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#container.serializerIgnore('className', this.selectedClass)
 		
-		this.#keyboard.setKeyDownAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
+		this.#keyboard.setKeyDownAction(new Set(['Escape']), this, (e) => this.clearSelection(), false, true, "Clear selection");
 	}
 
 	enable () {

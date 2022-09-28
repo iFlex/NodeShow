@@ -32,8 +32,8 @@ export class ContainerLineage {
         this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.onDragEnd(e))
 
         // /[TODO] update target
-        // this.#keyboard.setKeyDownAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true, true)
-        // this.#keyboard.setKeyDownAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true, true)
+        this.#keyboard.setKeyDownAction(new Set(['Shift','<']), this, (key) => this.parentUp(this.target), true, true, "Move container from parent to grandparent")
+        this.#keyboard.setKeyDownAction(new Set(['Shift','>']), this, (key) => this.parentDown(this.target), true, true, "Move container from parent to largest overlapping sibling")
     }
 
     enable () {

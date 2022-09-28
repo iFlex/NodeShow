@@ -2,7 +2,7 @@ import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, MiceManager, getCursorPosition } from '../utils/mouse.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { InputAccessManagerInstance, ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
-import { getSelection } from '../utils/common.js'
+import { clearSelection, getSelection, makeSelection } from '../utils/common.js'
 
 let lastY = 0
 let lastX = 0
@@ -353,6 +353,12 @@ export class ContainerEditOrchestrator {
 	}
 
 	tryAddText (key) {
+		let keyboardState = this.#keyboard.getCurrentKeyState();
+		if (keyboardState.get("pressedNonPrintables").size > 0) {
+			//we want to trigger the text editor only if a printable character was pressed. No other funtional keys should be pressed.
+			return;
+		}
+
 		let sel = getSelection(this.#container)
 		if (sel.length == 1 ) {
 			try {
@@ -418,12 +424,77 @@ export class ContainerEditOrchestrator {
 		}
 	}
 
+	contentLayout(type) {
+		this.#container.tryExecuteWithComponent("changeContentLayout", type, getSelection(this.#container), this.appId)
+	}
+
+	positionType(type) {
+		let targets = getSelection(this.#container)
+		for (const target of targets) {
+			if (type == 'absolute') {
+				this.#container.styleChild(target, {"position": "absolute"}, this.appId)
+				this.#container.setPosition(target, getCursorPosition(), this.appId)	
+			} else {
+				this.#container.styleChild(target, {"position": "static"}, this.appId)
+			}
+		}
+	}
+
+	selectParent() {
+		let targets = getSelection(this.#container)
+		if (targets) {
+			let target = this.#container.lookup(targets[0])
+			if (target === this.#container.parent) { 
+				return;
+			}
+
+			let parent = target.parentNode
+			makeSelection(this.#container, [parent])
+		}
+	}
+
+	selectAll() {
+		let targets = getSelection(this.#container)
+		if (!targets || targets.length == 0) {
+			targets = [this.#container.parent]
+		}
+		if (targets.length > 1) {
+			return;
+		}
+		
+		this.#container.tryExecuteWithComponent("makeSelection", this.#container.getVisibleChildren(targets[0]))
+	}
+
+	keyboardHelp() {
+		let allListeners = this.#keyboard.getManager().getAllRegisteredListeners()
+		let maxShortcutWidth = 48
+		let asText = ""
+		for (const overall of allListeners) {
+			asText += overall.name+"\n"
+			asText += "-------------------------------\n"
+			for (const spec of overall.shortcuts) {
+				let line = `${spec.keys.join(' + ')}` 
+				let padding = maxShortcutWidth - line.length
+				if (padding < 0) {
+					padding = 0
+				}
+				for (let i = 0; i < padding; ++i){
+					line += " ";
+				}
+				line += spec.action
+				asText += ` ${line}\n`
+			}
+		}
+		console.log(`[${this.appId}] All keyboard shortcuts`)
+		console.log(asText)
+	}
+
 	setupKeyboardShortcuts() {
 		this.#keyboard.setKeyDownAction(new Set(['Control']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
 				this.#componentToInputInstance['container.edit.size'])
 			this.updateMenu()
-		}, false, true)
+		}, false, true, "Hold and drag with mouse to resize component")
 
 		this.#keyboard.setKeyUpAction(new Set(['Control']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
@@ -435,7 +506,7 @@ export class ContainerEditOrchestrator {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
 				this.#componentToInputInstance['container.grouping'])
 			this.updateMenu()
-		}, true, true)
+		}, true, true, "Hold and drag with mouse to create group containers")
 
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
@@ -447,7 +518,7 @@ export class ContainerEditOrchestrator {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
 				this.#componentToInputInstance['container.select'])
 			this.updateMenu()
-		}, true, true)
+		}, true, true, "Hold and drag with mouse to create a selection")
 
 		this.#keyboard.setKeyUpAction(new Set(['Alt']), this, (e) => {
 			InputAccessManagerInstance.grant(MouseEvents.DRAG_START, 
@@ -455,16 +526,33 @@ export class ContainerEditOrchestrator {
 			this.updateMenu()
 		}, true)
 		
-		//this.#keyboard.setPrintableKeyDownAction(this, (e) => this.tryAddText(e), false)
+		this.#keyboard.setPrintableKeyDownAction(this, (e) => this.tryAddText(e), false)
+		this.#keyboard.setKeyDownAction(new Set(['Control','ArrowUp']), this, () => this.collapse(), true, true, "Move selected containers to higher level of abstraction")
+		this.#keyboard.setKeyDownAction(new Set(['Control','ArrowDown']), this, () => this.expand(), true, true, "Move selected containers to lower level of abstraction")
+		this.#keyboard.setKeyDownAction(new Set(['Control','a']), this, () => this.selectAll(), true, true, "Select all containers within currently selected container")
 
-		this.#keyboard.setKeyDownAction(new Set(['Control','ArrowUp']), this, () => this.collapse(), true, true)
-		this.#keyboard.setKeyDownAction(new Set(['Control','ArrowDown']), this, () => this.expand(), true, true)
-		this.#keyboard.setKeyDownAction(new Set(['Control',' ']), this, () => this.fitContent(), true, true)
-		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowUp']), this, () => this.bringToFront(), true, true)
-		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowDown']), this, () => this.sendToBack(), true, true)
-		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowLeft']), this, () => this.shiftChild(-1), true, true)
-		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowRight']), this, () => this.shiftChild(+1), true, true)
+		this.#keyboard.setKeyDownAction(new Set(['Control',' ']), this, () => this.fitContent(), true, true, "Make selected containers fit their visible content")
+		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowUp']), this, () => this.bringToFront(), true, true, "Bring selected containers to front")
+		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowDown']), this, () => this.sendToBack(), true, true, "Send selected containers to back")
+		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowLeft']), this, () => this.shiftChild(-1), true, true, "Move up among siblings")
+		this.#keyboard.setKeyDownAction(new Set(['Shift','ArrowRight']), this, () => this.shiftChild(+1), true, true, "Move down among siblings")
 
+		//temporary workaround as the browser is very eager to execute its own shortcuts...
+		const keyboard = new Keyboard(this.appId, this.#container, ACCESS_REQUIREMENT.DEFAULT)
+		keyboard.setKeyDownAction(new Set(['Alt']), this, () => {}, true, false)
+		keyboard.setKeyDownAction(new Set(['Shift']), this, () => {}, true, false)
+		
+		this.#keyboard.setKeyDownAction(new Set(['Alt','ArrowUp']), this, () => this.selectParent(), true, true, "Select parent")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','p','0']), this, () => this.positionType('static'), true, true, "Change position mode to static")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','p','1']), this, () => this.positionType('absolute'), true, true, "Change position mode to absolute")
+
+		this.#keyboard.setKeyDownAction(new Set(['Alt','l','0']), this, () => this.contentLayout('none'), true, true, "Layout mode: none")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','l','1']), this, () => this.contentLayout('grid'), true, true, "Layout mode: grid")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','l','2']), this, () => this.contentLayout('vertical-list'), true, true, "Layout mode: vertical-list")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','l','3']), this, () => this.contentLayout('horizontal-list'), true, true, "Layout mode: horizontal-list")
+
+		this.#keyboard.setKeyDownAction(new Set(['F1']), this, (e) => this.keyboardHelp(), true)
+		
 		this.#keyboard.setKeyDownAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
 		this.#keyboard.setKeyDownAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
 		this.#keyboard.setKeyDownAction(new Set(['Control','3']), this, (e) => this.routeByIndex(3), true)

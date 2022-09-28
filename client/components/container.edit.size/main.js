@@ -27,7 +27,7 @@ export class ContainerSizer {
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#keyboard.setKeyDownAction(new Set(['Shift']), this, (e) => {
 			this.#presenveRatio = true
-		}, true)
+		}, true, false, "Hold to preserve ration as you resize");
 		this.#keyboard.setKeyUpAction(new Set(['Shift']), this, (e) => { 
 			this.#presenveRatio = false
 		}, true)

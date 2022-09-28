@@ -519,12 +519,36 @@ export class Container {
     }
     //<extensions subsystem>
 
+    isVisible(node) {
+        node = this.lookup(node);
+        return node.style.display != "none";
+    }
+
+    getVisibleChildren(node) {
+        node = this.lookup(node);
+        
+        let result = new Set([])
+        for(const child of node.childNodes) {
+            if (this.isVisible(child)) {
+                result.add(child)
+            }
+        }
+
+        return result
+    }
+
+    getAllChildren(node) {
+        node = this.lookup(node);
+        return new Set(node.childNodes)
+    }
+
     /**
     * @summary Registers an extension component into the Container Framework instance.
     * @param {reference} pointer - Component instance reference 
     * @param {Set} exportedFunctionality - A set of operations the component implements that can be used by any other component / code. e.g. decoding and importing a certain image format into a container.
         exportedFunctionality = [{operation:"decode:text/html", method:methodToCall}] - call format method(input, List[targets (ids or DOMNodes)] - returns result if any
     */
+   //ToDo: make exportedFunctionality a map maybe?
     registerComponent(pointer, exportedFunctionality = new Set([])) {
         let name = pointer.appId
         if (name in this.components) {
@@ -664,24 +688,18 @@ export class Container {
 
     getChildStyleRules(parentId) {
         let node = this.lookup(parentId)
-        let rules = {}
-        
-        //ToDo: find a way to make this more efficient
-        for (const [key, value] of Object.entries(node.dataset)) {
-            if (key.includes(CHILD_RULES_PREFIX)) {
-                rules[key.replace(CHILD_RULES_PREFIX,"")] = value
-            }
+        try {
+            return JSON.parse(node.dataset[CHILD_RULES_PREFIX] || "{}")
+        } catch (e) {
+            console.error(`[CONTAINER][CORE] Failed to parse child style rulse for ${parentId}`);
         }
-        return rules 
+        return {}
     }
 
     setChildStyleRules(parentId, rules) {
         console.log(`Set child rules to ${JSON.stringify(rules)}`)
-
         let node = this.lookup(parentId)
-        for (const [key, value] of Object.entries(rules)) {
-            node.dataset[`${CHILD_RULES_PREFIX}${key}`] = value
-        }
+        node.dataset[CHILD_RULES_PREFIX] = JSON.stringify(rules);
     }
 
     unsetChildStyleRules(node, rules) {

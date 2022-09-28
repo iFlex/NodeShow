@@ -1,6 +1,3 @@
-import { Keyboard } from '../utils/Keyboards.js'
-import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
-
 //[TODO]:
 //        add function trigger editing existing abstraction level (call start())
 //        add visualisation of how much abstraction each container has + ability to random access any of them / edit any of them
@@ -15,8 +12,7 @@ export class ContainerEditAbstraction {
     #hoverTarget = null;
     #handlers = {}
     #enabled = false
-    #keyboard = null;
-
+    
     #finalize = null;
     #preview = null;
     #summarizeFrom = null;
@@ -26,10 +22,6 @@ export class ContainerEditAbstraction {
         this.#container = container
         this.#container.registerComponent(this);
 
-        this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
-        this.#keyboard.setKeyDownAction(new Set(["ArrowDown"]), this, (e) => this.collapse(), false);
-        this.#keyboard.setKeyDownAction(new Set(["ArrowUp"]), this, (e) => this.expand(), false);
-        
         this.#handlers['container.select.selected'] = (e) => this.onSelection(e.detail.selection)
         this.#handlers["mouseover"] = (e) => { this.#hoverTarget = e.target }
 
@@ -64,7 +56,6 @@ export class ContainerEditAbstraction {
                 this.#container.addEventListener(key, value)
             }
             this.#enabled = true
-            this.#keyboard.enable();
         }
     }  
     
@@ -74,7 +65,6 @@ export class ContainerEditAbstraction {
                 this.#container.removeEventListener(key, value)
             }
             this.#enabled = false
-            this.#keyboard.disable();
         }
     }
 
