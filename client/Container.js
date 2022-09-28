@@ -519,6 +519,29 @@ export class Container {
     }
     //<extensions subsystem>
 
+    isVisible(node) {
+        node = this.lookup(node);
+        return node.style.display != "none";
+    }
+
+    getVisibleChildren(node) {
+        node = this.lookup(node);
+        
+        let result = new Set([])
+        for(const child of node.childNodes) {
+            if (this.isVisible(child)) {
+                result.add(child)
+            }
+        }
+
+        return result
+    }
+
+    getAllChildren(node) {
+        node = this.lookup(node);
+        return new Set(node.childNodes)
+    }
+
     /**
     * @summary Registers an extension component into the Container Framework instance.
     * @param {reference} pointer - Component instance reference 

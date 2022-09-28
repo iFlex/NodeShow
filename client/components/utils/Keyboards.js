@@ -64,6 +64,35 @@ class KeyboardManager {
 		}
 	}
 
+	getAllRegisteredListeners() {
+		let result = []
+		
+		for( const [key, keyboard] of this.#keyboards) {
+			let handlers = keyboard.getHandlers()
+			if (handlers.size > 0) {
+				let subunit = {
+					"name":keyboard.getId(),
+					"shortcuts": []
+				}
+				
+				for (const [ignore, spec] of handlers) {
+					if (spec.description) {
+						subunit.shortcuts.push({
+							"keys": Array.from(spec.keys || []),
+							"action": spec.description
+						})
+					}
+				}
+
+				if (subunit.shortcuts.length > 0) {
+					result.push(subunit)
+				}
+			}
+		}
+
+		return result
+	}
+
 	#registerInstanceHandlers(instance) {
 		let handlers = instance.getHandlers()
 		this.#activeListeners.add(instance.getId())
@@ -144,6 +173,10 @@ export class Keyboard {
 		return this.#handlers
 	}
 
+	getManager() {
+		return this.#manager
+	}
+
 	enable() {
 		this.#manager.enable(this);
 		if (this.#debug) {
@@ -169,11 +202,12 @@ export class Keyboard {
 	}
 
 	//new Set(['Backspace']), this, (key) => this.removePrintable(-1), true, true
-	setKeyDownAction(keys, scope, handler, preventDefault, isStrict) {
+	setKeyDownAction(keys, scope, handler, preventDefault, isStrict, description) {
 		this.#handlers.set("setKeyDownAction"+KeyboardTracker.setToKey(keys), {
 			action:"setKeyDownAction",
 			listenerId: this.#uid,
 			keys: keys,
+			description: description,
 			handlerSpecifier: this.formHandlerSpec(scope, handler, preventDefault, isStrict)
 		})
 		this.#manager.handlersChanged(this)

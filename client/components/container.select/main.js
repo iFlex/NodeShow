@@ -60,7 +60,7 @@ export class ContainerSelect {
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
 		this.#container.serializerIgnore('className', this.selectedClass)
 		
-		this.#keyboard.setKeyDownAction(new Set(['Escape']), this, (e) => this.clearSelection(), false);
+		this.#keyboard.setKeyDownAction(new Set(['Escape']), this, (e) => this.clearSelection(), false, true, "Clear selection");
 	}
 
 	enable () {
