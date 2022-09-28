@@ -32,7 +32,7 @@ export class ContainerReferenceEditor {
 		return this.#enabled
 	}
 
-    edit(targets, callerId) {
+    edit(targets, callerId = this.appId) {
         let oldReffs = this.getReference(targets) 
         let oldReff = ""
         if (oldReffs.length > 0) {
@@ -47,15 +47,15 @@ export class ContainerReferenceEditor {
         }
     }
 
-    setReference(reff, targets, callerId) {
+    setReference(reff, targets, callerId = this.appId) {
         for (const target of targets) {
-            this.#container.setReference(target, reff);
+            this.#container.setReference(target, reff, callerId);
         }
     }
 
-    unsetReference(targets, callerId) {
+    unsetReference(targets, callerId = this.appId) {
         for (const target of targets) {
-            this.#container.unsetReference(target);
+            this.#container.unsetReference(target, callerId);
         }
     }
 

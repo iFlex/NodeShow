@@ -1,7 +1,7 @@
 import {Container} from "./Container.js"
 
 //ToDo: integrate events
-Container.prototype.hasReference = function(node, callerId) {
+Container.prototype.hasReference = function(node) {
     try {
         node = this.lookup(node)   
         return (node.dataset.reference) ? true : false
@@ -10,7 +10,7 @@ Container.prototype.hasReference = function(node, callerId) {
     }
 }
 
-Container.prototype.getReference = function(node, callerId) {
+Container.prototype.getReference = function(node) {
     try {
         node = this.lookup(node)
         return node.dataset.reference   
