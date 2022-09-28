@@ -1,0 +1,18 @@
+<div class="ns-link-interactor-interface"
+      data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>  
+  <div class="ns-link-interactor-link">
+    <a id="container.interact.reference-link-node" href="" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>
+      <p id="container.interact.reference-text-node" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'></p>
+    </a>
+  </div>
+  <button class="ns-link-interactor-button"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>Load In</button>
+  <button id="container.interact.reference-edit-button" class="ns-link-interactor-button" style="display:none"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
+    data-container-actions='{"0":{"trigger":"click","call":"container.interact.reference.tryEditLink","params":["right"]}}'>
+    Edit
+  </button>
+  <button class="ns-link-interactor-button"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
+    data-container-actions='{"0":{"trigger":"click","call":"container.interact.reference.hideInterface","params":[]}}'>x</button>
+</div>
