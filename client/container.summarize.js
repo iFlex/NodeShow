@@ -27,8 +27,8 @@ let C_ABS_LVL = 'contentAstractionLevel'
 let C_TOT_ABS_LVLS = 'contentTotalAbstractionLevels'
 let LAYER_STYLE_PREFIX = 'abstractionLevelStyle'
 let RELEVANT_STYLE_SUBSET = new Set(['width','height'])
-
 let ABS_LVL = 'abstractionLevel'
+let VISUALISATION_ELEMENT_SUFFIX = "-abstraction-level-viz"
 
 /**
  * @summary Increases container's abstraction level
@@ -148,6 +148,7 @@ Container.prototype.createAbstractionLevel = function(c, callerId) {
     }
 
     node.dataset[C_TOT_ABS_LVLS] = maxAbsLevels + 1
+    updateAbstractionVisualisation(this, node, callerId)
     this.notifyUpdate(node, callerId)
     return maxAbsLevels
 }
@@ -358,15 +359,61 @@ function removeLevel(ctx, node, lvl) {
             ctx.delete(child)
         }
     }
+    updateAbstractionVisualisation(ctx, node, callerId)
 }
 
 function updateDisplayedAbstractionLevel(ctx, node, lvl, callerId) {
+    let ignoreAbstractionVisualiserId = node.id + VISUALISATION_ELEMENT_SUFFIX;
     ctx.loadStyleForCurrentLevel(node, callerId, false)
     for (const child of node.children) {
-        if (lvl == ctx.getAbstractionLevel(child)) {
+        if (lvl == ctx.getAbstractionLevel(child) || child.id == ignoreAbstractionVisualiserId) {
             ctx.show(child, callerId)
         } else {
             ctx.hide(child, callerId)
         }
     }
+    updateAbstractionVisualisation(ctx, node, callerId)
+}
+
+function createAbstractionVisualisation(container, target, callerId) {
+    let bayDescriptor = {
+        nodeName:"DIV",
+		id: target.id + VISUALISATION_ELEMENT_SUFFIX,
+        className:"container-abstraction-visualizer",
+        computedStyle:{
+            "position":"static",
+            "width":"auto",
+            "height":"auto"
+        }
+    }
+    let barDescriptor = {
+        nodeName:"DIV",
+		className:"container-abstraction-visualizer-status",
+        computedStyle:{
+            "position":"static",
+        }
+    }
+    
+    let child = container.createFromSerializable(target, bayDescriptor, null, callerId)
+    container.createFromSerializable(child, barDescriptor, null, callerId);
+    container.setSiblingPosition(child, 0, callerId)
+    container.show(child, callerId) //override abstraction hiding it away
+    return child;
+}
+
+function lookupAbstractionvisualisation(container, target, callerId) {
+    try {
+        return container.lookup(target.id + VISUALISATION_ELEMENT_SUFFIX);
+    } catch (e) {
+        return createAbstractionVisualisation(container, target, callerId);
+    }
+}
+
+function updateAbstractionVisualisation(container, target, callerId) {
+    let totalLevels = container.getAbstractionLevels(target)
+    let currentLevel = container.getCurrentContentAbstractionLevel(target)
+    let visualisation = lookupAbstractionvisualisation(container, target, callerId)
+
+    let percent = 1 - (currentLevel/totalLevels)
+    container.setExplicitWidth(visualisation.firstChild, percent * 100, "%", callerId, false)
 }

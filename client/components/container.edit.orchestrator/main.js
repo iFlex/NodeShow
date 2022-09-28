@@ -555,9 +555,9 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','1']), this, () => this.contentLayout('grid'), true, true, "Layout mode: grid")
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','2']), this, () => this.contentLayout('vertical-list'), true, true, "Layout mode: vertical-list")
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','3']), this, () => this.contentLayout('horizontal-list'), true, true, "Layout mode: horizontal-list")
-		this.#keyboard.setKeyDownAction(new Set(['Control','u']), this, () => this.urlLink(), true)
+		this.#keyboard.setKeyDownAction(new Set(['Control','u']), this, () => this.urlLink(), true, true, "Attach URL to element")
 
-		this.#keyboard.setKeyDownAction(new Set(['F1']), this, (e) => this.keyboardHelp(), true)
+		this.#keyboard.setKeyDownAction(new Set(['F1']), this, (e) => this.keyboardHelp(), true, false, "Keyboard shortcuts help")
 		
 		this.#keyboard.setKeyDownAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)
 		this.#keyboard.setKeyDownAction(new Set(['Control','2']), this, (e) => this.routeByIndex(2), true)
