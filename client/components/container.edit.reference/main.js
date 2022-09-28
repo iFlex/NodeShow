@@ -9,7 +9,7 @@ export class ContainerReferenceEditor {
     constructor(container) {
         this.#container = container
         this.#container.registerComponent(this, new Set([
-            {"operation":"setURLreference","method":this.setRefernece},
+            {"operation":"setURLreference","method":this.setReference},
             {"operation":"getURLreference","method":this.getReference},
             {"operation":"unsetURLreference","method":this.unsetReference},
             {"operation":"editURLreference","method":this.edit},
@@ -41,28 +41,28 @@ export class ContainerReferenceEditor {
 
         let newRef = prompt("URL:", oldReff);
         if (newRef && newRef.length > 0) {
-            this.setRefernece(newRef, targets, callerId)
+            this.setReference(newRef, targets, callerId)
         } else {
             this.unsetReference(targets, callerId)
         }
     }
 
-    setRefernece(reff, targets, callerId) {
+    setReference(reff, targets, callerId) {
         for (const target of targets) {
-            this.#container.setRefernece(target, reff);
+            this.#container.setReference(target, reff);
         }
     }
 
     unsetReference(targets, callerId) {
         for (const target of targets) {
-            this.#container.unsetRefernece(target);
+            this.#container.unsetReference(target);
         }
     }
 
     getReference(targets) {
         let result = []
         for (const target of targets) {
-            result.push(this.#container.getRefernece(target))
+            result.push(this.#container.getReference(target))
         }
         return result
     }

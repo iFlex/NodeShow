@@ -465,6 +465,11 @@ export class ContainerEditOrchestrator {
 		this.#container.tryExecuteWithComponent("makeSelection", this.#container.getVisibleChildren(targets[0]))
 	}
 
+	urlLink() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		this.#container.tryExecuteWithComponent("editURLreference", targets);
+	}
+
 	keyboardHelp() {
 		let allListeners = this.#keyboard.getManager().getAllRegisteredListeners()
 		let maxShortcutWidth = 48
@@ -550,6 +555,7 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','1']), this, () => this.contentLayout('grid'), true, true, "Layout mode: grid")
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','2']), this, () => this.contentLayout('vertical-list'), true, true, "Layout mode: vertical-list")
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','3']), this, () => this.contentLayout('horizontal-list'), true, true, "Layout mode: horizontal-list")
+		this.#keyboard.setKeyDownAction(new Set(['Control','u']), this, () => this.urlLink(), true)
 
 		this.#keyboard.setKeyDownAction(new Set(['F1']), this, (e) => this.keyboardHelp(), true)
 		

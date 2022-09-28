@@ -617,6 +617,10 @@ export class Container {
         return handler.method.apply(handler.scope, [input, targets, callerId, operation])
     }
 
+    canExecuteWithComponent(operation) {
+        return this.#exportedOperations.has(operation)
+    }
+
     /**
     * @summary Retrieves a list of component names loaded into the Container Framework instance.
     * @returns {string[]} reference to the retrieved component

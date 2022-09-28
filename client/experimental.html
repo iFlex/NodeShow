@@ -33,12 +33,14 @@
     import { ContainerGrouping }          from "./components/container.grouping/main.js"
     import { ContainerJsonEdit }          from "./components/container.edit.json/main.js"
     import { ContainerEditOrchestrator }  from "./components/container.edit.orchestrator/main.js"
-    import { ContextMenu }                from "./components/menu.context/main.js"
-    import { ContainerClipboard }         from "./components/container.clipboard/main.js"
-    import { UserDialogue }               from "./components/user.dialogue/main.js"
-    import { ContainerHax0r }             from "./components/container.hax0r/main.js"
-    import { ContainerExtensionsManager } from "./components/container.extensions.manager/main.js"
-    import { DefaultColorPicker }         from "./components/edit.defaults.colors/main.js"
+    import { ContainerReferenceEditor }     from "./components/container.edit.reference/main.js"
+    import { ContainerReferenceActuator }   from "./components/container.interact.reference/main.js"
+    import { ContextMenu }                  from "./components/menu.context/main.js"
+    import { ContainerClipboard }           from "./components/container.clipboard/main.js"
+    import { UserDialogue }                 from "./components/user.dialogue/main.js"
+    import { ContainerHax0r }               from "./components/container.hax0r/main.js"
+    import { ContainerExtensionsManager }   from "./components/container.extensions.manager/main.js"
+    import { DefaultColorPicker }           from "./components/edit.defaults.colors/main.js"
     
     import { container } from "./nodeshow.js"
     
@@ -52,6 +54,7 @@
     new ContainerExtensionsManager(container)
     new ContainerEditAbstraction(container)
     new UserDialogue(container)
+    new ContainerReferenceEditor(container)
     new ContainerHax0r(container)
 
     let defaultColorPicker = new DefaultColorPicker(container)
@@ -67,7 +70,7 @@
     let cselect = new ContainerSelect(container)
     let contextMenu = new ContextMenu(container)
     let clipboard = new ContainerClipboard(container)
-    
+    let refActuator = new ContainerReferenceActuator(container)
 
     clinker.enable()
     cmover.enable()
@@ -81,5 +84,6 @@
     contextMenu.enable()
     orchestrator.enable()
     clipboard.enable()
+    refActuator.enable()
   </script>
 </html>

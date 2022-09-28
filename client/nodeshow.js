@@ -5,7 +5,7 @@ import "./container.sizing.js"
 import "./container.staticcontent.js";
 import "./container.actions.js";
 import "./container.summarize.js";
-import "./container.reference";
+import "./container.reference.js";
 import "./container.camera.js";
 
 import {LiveBridge} from "./LiveBridge.js";
