@@ -409,11 +409,13 @@ function lookupAbstractionvisualisation(container, target, callerId) {
     }
 }
 
+//ToDo: figure out what to do if you paste an abstracted container...
 function updateAbstractionVisualisation(container, target, callerId) {
     let totalLevels = container.getAbstractionLevels(target)
     let currentLevel = container.getCurrentContentAbstractionLevel(target)
     let visualisation = lookupAbstractionvisualisation(container, target, callerId)
 
     let percent = 1 - (currentLevel/totalLevels)
+    container.setSiblingPosition(visualisation, 0, callerId)
     container.setExplicitWidth(visualisation.firstChild, percent * 100, "%", callerId, false)
 }
