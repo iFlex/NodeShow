@@ -1,8 +1,9 @@
+import { ACTIONS } from "../../Container.js"
 import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
-//ToDo: interface showing the link and options to: navigate, pull-in, close, edit (if-applicable)
+//ToDo: Mobile integration
 export class ContainerReferenceActuator {
     appId = 'container.interact.reference'
     #linkNodeId = 'container.interact.reference-link-node'
@@ -50,6 +51,10 @@ export class ContainerReferenceActuator {
 		//load interface style and html
 		this.#container.loadStyle("style.css", this.appId)
 		this.#container.loadHtml(this.#interface, "interface.html", this.appId)
+
+        //if new components get added check if external operation can be performed by any of the new components
+        //this could also be wired in directly in the constructor, but leads to more wiring
+        this.#container.addEventListener(ACTIONS.componentAdded, (e) => { this.updateCanEdit(); })
     }
 
     enable() {
