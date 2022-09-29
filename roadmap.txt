@@ -43,16 +43,21 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
+[TODO][L]: overhaul the mouse system - currently it is disgustingly coupled with container features.
+    - move stuff like findActionableAncestor outside of mouse functionality
 [TODO][S/M]: !! Harden positioning & sizing + add page based tests for it.
 [TODO][S]: ! Harden fitVisibleContent - add page based tests for it.
 [TODO][M]: Container core should throw exception if callerId not passed (Container, sizing, sumarization, reference, etc)
-[TODO][M]: Go through all event emitting functions and add an option to not emit events
+[TODO][M]: Go through all event Container Core functions that should emit events:
+            - ensure they emit their respective events (to fix problems with persistence)
+            - And an option to not emit events
 [TODO][L]: Evaluate how many events are fired via using Container Core features. Try to minimize without impacting persistence
 [TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
 [TODO][M]*: Improve color picket to properly select contrasting colors from within a pallette
+
 [TODO][Mobile][S]: make URL/reference viewer work on mobile
-[TODO][Mobile][M/L]: make container abstraction level navigation app that works for mobile and desktop (meant for viewing)
+[TODO][Mobile][M/L]: make container abstraction level navigation app that works for mobile(meant for viewing)
 
 [TODO]: call Container method with cascade up on failure: - in orther words target picking for certain operations should cascade up to the first available container (available = one that allows such an operation)
 This might be overkill and potentially introduce lots of bugs...
