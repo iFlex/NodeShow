@@ -1,0 +1,17 @@
+[BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two receivers rather than just one.
+
+[BUG]:  certain events cause feedback loops between collaborators. E.g. link maintenance
+         - this could be due to: hook system being easy to missuse and miss adding CallerId in the following calls
+         - maybe event handlers triggering calls to Container methods not passing over CallerId
+
+[BUG]: Interfaces can get burried under content. (not critical: reload fixes it)
+ - tentative fix via listening for container created events. Should probably listen to bring to front as well
+ - better fix: put all non modal interaces in the same parent container that allows them to stack + keeps them on top
+
+[BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
+[BUG]: Sending container to back makes it disappear
+[BUG]: some links don't update at all untill you move one of the linked containers
+[BUG]: Lineage component is a bit buggy and can even cause disappearences
+[BUG]: incorrectly deleting a selection can cause the selector app to stop working and sometimes moves some of the prev selected items into document.body from container.root ?!?
+[BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
+       - Suspicion: it has to do with the fact that mouse allows clicking on parent

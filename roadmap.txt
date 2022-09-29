@@ -35,7 +35,6 @@ Link are currently a performance issue - they seem to slow down the server
     - edit links
     - interact with links
     - optimize drawing: stop sending update events on every link unit, let the client do the redrawing
-    [BUG]: some links don't update at all untill you move one of the linked containers
 
 14. [NICE-TO-HAVE|MAYBE-TOO-MUCH]Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
 --------------------------------------------
@@ -65,11 +64,6 @@ This might be overkill and potentially introduce lots of bugs...
         - returns what container the op was applied to
         - ability to disallow cascading (either as local or global permission) per container (which will cause the cascader to throw an exception)
 
-
-[BUG]:  certain events cause feedback loops between collaborators. E.g. link maintenance
-         - this could be due to: hook system being easy to missuse and miss adding CallerId in the following calls
-         - maybe event handlers triggering calls to Container methods not passing over CallerId
-
 [TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
     - [DECISION]: do not support nested cameras
 
@@ -81,9 +75,6 @@ This might be overkill and potentially introduce lots of bugs...
                     - if there's overflow and fitContent fails, then break line
 [TODO][TEXT_EDITOR]: Text is rendered differently on each device. Sized divs may have overflowing text on different platforms
 [SHOULD-FIX][TEXT_EDITOR]: fix forward deletion
-
-
-[BUG]: bug in InputAccessManager when granting permissions, for a while it routes events to two receivers rather than just one.
 
 [TODO]: support auto values for height and width. E.g. if you set width:auto then it will fit static content? & maybe implement content fit on child add and remove?
      -> set rules of how this should work.
@@ -107,8 +98,6 @@ This might be overkill and potentially introduce lots of bugs...
 
 [TODO]: tests for InputAccessManager access granting
  
-[BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
-
 [DONE]: STRESS TEST:: 100 Nodes, 1K Nodes, 10K Nodes, 100K Nodes, 1M Nodes
     1K Nodes were problematic: found out that the storage layer was the main slowdown.
     Without sending updates to storage, it can handle 1K ev/s
@@ -121,11 +110,6 @@ This might be overkill and potentially introduce lots of bugs...
 [TODO]: make insert content via data b64 link work
 [SHOULD-HAVE]: implement undo/redo
 [ISSUE]: copy/pasting links will not translate IDs in their descriptors. Needs fix
-[BUG]: Lineage component is a bit buggy and can even cause disappearences
-[BUG]: incorrectly deleting a selection can cause the selector app to stop working and sometimes moves some of the prev selected items into document.body from container.root ?!?
-[BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
-       - Suspicion: it has to do with the fact that mouse allows clicking on parent
-
 [SHOULD-HAVE]: load presentations via HTML rather than event stream. Large prezzos will slow down the server. Or use shadow-dom with events
 
 [NICE-TO-HAVE]: clone an existing NodeShow using server side UI
@@ -133,19 +117,14 @@ This might be overkill and potentially introduce lots of bugs...
 [TODO]: add oAuth & roles for users. Robots should be configurable - currently using hardcoded PSK
 [NICE-TO-HAVE][MAYBE]: consider using socket.io volatile (udp style packets). Since the system can handle creation out of order:
     * very high event rates will cause the updates to slow down and lag
-
-[BUG]: Interfaces can get burried under content. (not critical: reload fixes it)
- - tentative fix via listening for container created events. Should probably listen to bring to front as well
- - better fix: put all non modal interaces in the same parent container that allows them to stack + keeps them on top
-
 -----------------------------------------------------------------------
 - [must have] Proper Authentication
 - [nice to have] Create Aligner
 - [nice to have] Minimap
 - [nice to have] Collaborators & Follow
 - [nice to have] Drawer app
-- [should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 - [nice to have] should be allowed to add container actions that trigger only in presentation mode or on preview.
+- [check - i think we have this now][should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 
 Current purpose:
 [OK] Serve as a view controller for my newsstand application. It receives updates in the form of HTML news bits which will get displayed on screen & presisted for later view.
