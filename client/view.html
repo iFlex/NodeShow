@@ -8,9 +8,21 @@
     <title>Node Show</title>
   </head>
   <body>
+    <div id="nodeshow-content" class="nodeshow-content"></div>
   </body>
   <!-- CORE -->
   <script type="module" src="nodeshow.js"></script>
   <!-- Extensions -->
-  <script type="module" src="components/container.interact.collapse/main.js"></script>
+  <script type="module">
+    import { ContainerReferenceActuator }   from "./components/container.interact.reference/main.js"
+    import { ContainerAbstractionActuator } from "./components/container.interact.abstraction/main.js"
+    import { container } from "./nodeshow.js"
+    
+    let refActuator = new ContainerReferenceActuator(container)
+    let absActuator = new ContainerAbstractionActuator(container)
+
+    refActuator.enable()
+    absActuator.enable()
+  </script>
+  
 </html>

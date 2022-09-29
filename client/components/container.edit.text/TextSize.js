@@ -13,6 +13,7 @@ export class TextSize {
 			"data":{
 		    	"ignore":true,
 		    	"containerPermissions":{
+					"container.broadcast":{"*":false},
 					"container.bridge":{"*":false}
 				}
 		    },

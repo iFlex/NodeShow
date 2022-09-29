@@ -1,0 +1,27 @@
+<div class="ns-link-abstraction-interface"
+      data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'>  
+  <h4>Abstraction Level</h4>
+  <button class="ns-link-abstraction-button"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
+    data-container-actions='{"0":{"trigger":"click","call":"container.interact.abstraction.changeLevel","params":[1]}}'>
+    Higher
+  </button>
+  
+  <div class="ns-link-abstraction-link">
+      <p id="container.interact.abstraction-textNode" data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'></p>
+  </div>
+
+  <button class="ns-link-abstraction-button"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
+    data-container-actions='{"0":{"trigger":"click","call":"container.interact.abstraction.changeLevel","params":[-1]}}'>
+    Lower
+  </button>
+  <button id="container.interact.reference-edit-button" class="ns-link-abstraction-button" style="display:none"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
+    data-container-actions='{"0":{"trigger":"click","call":"container.interact.abstraction.tryEdit","params":["right"]}}'>
+    Edit
+  </button>
+  <button class="ns-link-abstraction-button"
+    data-container-permissions='{"container.edit":{"*":false},"container.broadcast":{"*":false}}'
+    data-container-actions='{"0":{"trigger":"click","call":"container.interact.abstraction.hideInterface","params":[]}}'>x</button>
+</div>

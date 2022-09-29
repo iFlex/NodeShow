@@ -83,6 +83,11 @@
 
 }
 
+.text-link {
+  cursor: pointer;
+  color:blue;
+  text-decoration:underline;
+}
 
 /*
   Keep .nodeshow-content and body as is if you want pageX and pageY to work

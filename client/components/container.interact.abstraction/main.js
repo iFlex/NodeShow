@@ -4,12 +4,10 @@ import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
 //ToDo: Mobile integration
-export class ContainerReferenceActuator {
-    appId = 'container.interact.reference'
-    #linkNodeId = 'container.interact.reference-link-node'
-    #textNodeId = 'container.interact.reference-text-node'
-    #editButtonId = 'container.interact.reference-edit-button'
-    #editOperationName = "editURLreference"
+export class ContainerAbstractionActuator {
+    appId = 'container.interact.abstraction'
+    #textNode = 'container.interact.abstraction-textNode'
+    #editOperationName = "editAbstractionLevels"
 
     #target = null;
     #canEdit = false;
@@ -21,10 +19,7 @@ export class ContainerReferenceActuator {
 
     constructor(container) {
         this.#container = container
-        this.#container.registerComponent(this, new Set([{
-            "operation":"onLinkClick",
-            "method": this.onClick
-        }]));
+        this.#container.registerComponent(this);
 
         this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
         this.#mouse = new Mouse(this.appId, container);
@@ -85,26 +80,35 @@ export class ContainerReferenceActuator {
 		return this.#enabled
 	}
 
-    shouldNavigateToLink() {
-        let keyboardState = this.#keyboard.getCurrentKeyState();
-        return keyboardState.get("pressedNonPrintables").has("Control")
-    }
-
     tryEditLink() {
         this.#container.tryExecuteWithComponent(this.#editOperationName, new Set([this.hideInterface()]))
     }
 
-    showInterface(node, url) {
+    updateDisplayedStatus() {
+        let currentLevel = this.#container.getCurrentContentAbstractionLevel(this.#target)
+        let totalAbsLevels = this.#container.getAbstractionLevels(this.#target)
+        this.#container.lookup(this.#textNode).innerHTML = `${currentLevel}/${totalAbsLevels}`
+    }
+
+    changeLevel(amount) {
+        let currentLevel = this.#container.getCurrentContentAbstractionLevel(this.#target) + amount
+        let totalAbsLevels = this.#container.getAbstractionLevels(this.#target)
+        currentLevel = Math.min(Math.max(0, currentLevel), totalAbsLevels)
+
+        this.#container.setCurrentContentAbstractionLevel(this.#target, currentLevel, this.appId)
+        this.updateDisplayedStatus()
+    }
+
+    showInterface(node) {
         this.#target = node
         let pos = this.#container.getPosition(node)
         
-        this.#container.lookup(this.#linkNodeId).href = url
-        this.#container.lookup(this.#textNodeId).innerHTML = url
-        if (this.#canEdit) {
-            this.#container.show(this.#editButtonId, this.appId)
-        } else {
-            this.#container.hide(this.#editButtonId, this.appId)
-        }
+        this.updateDisplayedStatus()
+        // if (this.#canEdit) {
+        //     this.#container.show(this.#editButtonId, this.appId)
+        // } else {
+        //     this.#container.hide(this.#editButtonId, this.appId)
+        // }
 
         this.#container.show(this.#interface)
         let height = this.#container.getHeight(this.#interface)
@@ -120,14 +124,11 @@ export class ContainerReferenceActuator {
         return target
     }
 
-    onClick(id, button) {
-        let url = this.#container.getReference(id)
-        if (url) { 
-            if (this.shouldNavigateToLink()){
-                window.open(url, "_blank");
-            } else {
-                this.showInterface(this.#container.lookup(id), url);
-            }
+    onClick(id) {
+        let node = this.#container.lookup(id)
+        let totalAbsLevels = this.#container.getAbstractionLevels(node)
+        if (totalAbsLevels > 1) { 
+            this.showInterface(node);
         } else {
             this.hideInterface();
         }

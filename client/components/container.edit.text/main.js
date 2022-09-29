@@ -838,6 +838,23 @@ export class ContainerTextInjector {
 		}
 	}
 
+	editUrl() {
+		let selection = this.getSelected()
+		if (!selection) {
+			return;
+		}
+
+		let result = this.container.tryExecuteWithComponent("editURLreference", selection.units)
+		for (const unit of selection.units) {
+			if (result) {
+				unit.className = unit.className.replace("text-link", "")
+				if (result.length > 0) {
+					unit.className += " text-link";
+				}
+			}
+			this.container.notifyUpdate(unit, this.appId)
+		}	
+	}
 	// onLineClick(e) {
 	// 	let line = e.target
 	// 	this.start(e.target.parentNode)
@@ -853,6 +870,10 @@ export class ContainerTextInjector {
 		this.start(e.target.parentNode.parentNode)
 		this.cursor.putOn(textUnit, offset)
 		this.cursorUpdateVisible(this.#cursorDiv)
+
+		if (this.container.getReference(textUnit)) {
+			this.container.tryExecuteWithComponent("onLinkClick", textUnit)
+		}
 	}
 
 	cursorUpdateVisible(blinker) {

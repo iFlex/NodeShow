@@ -16,25 +16,26 @@
   
   <!-- Extensions -->
   <script type="module">
-    import { ContainerFeedback }          from "./components/container.feedback/main.js"
-    import { ContainerCreator }           from "./components/container.create/main.js"
-    import { ContainerSelect }            from "./components/container.select/main.js"
-    import { ContainerMover }             from "./components/container.edit.pos/main.js"
-    import { ContainerSizer }             from "./components/container.edit.size/main.js"
-    import { ContainerConfig }            from "./components/container.configure/main.js"
-    import { ContainerTextInjector }      from "./components/container.edit.text/main.js"
-    import { ContainerStyler }            from "./components/container.edit.style/main.js"
-    import { ContainerContent }           from "./components/container.content/main.js"
-    import { ContainerEditAbstraction }   from "./components/container.edit.abstraction/main.js"
-    import { ContainerLink }              from "./components/container.link/main.js"
-    import { ContainerEditLinks }         from "./components/container.edit.links/main.js"
-    import { ContainerLineage }           from "./components/container.lineage/main.js"
-    import { ContainerRepeller }          from "./components/container.repell/main.js"
-    import { ContainerGrouping }          from "./components/container.grouping/main.js"
-    import { ContainerJsonEdit }          from "./components/container.edit.json/main.js"
-    import { ContainerEditOrchestrator }  from "./components/container.edit.orchestrator/main.js"
+    import { ContainerFeedback }            from "./components/container.feedback/main.js"
+    import { ContainerCreator }             from "./components/container.create/main.js"
+    import { ContainerSelect }              from "./components/container.select/main.js"
+    import { ContainerMover }               from "./components/container.edit.pos/main.js"
+    import { ContainerSizer }               from "./components/container.edit.size/main.js"
+    import { ContainerConfig }              from "./components/container.configure/main.js"
+    import { ContainerTextInjector }        from "./components/container.edit.text/main.js"
+    import { ContainerStyler }              from "./components/container.edit.style/main.js"
+    import { ContainerContent }             from "./components/container.content/main.js"
+    import { ContainerEditAbstraction }     from "./components/container.edit.abstraction/main.js"
+    import { ContainerLink }                from "./components/container.link/main.js"
+    import { ContainerEditLinks }           from "./components/container.edit.links/main.js"
+    import { ContainerLineage }             from "./components/container.lineage/main.js"
+    import { ContainerRepeller }            from "./components/container.repell/main.js"
+    import { ContainerGrouping }            from "./components/container.grouping/main.js"
+    import { ContainerJsonEdit }            from "./components/container.edit.json/main.js"
+    import { ContainerEditOrchestrator }    from "./components/container.edit.orchestrator/main.js"
     import { ContainerReferenceEditor }     from "./components/container.edit.reference/main.js"
     import { ContainerReferenceActuator }   from "./components/container.interact.reference/main.js"
+    import { ContainerAbstractionActuator } from "./components/container.interact.abstraction/main.js"
     import { ContextMenu }                  from "./components/menu.context/main.js"
     import { ContainerClipboard }           from "./components/container.clipboard/main.js"
     import { UserDialogue }                 from "./components/user.dialogue/main.js"
@@ -71,6 +72,7 @@
     let contextMenu = new ContextMenu(container)
     let clipboard = new ContainerClipboard(container)
     let refActuator = new ContainerReferenceActuator(container)
+    let absActuator = new ContainerAbstractionActuator(container)
 
     clinker.enable()
     cmover.enable()
@@ -85,5 +87,6 @@
     orchestrator.enable()
     clipboard.enable()
     refActuator.enable()
+    absActuator.enable()
   </script>
 </html>

@@ -41,13 +41,14 @@ export class ContainerReferenceEditor {
 
         let newRef = prompt("Attach URL Link:", oldReff);
         if (!newRef) {
-            return;
+            return null;
         }
         if (newRef.length > 0) {
             this.setReference(newRef, targets, callerId)
         } else {
             this.unsetReference(targets, callerId)
         }
+        return newRef;
     }
 
     setReference(reff, targets, callerId = this.appId) {

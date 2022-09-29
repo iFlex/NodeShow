@@ -18,6 +18,7 @@ export class ContextMenu {
 		{name: "Delete", action: "container.create.delete", shortcut:'Delete', icon:'ns-delete-icon'},
 		{name: "Delete Sparing", action: "container.create.delete", params:[true], shortcut:'End', icon:'ns-delete-icon'},
 		{name: "Text", action: "menu.context.editText", options:{forwardEvent:true}},
+		{name: "Add URL", action: "menu.context.addUrl", options:{}},
 		{name: "ParentDown", action: "container.lineage.parentDown", shortcut:'Shift+<'},
 		{name: "ParentUp", action: "container.lineage.parentUp", shortcut:'Shift+>'},
 		{name: "Collapse", action: "container.edit.abstraction.collapse", shortcut: 'Ctrl+Down'},
@@ -212,6 +213,12 @@ export class ContextMenu {
 	    }
 
 	    this.stop();
+	}
+
+	addUrl() {
+		let selection = this.#container.tryExecuteWithComponent("getSelection")
+		this.stop();
+		this.#container.tryExecuteWithComponent("editURLreference", selection, this.appId)
 	}
 
 	editText() {
