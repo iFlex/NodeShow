@@ -3,7 +3,7 @@ export class DefaultColorPicker {
     appId = 'edit.defaults.colors'
 
     #enabled = false
-	#palette = ["#F8EDE3","#DFD3C3", "#D0B8A8", "#7D6E83"]
+	#palette = ["#F8EDE3","#DFD3C3", "#D0B8A8", "#7D6E83", "#6F38C5", "#87A2FB", "#ADDDD0", "#EEEEEE"]
 
 	constructor (container) {
 		this.container = container;

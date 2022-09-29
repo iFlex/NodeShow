@@ -53,10 +53,10 @@ Current Prios:
 [TODO][L]: Evaluate how many events are fired via using Container Core features. Try to minimize without impacting persistence
 [TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
-[TODO][M]*: Improve color picket to properly select contrasting colors from within a pallette
 
 [TODO][Mobile][S]: make URL/reference viewer work on mobile
 [TODO][Mobile][M/L]: make container abstraction level navigation app that works for mobile(meant for viewing)
+[TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.
 
 [TODO]: call Container method with cascade up on failure: - in orther words target picking for certain operations should cascade up to the first available container (available = one that allows such an operation)
 This might be overkill and potentially introduce lots of bugs...
