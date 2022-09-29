@@ -3,7 +3,7 @@ export class DefaultColorPicker {
     appId = 'edit.defaults.colors'
 
     #enabled = false
-	#palette = ["#605B56", "#837A75", "#ACC18A", "#DAFEB7", "#F2FBE0"]
+	#palette = ["#F8EDE3","#DFD3C3", "#D0B8A8", "#7D6E83"]
 
 	constructor (container) {
 		this.container = container;
@@ -34,10 +34,31 @@ export class DefaultColorPicker {
         return `rgb(${R}, ${G}, ${B})`
     }
 
+	brightness(color) {
+		let avg = 0.0
+		for (let i = 0; i < 3; ++i) {
+			avg += color[i];
+		}
+		avg /= 3
+		return avg / 128;
+	}
+
+	textColor(container) {
+		let color = this.getNodeColor(container)
+		let brightness = this.brightness(color)
+
+		if (brightness > 0.5) {
+			return this.colorToCssColor([0,0,0])
+		} else {
+			return this.colorToCssColor([255, 255, 255])
+		}
+	}
+
     overlayWith(containers) {
 		for (const container of containers) {
 			let color = this.getNodeColor(container);
-			return this.colorToCssColor(this.findClosestPaletteColor(this.invertColor(color), color));
+			let i = (this.findClosestPaletteColor(color) + 1) % this.#palette.length;
+			return this.colorToCssColor(this.convertColor(this.#palette[i]));
 		}
         return this.#getRandomColor();
     }
@@ -135,19 +156,22 @@ export class DefaultColorPicker {
 		return true;
 	}
 
-	findClosestPaletteColor(color, avoid) {
+	findClosestPaletteColor(color) {
 		let minDist = null;
 		let cpick = null;
-		let cpick2 = null;
-		for (const hexPcolor of this.#palette) {
+		let findex = 0;
+		for (let i = 0 ; i < this.#palette.length; ++i) {
+			let hexPcolor = this.#palette[i]
+
 			let pcolor = this.convertColor(hexPcolor)
 			let distance = this.colorDistance(color, pcolor)
 			if (minDist == null || distance < minDist) {
-				cpick2 = cpick
 				cpick = pcolor
+				findex = i;
+				minDist = distance;
 			}
 		}
 
-		return this.equals(cpick, avoid) ? cpick2 : cpick
+		return findex;
 	}
 }

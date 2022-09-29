@@ -142,7 +142,7 @@ export class ContainerTextInjector {
 	cursor = null
 	#colorPicker = null;
 
-	constructor (container, colorPicker = {"overlayWith":() => {return "rgb(0,0,0)";}}, debug) {
+	constructor (container, colorPicker = {"overlayWith":() => {return "rgb(0,0,0)";}, "textColor":() => {return "rgb(0,0,0)";}}, debug) {
 		this.container = container;
 		this.#colorPicker = colorPicker;
 		container.registerComponent(this, new Set([{
@@ -331,7 +331,7 @@ export class ContainerTextInjector {
 		}	
 		
 		//restart text editor picks a new default text color
-		this.state.textColor = this.#colorPicker.overlayWith([this.target]);
+		this.state.textColor = this.#colorPicker.textColor(this.target);
 		this.cursor.setTarget(this.target)
 		this.container.show(this.#interface, this.appId)
 		
@@ -900,7 +900,7 @@ export class ContainerTextInjector {
 		this.container.setPosition(blinker, globalPosition, this.appId)
 		this.container.setHeight(blinker, unitHeight, this.appId)
 		this.container.bringToFront(blinker, this.appId)
-		this.container.styleChild(blinker, {"background-color": this.#colorPicker.overlayWith([localTarget])}, this.appId)
+		this.container.styleChild(blinker, {"background-color": this.#colorPicker.textColor(localTarget)}, this.appId)
 	}
 
 	splitTextUnit(unit, offset) {
