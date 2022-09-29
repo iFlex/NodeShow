@@ -127,7 +127,7 @@ export class ContainerAbstractionActuator {
     onClick(id) {
         let node = this.#container.lookup(id)
         let totalAbsLevels = this.#container.getAbstractionLevels(node)
-        if (totalAbsLevels > 1) { 
+        if (totalAbsLevels > 0) { 
             this.showInterface(node);
         } else {
             this.hideInterface();
