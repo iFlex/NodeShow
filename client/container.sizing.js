@@ -266,7 +266,8 @@ Container.prototype.getContentBoundingBox = function(id) {
         right: 0,
     }
 
-    for (const child of node.children) {
+    let visibleChildren = this.getVisibleChildren(node)
+    for (const child of visibleChildren) {
         let bbox = this.getBoundingBox(child)
         if (result.right < bbox.right) {
             result.right = bbox.right
@@ -297,10 +298,6 @@ Container.prototype.getBoundingBox = function(id) {
     bbox.right = bbox.left + this.getWidth(id, true)
     bbox.bottom = bbox.top + this.getHeight(id, true)
     return bbox;
-}
-
-function decideFittingAction(units) {
-    //TODO: implement
 }
 
 //[TODO][WARNING]Highly experimental!
