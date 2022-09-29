@@ -29,7 +29,7 @@ import { queueWork } from '../../YeldingExecutor.js'
 	width: auto
 	height: auto
 	- self adjusting
-	or fitVisibleContent with expandOnly = false
+	or fitVisibleContent with contract = true
 
 	2. Fixed width text field
 	width: x px

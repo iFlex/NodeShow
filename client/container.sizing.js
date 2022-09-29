@@ -338,16 +338,16 @@ Container.prototype.fitVisibleContent = function(id, contract = false, callerId,
     let contentBbox = null
 
     if (w > oldW) {
-        this.setWidth(node, w, callerId)
+        this.setWidth(node, w, callerId, emit)
     } else if(contract) {
         contentBbox = contentBbox || this.getContentBoundingBox(node)
-        this.setWidth(node, contentBbox.right - contentBbox.left, callerId)
+        this.setWidth(node, contentBbox.right - contentBbox.left, callerId, emit)
     }
     
     if (h > oldH) {
-        this.setHeight(node, h, callerId)
+        this.setHeight(node, h, callerId, emit)
     } else if (contract) {
         contentBbox = contentBbox || this.getContentBoundingBox(node)
-        this.setHeight(node, contentBbox.bottom - contentBbox.top, callerId)
+        this.setHeight(node, contentBbox.bottom - contentBbox.top, callerId, emit)
     }
 }

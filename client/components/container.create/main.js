@@ -120,7 +120,7 @@ export class ContainerCreator {
 			
 			let pointer = node.parentNode
 			while (pointer && pointer != this.parent) {
-				this.container.fitVisibleContent(pointer, true)	
+				this.container.fitVisibleContent(pointer, false)	
 				pointer = pointer.parentNode
 			}
 		}
