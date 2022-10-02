@@ -56,7 +56,7 @@ export class ContainerLink {
         this.#linkDrawers[id] = method
     }
 
-    draw(descriptor) {
+    draw(descriptor, callerId = this.appId) {
         if (!descriptor) {
             return;
         }
@@ -65,7 +65,7 @@ export class ContainerLink {
         if (!drawer) {
             drawer = this.#linkDrawers['straightLine']
         }
-        return drawer.apply(this, [this.#container, descriptor])
+        return drawer.apply(this, [this.#container, descriptor, callerId])
     }
 
     registerNewLink(linkId, from, to, descriptor) {
@@ -100,7 +100,7 @@ export class ContainerLink {
         descriptor.linkUnits = []
 
         //draw link
-        let nodelist = this.draw(descriptor)
+        let nodelist = this.draw(descriptor, callerId)
         
         //persist
         for (let linkUnit of nodelist) {

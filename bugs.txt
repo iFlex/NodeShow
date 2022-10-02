@@ -4,10 +4,10 @@
  - tentative fix via listening for container created events. Should probably listen to bring to front as well
  - better fix: put all non modal interaces in the same parent container that allows them to stack + keeps them on top
 [BUG]: Sending container to back makes it disappear
-
 [BUG]:  certain events cause feedback loops between collaborators. E.g. link maintenance
          - this could be due to: hook system being easy to missuse and miss adding CallerId in the following calls
          - maybe event handlers triggering calls to Container methods not passing over CallerId
+[ISSUE]: If you don't provide the callerId seems like feedback loops can be created using events :(
 
 [BUG/NOT_SURE]: findActionableContainer prevents clicking on position locked elements 
 [BUG]: some links don't update at all untill you move one of the linked containers

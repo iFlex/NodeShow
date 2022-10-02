@@ -53,7 +53,7 @@ Current Prios:
 [TODO][L]: Evaluate how many events are fired via using Container Core features. Try to minimize without impacting persistence
 [TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
-
+[TODO][?]: Ability to set URL refrence to a local container and when clicked reveal (unearth it from abstraction levels) it & focus on it.(or container from a different NodeShow)
 [TODO][Mobile][S]: make URL/reference viewer work on mobile
 [TODO][Mobile][M/L]: make container abstraction level navigation app that works for mobile(meant for viewing)
 [TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.

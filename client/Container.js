@@ -216,7 +216,7 @@ export class Container {
             if (node === this.parent) {
                 return true;
             }
-            node = node.parentNode
+            node = this.getParent(node)
         }
 
         return false;
@@ -238,9 +238,26 @@ export class Container {
         if (!virtualNode) {
             throw new ContainerException(id,"lookup", null,"not found");
         }
-        return virtualNode
+        return virtualNode.node
     }
 
+    //PASS IN A NODE, NOT A REFF
+    getParent(node) {
+        if (node === this.parent) {
+            return null;
+        }
+
+        if (node.parentNode) {
+            return node.parentNode
+        }
+
+        let virtualNode = this.virtualDOM[node.id]
+        if (virtualNode) {
+            return virtualNode.parentNode
+        }
+        return null;
+    }
+ 
     /**
     * @summary Traverses the DOM tree starting from the provided ROOT and initializes the framework on each found node.
     * @description For each found node it will generate a unique ID if one isn't present and will call any postCreateHooks.
@@ -272,7 +289,7 @@ export class Container {
 				}
 			}
 
-            Container.applyPostHooks(this, 'create', [item.parentNode, item, null])
+            Container.applyPostHooks(this, 'create', [this.getParent(item), item, null])
 
 			index ++;
             if(emit != false) {
@@ -539,6 +556,11 @@ export class Container {
 
     getAllChildren(node) {
         node = this.lookup(node);
+        return new Set(node.children)
+    }
+
+    getAllChildNodes(node) {
+        node = this.lookup(node);
         return new Set(node.childNodes)
     }
 
@@ -667,7 +689,7 @@ export class Container {
         let count = 0;
         while (pointer && pointer != this.parent) {
             count ++;
-            pointer = pointer.parentNode;
+            pointer = this.getParent(pointer);
         }
 
         return count;
@@ -676,7 +698,7 @@ export class Container {
     //ToDo: add a system to impose style on children being added to parents with restrictions (including when changing parent) 
     conformToParentRules(elementId) {
         let child = this.lookup(elementId);
-        let parent = child.parentNode
+        let parent = this.getParent(child)
         let rules = this.getChildStyleRules(parent)
         
         //Flow based positioning rules:
@@ -714,7 +736,7 @@ export class Container {
 	setParent(childId, parentId, callerId, options) {
         let parent = this.lookup(parentId);
         let child = this.lookup(childId);
-        if (child.parentNode.id === parent.id) {
+        if (this.getParent(child).id === parent.id) {
             return; //noop
         }
         Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options])
@@ -724,7 +746,7 @@ export class Container {
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
         //console.log(`Change parent for ${child.id} to ${parent.id}`)
-        let prevParentId = child.parentNode.id;
+        let prevParentId = this.getParent(child).id;
         if (options && options.insertBefore && parent.firstChild) {
             jQuery(child).detach().insertBefore(this.lookup(options.insertBefore));
         } else {
@@ -862,7 +884,7 @@ export class Container {
 
     getSiblingPosition(siblingId) {
         let sibling = this.lookup(siblingId)
-        let parent = sibling.parentNode
+        let parent = this.getParent(sibling)
         if (parent) {
             for ( let i = 0 ; i < parent.childNodes.length; ++i ) {
                 if (parent.childNodes[i].id == sibling.id) {
@@ -877,7 +899,7 @@ export class Container {
         let sibling = this.lookup(siblingId)
         this.isOperationAllowed(ACTIONS.setSiblingPosition, sibling, callerId);
         let curPos = this.getSiblingPosition(sibling)
-        let parent = sibling.parentNode
+        let parent = this.getParent(sibling)
         
         let switchSibling = this.getChildAt(parent, index + ((curPos < index) ? 1 : 0))
         
@@ -903,7 +925,7 @@ export class Container {
             callerId: callerId
         })
         //Child order is stored in the parent
-        this.notifyUpdate(sibling.parentNode, callerId)
+        this.notifyUpdate(this.getParent(sibling), callerId)
     }
 
     changeSiblingPosition(siblingId, amount, callerId) {
@@ -922,7 +944,7 @@ export class Container {
             domNode.id = Container.generateUUID(); //pref considerable
             parent.appendChild(domNode);
 
-            Container.applyPostHooks(this, 'create', [domNode.parentNode, domNode, callerId])
+            Container.applyPostHooks(this, 'create', [this.getParent(domNode), domNode, callerId])
             this.updateZindexLimits(domNode)
             this.conformToParentRules(domNode)
             this.virtualDOM[domNode.id] = domNode
@@ -943,7 +965,7 @@ export class Container {
         this.isOperationAllowed(ACTIONS.delete, child, callerId);
 
         if (child != this.parent) {
-            child.parentNode.removeChild(child);
+            this.getParent(child).removeChild(child);
             
             //remove any local metadata
             this.removeMetadata(child.id)
@@ -964,7 +986,7 @@ export class Container {
         this.isOperationAllowed(ACTIONS.delete, elem, callerId);
         this.isOperationAllowed(ACTIONS.deleteSparingChildren, elem, callerId);
 
-        let parent = elem.parentNode || this.parent
+        let parent = this.getParent(elem) || this.parent
         let children = []
         for (const child of elem.children) {
             children.push(child)
@@ -1109,7 +1131,7 @@ export class Container {
                 }
             }
 
-            node = node.parentNode
+            node = this.getParent(node)
         }
 
         throw new ContainerException(node.id,"callUntilAllowed",callerId,"Could not find ancestor to call on");
@@ -1187,18 +1209,36 @@ export class Container {
     //</events>
     
     //experimental
+    //ToDo: sibling order and other items needing to be saved before removal from DOM tree
     #transactions = {}
+    virtualize(node) {
+        let parent = this.getParent(node)
+        let virtualNode = {
+            node: node,
+            parentNode: parent
+        }
+        this.virtualDOM[node.id] = virtualNode
+
+        let children = this.getAllChildren(node)
+        for (const child of children) {
+            this.virtualize(child)
+        }
+    }
+    //experimental - DO NOT USE
     startTransaction(id, callerId) {
         let node = this.lookup(id)
-        this.#transactions[node.id] = node.parentNode
-        //$(node).detach()
-        node.parentNode.removeChild(node)
+        let parent = this.getParent(node)
+        this.virtualize(node);
+
+        this.#transactions[node.id] = parent
+        parent.removeChild(node)
     }
 
     //experimental
     endTransaction(id) {
         let node = this.lookup(id)
         this.#transactions[node.id].appendChild(node)
+        delete this.virtualDOM[node.id]
     }
 }
 

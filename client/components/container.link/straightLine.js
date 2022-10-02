@@ -19,19 +19,52 @@ function computeAbsoluteLinkPosition(container, target, targetPos) {
     return pos
 }
 
-function updateLink(container, link, from, fromPos, to, toPos) {
+function updateLink(container, link, from, fromPos, to, toPos, callerId) {
     let leftPos = computeAbsoluteLinkPosition(container, from, fromPos)
     let rightPos = computeAbsoluteLinkPosition(container, to, toPos)
+    //This creates an event loop - investigate...
+    // let a = container.createFromSerializable(null, {
+    //     "nodeName": "div",
+    //     data:{
+    //         containerPermissions: {
+    //             "container.setParent": {"*": false},
+    //             "container.create": {"*": false} //prevent other apps from adding children to this 
+    //         }
+    //     },
+    //     computedStyle: {
+    //         "height": 5,
+    //         "width": 5,
+    //         "background-color": "green",
+    //         "position": "absolute"
+    //     }
+    // }, null, callerId)
+    // let b = container.createFromSerializable(null, {
+    //     "nodeName": "div",
+    //     data:{
+    //         containerPermissions: {
+    //             "container.setParent": {"*": false},
+    //             "container.create": {"*": false} //prevent other apps from adding children to this 
+    //         }
+    //     },
+    //     computedStyle: {
+    //         "height": 5,
+    //         "width": 5,
+    //         "background-color": "green",
+    //         "position": "absolute"
+    //     }
+    // }, null, callerId)
+    // container.setPosition(a, leftPos, callerId)
+    // container.setPosition(b, rightPos, callerId)
 
     let angle = calculateLinkAngle(leftPos, rightPos)
 
-    container.setPosition(link, leftPos)
-    container.setAngle(link, angle + "rad", "0%", "0%")
-    container.setWidth(link, calculateDistance(leftPos, rightPos))
-    container.setHeight(link, 5)
+    container.setPosition(link, leftPos, callerId)
+    container.setAngle(link, angle + "rad", "0%", "0%", callerId)
+    container.setWidth(link, calculateDistance(leftPos, rightPos), callerId)
+    container.setHeight(link, 5, callerId)
 }
 
-function createLinkUnit(container) {
+function createLinkUnit(container, callerId) {
     return container.createFromSerializable(null, {
         "nodeName": "div",
         data:{
@@ -46,13 +79,13 @@ function createLinkUnit(container) {
             "background-color": "black",
             "position": "absolute"
         }
-    })
+    }, null, callerId)
 }
 
-export function draw(container, descriptor) {
+export function draw(container, descriptor, callerId) {
     let linkUnits = []
     if (descriptor.linkUnits.length == 0) {
-        linkUnits.push(createLinkUnit(container))
+        linkUnits.push(createLinkUnit(container, callerId))
     } else {
         linkUnits.push(container.lookup(descriptor.linkUnits[0]))
     }
@@ -61,6 +94,6 @@ export function draw(container, descriptor) {
     let from = container.lookup(descriptor.from)
     let to = container.lookup(descriptor.to)
 
-    updateLink(container, link, from, descriptor.fromPos, to, descriptor.toPos)
+    updateLink(container, link, from, descriptor.fromPos, to, descriptor.toPos, callerId)
     return linkUnits
 }

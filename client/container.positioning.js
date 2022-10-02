@@ -143,10 +143,11 @@ Container.prototype.setPosition = function(id, position, callerId, force = false
         }
     }
     //do position translation (even if the positioning is absolute, it still uses the parent x,y as the origin point)
-    let parentPos = this.getPosition(elem.parentNode || this.parent)
+    let parent = this.getParent(elem)
+    let parentPos = this.getPosition(parent || this.parent)
     
     //New compensation style
-    let offsets = this.getRelativePositionOffset(elem.parentNode)
+    let offsets = this.getRelativePositionOffset(parent)
     parentPos.top += offsets.dy
     parentPos.left += offsets.dx
 
