@@ -313,9 +313,9 @@ Container.prototype.fitVisibleContent = function(id, contract = false, callerId,
     let computedStyle = window.getComputedStyle(node, null)
 
     let mRight = convertToStandard(computedStyle.getPropertyValue("margin-right"))
-    let mLeft = convertToStandard(computedStyle.getPropertyValue("margin-left"))
+    //let mLeft = convertToStandard(computedStyle.getPropertyValue("margin-left"))
     let mBottom = convertToStandard(computedStyle.getPropertyValue("margin-bottom"))
-    let mTop = convertToStandard(computedStyle.getPropertyValue("margin-top"))
+    //let mTop = convertToStandard(computedStyle.getPropertyValue("margin-top"))
 
     let paddingRight = convertToStandard(computedStyle.getPropertyValue("padding-right"))
     let paddingLeft = convertToStandard(computedStyle.getPropertyValue("padding-left"))

@@ -22,7 +22,7 @@ function execute() {
 		uninterrupted += duration
 
 		if (uninterrupted >= maxUninterrupted) {
-			let overshot = uninterrupted - maxUninterrupted
+			//let overshot = uninterrupted - maxUninterrupted
 			//setTimeout(execute, overshot+1)
 			setTimeout(execute, 1)
 			return;
