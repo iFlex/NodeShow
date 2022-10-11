@@ -201,11 +201,12 @@ export class ContainerClipboard {
 
 	//ToDo: add decoders for supported data types
 	onPaste(e) {
-		console.log(`[${this.appId}] pasted data types ${JSON.stringify(e.clipboardData.types)}`)
-		for (const type of e.clipboardData.types) {
+		let data = (e.clipboardData || window.clipboardData)
+		console.log(`[${this.appId}] pasted data types ${JSON.stringify(data.types)}`)
+		for (const type of data.types) {
 			let operation = `materialize:${type}`
 			try {
-				this.#container.tryExecuteWithComponent(operation, e.clipboardData, getSelection(this.#container), this.appId)
+				this.#container.tryExecuteWithComponent(operation, data, getSelection(this.#container), this.appId)
 				return;
 			} catch (e) {
 				if (!(e instanceof NoSuitableComponentPresent)) {
@@ -215,9 +216,9 @@ export class ContainerClipboard {
 			}
 		}
 
-		let data = (e.clipboardData || window.clipboardData).getData("application/json")
-		if (data) {
-			this.paste(data)
+		let interpretedData = data.getData("application/json")
+		if (interpretedData) {
+			this.paste(interpretedData)
 		}
 	}
 

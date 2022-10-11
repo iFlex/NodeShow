@@ -33,8 +33,7 @@ export class ContainerEditAbstraction {
                 "top":"0px",
                 "left":"0px",
                 "display":"none",
-                "background-color":"black",
-                "display":"none"
+                "background-color":"black"
             },
             "data":{
                 "ignore":true,

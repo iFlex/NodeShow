@@ -123,6 +123,6 @@ export class ContainerRepeller {
 
     onUpdate(ev) {
         let node = this.#container.lookup(ev.id)
-        this.pushSiblingsAway(node, ev.dx, ev.dy) 
+        this.pushSiblingsAway(node, ev.dx, ev.dy, new Set([])) 
     }
 }
