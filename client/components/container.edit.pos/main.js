@@ -19,6 +19,11 @@ export class ContainerMover {
 	#editableClass = 'editable:hover'
 	#selection = []
 
+	oxWidth = 0;
+	oxHeight = 0;
+	targetOx = 0;
+	targetOx = 0;
+
 	lastX = 0;
 	lastY = 0;
 
@@ -27,12 +32,12 @@ export class ContainerMover {
 		container.registerComponent(this);
 
 		this.#mouse = new Mouse(this.appId);
-		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#mouse.setAction(MouseEvents.DRAG_START, (e) => this.start(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#mouse.setAction(MouseEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#mouse.setAction(MouseEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
 		this.#touch = new Touch(this.appId);
-		this.#touch.setAction(TouchEvents.DRAG_START, (e) => this.start(e.detail.id), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
+		this.#touch.setAction(TouchEvents.DRAG_START, (e) => this.start(e), ACCESS_REQUIREMENT.SET_EXCLUSIVE)
 		this.#touch.setAction(TouchEvents.DRAG_UPDATE, (e) => this.handleDragUpdate(e), ACCESS_REQUIREMENT.DEFAULT)
 		this.#touch.setAction(TouchEvents.DRAG_END, (e) => this.stop(e), ACCESS_REQUIREMENT.DEFAULT)
 
@@ -83,32 +88,52 @@ export class ContainerMover {
 			this.container.camera.move(-details.dx, -details.dy)
 		}
 	}
-	
-	modifyContainer(target, x, y, targetOx, targetOy) {
-		let newPos = {
-			top: y,
-			left: x,
-			originX: targetOx,
-			originY: targetOy
-		}
-		
+
+	modifyContainer(target, x, y) {
 		let keepTrying = true;
 		while (keepTrying && target != this.container.parent) {
+			let newPos = {
+				top: y,
+				left: x,
+				originX: this.targetOx,
+				originY: this.targetOy
+			}
+
 			try {
 				this.container.setPosition(target, newPos, this.appId)
 				break;
 			} catch (e) {
 				keepTrying = this.container.couldBeTriedOnParent(e)
-				target = this.container.getParent(target)
-				//ToDo: recompute params
+				let newTarget = this.container.getParent(target)
+				this.recomputeOxOy(newTarget)
+				target = newTarget
 			}
 		}
 	}
 
-	start(id) {
+	recomputeOxOy(newTarget) {
+		if (newTarget) {
+			let outerPos = this.container.getPosition(newTarget)
+			let innerPos = this.container.getPosition(this.target)
+			this.oxWidth += (innerPos.left - outerPos.left)
+			this.oxHeight += (innerPos.top - outerPos.top)
+		}
+
+		let w = this.container.getWidth(this.target)
+		let h = this.container.getHeight(this.target)
+		this.targetOx =  this.oxWidth / w
+		this.targetOy =  this.oxHeight / h
+	}
+
+	start(e) {
 		//this.container.componentStartedWork(this.appId, {})
-		this.target = this.container.lookup(id)
+		this.target = this.container.lookup(e.detail.id)
 		this.#selection = new Set(getSelection(this.container))
+		
+		let pos = this.container.getPosition(this.target)
+		this.oxWidth  = e.detail.originalEvent.clientX - pos.left 
+		this.oxHeight = e.detail.originalEvent.clientY - pos.top
+		this.recomputeOxOy()
 	}
 
 	handleDragUpdate(e) {
@@ -127,9 +152,8 @@ export class ContainerMover {
 		let preTargetPos = this.container.getPosition(tnode)
 		this.modifyContainer(tnode,
 			d.originalEvent.clientX, //d.position.x, //TODO: make position indicate it is the global position
-			d.originalEvent.clientY, //d.position.y,
-			d.targetOx, 
-			d.targetOy)
+			d.originalEvent.clientY //d.position.y,
+		)
 		let postTargetPos = this.container.getPosition(tnode)
 		
 		let dy = postTargetPos.top - preTargetPos.top
@@ -139,6 +163,7 @@ export class ContainerMover {
 			//(equivalent to: if all selection items are siblings with target)
 			for (let id of this.#selection) {
 				if (d.id != id) {
+					//TODO: integrate bubbling up in here as well
 					this.container.move(id, dx, dy, this.appId)
 				}
 			}
