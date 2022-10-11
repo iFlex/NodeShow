@@ -21,9 +21,6 @@ Client Features:
         [TODO]: add another save style trigger for the per layer style persistance (if you change the dimensions of the container and never change abstraction levels it won't save the changes)
 
 12  Configure Container: (order as sibling, child style, positioning, etc):: container.configure
-    [NICE-TO-HAVE]: make it a bit more advanced?: e.g. read status from target, show sliders, etc?
-15. Camera implementation: focus, move, zoom
-     - integrate zoom level with sizing (i.e. fitContent) + check if read and write style works under zoom
 ------------------------------------------------------------------------------
 16. Optimize event sending and heavy loading (e.g. books)
     Implement BulkBridge maybe?
@@ -35,13 +32,15 @@ Link are currently a performance issue - they seem to slow down the server
     - edit links
     - interact with links
     - optimize drawing: stop sending update events on every link unit, let the client do the redrawing
-
+15. Camera implementation: focus, move, zoom
+     - integrate zoom level with sizing (i.e. fitContent) + check if read and write style works under zoom
 14. [NICE-TO-HAVE|MAYBE-TOO-MUCH]Edit container actions: allow attaching and detaching actions from containers. This way you can attach actions that don't take effect as you edit!?
 --------------------------------------------
 
 
 Current Prios:
 --------------------------------------------
+[TODO][S]: Support locking ratio of object when resizing. SetWidth & SetHeight should the exact same effect
 [TODO][L]: overhaul the mouse system - currently it is disgustingly coupled with container features.
     - move stuff like findActionableAncestor outside of mouse functionality
 [TODO][S/M]: !! Harden positioning & sizing + add page based tests for it.
@@ -56,12 +55,9 @@ Current Prios:
 [TODO][?]: Ability to set URL refrence to a local container and when clicked reveal (unearth it from abstraction levels) it & focus on it.(or container from a different NodeShow)
 [TODO][Mobile][S]: make URL/reference viewer work on mobile
 [TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.
-
-[TODO]: call Container method with cascade up on failure: - in orther words target picking for certain operations should cascade up to the first available container (available = one that allows such an operation)
-This might be overkill and potentially introduce lots of bugs...
-        - ability to specify what failures will cause it to cascade up to the parent
-        - returns what container the op was applied to
-        - ability to disallow cascading (either as local or global permission) per container (which will cause the cascader to throw an exception)
+[TODO][M]: Cascade up edit actions perfecting:
+    - editPos should correctly position the element even if the drag starts on a inner child that can't be moved
+    - editSize should correcly size the parent
 
 [TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
     - [DECISION]: do not support nested cameras
@@ -103,7 +99,6 @@ This might be overkill and potentially introduce lots of bugs...
     [TODO]: more stress testing
 
 [TODO]: Move findActionableAncestor call from mouse() into the relevant components
-[TODO]: Revise and make robust Mouse & Keyboard. Think of how they can work along each other
 [TODO]: Work on solid encoding interpretation on content from server
 [TODO][L]: copy/paste style only
 [TODO]: make insert content via data b64 link work

@@ -48,7 +48,7 @@ function handleStart(e) {
 
 	target = findActionableAnchestor(container, touch.target, appId)
 	if (target) {
-		e.preventDefault();
+		//e.preventDefault();
 		focusTarget = target
 		
 		targetMetadata['targetOx'] = touch.layerX / container.getWidth(target) 
@@ -71,7 +71,7 @@ function handleStart(e) {
 function handleMove(e) {
 	let touch = e.touches[0]
 	if (target) {
-		e.preventDefault();
+		//e.preventDefault();
 		let dx = touch.screenX - lastX;
 		let dy = touch.screenY - lastY;
 
@@ -101,7 +101,7 @@ function handleCancel(e) {
 
 function handleEnd(e) {
 	if (target) {
-		e.preventDefault();
+		//e.preventDefault();
 		let position = getTranslatedCursorPosition(touch.pageX,touch.pageY,container);
 		
 		container.emit(EVENTS.DRAG_END,{
@@ -133,8 +133,8 @@ function actLikeMouse(evt) {
   if (evt.touches.length > 1 || (evt.type == "touchend" && evt.touches.length > 0))
     return;
 
-  evt.preventDefault();
-  evt.stopPropagation();
+  //evt.preventDefault();
+  //evt.stopPropagation();
   
   var type = null;
   var touch = null;

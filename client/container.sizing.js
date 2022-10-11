@@ -3,7 +3,7 @@ import { ContainerOperationNotApplicable } from "./ContainerExcepitons.js"
 import { inferUnit, convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
 
 const NOT_SIZEABLE = new Set(['auto'])
-
+const ASPECT_RATIO_LOCKED_KEY = "AspectRatioLocked"
 /**
  * Warning: the sizing code isn't completely stable. It is currently failing the test of e.setWidth(e.getWidth()) 
  * where the dimension of the obejct should not change
@@ -70,6 +70,23 @@ Container.prototype.convertPixelPos = function(node, pos, units) {
     return result
 }
 
+Container.prototype.getAspectRatio = function(id) {
+    let node = this.lookup(id)
+    return this.getWidth(node) / this.getHeight(node)
+}
+
+Container.prototype.lockAspectRatio = function(id, callerId) {
+    let node = this.lookup(id)
+    node.dataset[ASPECT_RATIO_LOCKED_KEY] = "true"
+    this.notifyUpdate(id, callerId)
+}
+
+Container.prototype.unlockAspectRatio = function(id, callerId) {
+    let node = this.lookup(id)
+    delete node.dataset[ASPECT_RATIO_LOCKED_KEY]
+    this.notifyUpdate(id, callerId)
+}
+
 Container.prototype.getUnit = function(id, property) {
     let elem = this.lookup(id)
     return elem.dataset[property]
@@ -133,15 +150,18 @@ Container.prototype.setWidth = function(id, width, callerId, emit) {
         width = convertPixelWidth(this, elem, width, unit)    
     }
 
-    this.setExplicitWidth(elem, width, unit, callerId, emit)        
+    this.setExplicitWidth(elem, width, unit, callerId, emit)
 }
 
-Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emit) {
+Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emit, adjustRatio = true) {
     this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
     let prevWidth = this.getWidth(elem);
     
     if (unit == 'auto') {
         width = ''
+    } else if (elem.dataset[ASPECT_RATIO_LOCKED_KEY] && adjustRatio) {
+        let ratio = this.getAspectRatio(elem)
+        this.setExplicitHeight(elem, width/ratio, unit, callerId, emit, false);
     }
     this.setUnit(elem, 'widthUnit', unit)
     //jQuery(elem).css({width: `${width}${unit}`});
@@ -184,13 +204,17 @@ Container.prototype.setHeight = function(id, height, callerId, emit) {
     this.setExplicitHeight(elem, height, unit, callerId, emit)
 }
 
-Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, emit) {
+Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, emit, adjustRatio = true) {
     this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
     
     let prevHeight = this.getHeight(elem);
     if (unit == 'auto') {
         height = ''
+    } else if (elem.dataset[ASPECT_RATIO_LOCKED_KEY] && adjustRatio) {
+        let ratio = this.getAspectRatio(elem)
+        this.setExplicitWidth(elem, height*ratio, unit, callerId, emit, false);
     }
+
     this.setUnit(elem, 'heightUnit', unit)
     jQuery(elem).css({height: `${height}${unit}`});
     if (emit != false) {

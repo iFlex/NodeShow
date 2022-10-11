@@ -166,11 +166,16 @@ export class ContainerContent {
     target = this.container.lookup(target)
     
     //ToDo consider child styling suggestions on parent
-    return this.container.createFromSerializable(target, {
+    let child = this.container.createFromSerializable(target, {
       nodeName: this.contentTypeToNodeType(contentType),
       src: data,
       computedStyle: this.getStyle(target)
     },null,this.appId);
+    
+    if (contentType.toLowerCase().includes('image')) {
+      this.container.lockAspectRatio(child, this.appId)
+    }
+    return child
   }
 
   getContentType() {
