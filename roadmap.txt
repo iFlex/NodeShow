@@ -55,7 +55,6 @@ Current Prios:
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
 [TODO][?]: Ability to set URL refrence to a local container and when clicked reveal (unearth it from abstraction levels) it & focus on it.(or container from a different NodeShow)
 [TODO][Mobile][S]: make URL/reference viewer work on mobile
-[TODO][Mobile][M/L]: make container abstraction level navigation app that works for mobile(meant for viewing)
 [TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.
 
 [TODO]: call Container method with cascade up on failure: - in orther words target picking for certain operations should cascade up to the first available container (available = one that allows such an operation)

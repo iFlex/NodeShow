@@ -1054,8 +1054,10 @@ export class Container {
 
     setMetadata (id, key, value) {
         let node = {}
-        if (id) {
+        try {
             node = this.lookup(id)
+        } catch (e) {
+            return null;
         }
 
         if (!(node.id in this.localmetadata)) {
@@ -1066,8 +1068,10 @@ export class Container {
     
     removeMetadata (id, key) {
         let node = {}
-        if (id) {
+        try {
             node = this.lookup(id)
+        } catch (e) {
+            return null;
         }
 
         if (this.localmetadata[node.id]) {
@@ -1081,8 +1085,10 @@ export class Container {
     
     getMetadata (id, key) {
         let node = {}
-        if (id) {
+        try {
             node = this.lookup(id)
+        } catch (e) {
+            return null;
         }
 
         if (this.localmetadata[node.id]) {
@@ -1095,8 +1101,29 @@ export class Container {
         return null;
     }
 
-    couldBeTriedOnParent(e) {
-        return e instanceof ContainerOperationNotApplicable || e instanceof ContainerOperationDenied
+    couldBeTriedOnParent(exception, currentNode) {
+        if (this.getMetadata(currentNode, "disallow-try-on-parent") == true) {
+            return false;
+        }
+        return exception instanceof ContainerOperationNotApplicable || exception instanceof ContainerOperationDenied
+    }
+
+    denyTryingOnParent(node) {
+        try {
+            this.setMetadata(node, "disallow-try-on-parent", true)
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    allowTryingOnParent(node) {
+        try {
+            this.removeMetadata(node, "disallow-try-on-parent")
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     //<events>

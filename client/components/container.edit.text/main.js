@@ -347,12 +347,12 @@ export class ContainerTextInjector {
 		this.container.show(this.#cursorDiv, this.appId)
 		this.container.bringToFront(this.#cursorDiv, this.appId)
 
-		//TODO use cascading and local permissions
+		this.container.denyTryingOnParent(this.target)
+		this.container.setPermission(this.target, ACTIONS.setPosition, '*', false, this.appId, true)
+
+		//TODO remove the following 2 lines. should be dealt with by the above 2
 		//these need to be ephemeral state, not sent to the server and propagated...
 		this.container.setMetadata(this.target, 'text-editing', true)
-		this.container.setPermission(this.target, ACTIONS.cascade, '*', false, this.appId, true)
-		//this.container.setPermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
-		
 		
 		this.#keyboard.enable();
 		this.#clipboard.enable();
@@ -370,9 +370,11 @@ export class ContainerTextInjector {
 			this.#keyboard.disable()
 			this.#clipboard.disable()
 			
-			//this.container.removePermission(this.target, ACTIONS.delete, 'container.create', false, this.appId)
+			this.container.allowTryingOnParent(this.target)
+			this.container.removePermission(this.target, ACTIONS.setPosition, '*', this.appId)
+
+			//ToDo: remove these 2 lines
 			this.container.removeMetadata(this.target, 'text-editing')
-			this.container.removePermission(this.target, ACTIONS.cascade, '*', this.appId)
 
 			this.cursor.setTarget(null);
 			this.container.hide(this.#cursorDiv, this.appId)
