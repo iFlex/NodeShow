@@ -138,7 +138,7 @@ Container.prototype.attachAction = function(node, actionDescriptor) {
 }
 
 Container.registerPostSetterHook('create', function(parentId, node){
-    this.initActions(node)
+    return this.initActions(node)
 });
 
 Container.registerPostSetterHook('new', setUnignorableDataFields);
@@ -147,4 +147,5 @@ function setUnignorableDataFields() {
     if (typeof this.serializerCannotIgnore === 'function') {
         this.serializerCannotIgnore('data','containerActions')
     }
+    return 1
 }

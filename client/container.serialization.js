@@ -37,7 +37,6 @@ function emitContainerCreated(context, parent, child, callerId) {
     context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
     context.conformToParentRules(child)
     //this container has finally been initialized
-    //console.log(`Created contrainer ${child.id} in ${parent.id} by: ${callerId}`)
     Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
 
     context.emit(ACTIONS.create, {
@@ -47,6 +46,8 @@ function emitContainerCreated(context, parent, child, callerId) {
         callerId: callerId
     });
     context.notifyUpdate(parent, callerId)
+
+    //console.log(`Current Orphan Count ${Object.entries(orphans).length}. Init queue length ${Object.entries(initQueue).length}`)
 }
 
 function addChildNodes(context, elem, callerId) {
@@ -94,7 +95,7 @@ function makeAndInsertChild(context, rawDescriptor, parent, insertBefore) {
             
         }
         if (collision) {
-            throw `ID Collision. ${rawDescriptor.id} already exists in this document`
+            throw `ID Collision. '${rawDescriptor.id}' already exists in this document`
         }
     }
     

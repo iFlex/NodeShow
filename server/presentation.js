@@ -30,17 +30,18 @@ class Presentation {
 		this.presentation = storage.get(id)
 		this.roots = {}
 		this.relations = {undefined:{}};
+		let owner = this.presentation.owner
 
 		if (!this.presentation) {
 			if (failOnNoStorage) {
-				throw `Failed to load ${id}`
+				throw `Failed to load ${id} - Owner @${owner}`
 			}
 			this.presentation = {data:{}}
 		}
 		
 		this.rawData = this.presentation.rawData;
 		if (!this.rawData) {
-			throw `Invalid presentation format found in storage for ${id}. Missing rawData`
+			throw `Invalid presentation format found in storage for ${id} - Owner @${owner}. Missing rawData`
 		}
 
 		storage.put(id, this.presentation);
@@ -84,10 +85,10 @@ class Presentation {
 		}
 		
 		if (Object.keys(this.roots).length == 0) {
-			throw `${this.id} - has an invalid state. No root containers found, which means the presentation can't be constructed as it references unknown nodes`
+			throw `${this.id} (@${this.presentation.owner}) - has an invalid state. No root containers found, which means the presentation can't be constructed as it references unknown nodes`
 		}
 		
-		console.log(`${this.id} - roots(${Object.keys(this.roots).length}) nodes(${nodeCount}) unadressable(${unadresasble}) brokenParentLinks(${brokenParentLinks}) brokenChildLinks(${brokenChildLinks})`)
+		console.log(`${this.id} (@${this.presentation.owner}) - roots(${Object.keys(this.roots).length}) nodes(${nodeCount}) unadressable(${unadresasble}) brokenParentLinks(${brokenParentLinks}) brokenChildLinks(${brokenChildLinks})`)
 	}	
 
 	sanitize(obj, schema) {
@@ -148,7 +149,13 @@ class Presentation {
 				
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
-		        
+		        let now = Date.now()
+
+				if (data.event == Events.create) {
+					child.ceratedAt = now
+				}
+				child.lastUpdated = now
+
 		        this.rawData[child.id] = child;
 				
 				if (parentId) {

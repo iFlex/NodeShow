@@ -225,8 +225,12 @@ Container.prototype.setCurrentContentAbstractionLevel = function(c, lvl, callerI
  * @returns {number} The current abstraction level of the given container
  */
 Container.prototype.getCurrentContentAbstractionLevel = function(c) {
-    let node = this.lookup(c);
-    return parseInt(node.dataset[C_ABS_LVL] || 0)
+    try {
+        let node = this.lookup(c);
+        return parseInt(node.dataset[C_ABS_LVL] || 0)
+    } catch (e) {
+        return 0;
+    }
 }
 
 /**
@@ -311,13 +315,13 @@ Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
 function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, ignore2) {
     //set current abstraction level based on the parent if abstraction level absent
-    let currentLevel = this.getAbstractionLevel(child)
     let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
-    
-    if (this.isContainerReady(parent)) {
+    if (parentContentAbstractionLevel > 0 && this.isContainerReady(parent)) {
         //if parent is complete, then it override's child's abstraction level
         this.setAbstractionLevel(child, parentContentAbstractionLevel, callerId)
     }
+
+    return 1
 }
 
 function applyAbstractionView(pid, node, callerId) {
@@ -328,11 +332,11 @@ function applyAbstractionView(pid, node, callerId) {
         updateDisplayedAbstractionLevel(this, node, lvl, callerId)
     }
 
-    setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, null])
+    return setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, null])
 }
 
 function applyAbstractionViewOnUpdate(node, rawDescriptor, callerId, emit) {
-    applyAbstractionView.apply(this, [node.parentNode.id, node, callerId])
+    return applyAbstractionView.apply(this, [node.parentNode.id, node, callerId])
 }
 
 function setUnignorableDataFields() {
@@ -341,6 +345,7 @@ function setUnignorableDataFields() {
         this.serializerCannotIgnore('data',C_TOT_ABS_LVLS)
         this.serializerCannotIgnore('data',ABS_LVL)
     }
+    return 1
 }
 
 function removeAll(ctx, node) {

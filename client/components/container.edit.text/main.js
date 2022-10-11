@@ -752,6 +752,10 @@ export class ContainerTextInjector {
 	}
 
 	onSelectionChange(e) {
+		if (!this.target) {
+			return;
+		}
+		
 		let docSelect = document.getSelection();
 		if (!docSelect.focusNode) {
 			return;

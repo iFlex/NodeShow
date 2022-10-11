@@ -91,13 +91,18 @@ export class ContainerMover {
 			originX: targetOx,
 			originY: targetOy
 		}
-		this.container.setPosition(target, newPos, this.appId)
-		// try {
-		// 	this.container.callUntilAllowed(target, "setPosition", [target, newPos, this.appId],this.#passToAncestorExceptions,this.appId);
-		// 	this.container.componentStartedWork(this.appId, {})
-		// } catch (e) {
-			
-		// }
+		
+		let keepTrying = true;
+		while (keepTrying && target != this.container.parent) {
+			try {
+				this.container.setPosition(target, newPos, this.appId)
+				break;
+			} catch (e) {
+				keepTrying = this.container.couldBeTriedOnParent(e)
+				target = this.container.getParent(target)
+				//ToDo: recompute params
+			}
+		}
 	}
 
 	start(id) {

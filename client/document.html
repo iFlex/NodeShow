@@ -7,10 +7,32 @@
     <link rel="stylesheet" href="style.css">
     <title>Node Show Experimental</title>
   </head>
-  <body style="margin: 0px">
+  
+  <style>
+    .body {
+      background-color: DarkGray;
+      height: 100%;
+    }
+    
+    .document-base {
+      position: relative;
+      top: 50%;
+      margin: -10px auto;
+      /* -height/2 */
+      width: 75%;
+      height: auto;
+      background-color: white;
+      padding: 20px;
+    }
+
+  </style>
+
+  <body>
     <div id="nodeshow-interface" class="nodeshow-interface"></div>
-    <div id="nodeshow-content" class="nodeshow-content"></div>
+    <div id="nodeshow-content" class="nodeshow-content document-base" style="position:static">
+    </div>
   </body>
+  
   <!-- CORE -->
   <script type="module" src="nodeshow.js"></script>
   
@@ -28,8 +50,6 @@
     import { ContainerEditAbstraction }     from "./components/container.edit.abstraction/main.js"
     import { ContainerLink }                from "./components/container.link/main.js"
     import { ContainerEditLinks }           from "./components/container.edit.links/main.js"
-    import { ContainerLineage }             from "./components/container.lineage/main.js"
-    import { ContainerRepeller }            from "./components/container.repell/main.js"
     import { ContainerGrouping }            from "./components/container.grouping/main.js"
     import { ContainerJsonEdit }            from "./components/container.edit.json/main.js"
     import { ContainerEditOrchestrator }    from "./components/container.edit.orchestrator/main.js"
@@ -42,7 +62,6 @@
     import { ContainerHax0r }               from "./components/container.hax0r/main.js"
     import { ContainerExtensionsManager }   from "./components/container.extensions.manager/main.js"
     import { DefaultColorPicker }           from "./components/edit.defaults.colors/main.js"
-    import { Draw }                         from "./components/draw/main.js"
     
     import { container } from "./nodeshow.js"
     
@@ -51,14 +70,12 @@
     new ContainerStyler(container)
     new ContainerConfig(container)
     new ContainerJsonEdit(container)
-    new ContainerLineage(container)
-    new ContainerRepeller(container)
     new ContainerExtensionsManager(container)
     new ContainerEditAbstraction(container)
     new UserDialogue(container)
     new ContainerReferenceEditor(container)
     new ContainerHax0r(container)
-    
+
     let defaultColorPicker = new DefaultColorPicker(container)
     let clinker = new ContainerLink(container)
     let cmover = new ContainerMover(container)
@@ -74,7 +91,6 @@
     let clipboard = new ContainerClipboard(container)
     let refActuator = new ContainerReferenceActuator(container)
     let absActuator = new ContainerAbstractionActuator(container)
-    //let draw = new Draw(container)
 
     clinker.enable()
     cmover.enable()
@@ -90,6 +106,7 @@
     clipboard.enable()
     refActuator.enable()
     absActuator.enable()
-    //draw.enable()
+
+    container.setChildStyleRules(container.parent, {"width":"auto", "margin":"5px"});
   </script>
 </html>

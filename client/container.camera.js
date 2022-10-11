@@ -31,6 +31,7 @@ Container.registerPostSetterHook('create', function(parentId, node) {
 	if (node.dataset.camera) {
 		this.makeCamera(node, null, JSON.parse(node.dataset.camera))
 	}
+	return 1;
 })
 
 //[TODO]: clearly define options and parameters and standardise

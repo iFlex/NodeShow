@@ -3,7 +3,7 @@
  * @module Container 
  */
 import { queueWork } from './YeldingExecutor.js'
-import { ContainerException, ContainerOperationDenied, NoSuitableComponentPresent } from './ContainerExcepitons.js'
+import { ContainerException, ContainerOperationDenied, ContainerOperationNotApplicable, NoSuitableComponentPresent } from './ContainerExcepitons.js'
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
@@ -69,8 +69,7 @@ export class Container {
     
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
-    #callUntilAllowedAbleMethods = new Set(["setPosition","setWidth","setHeight","fitVisibleContent"])
-
+    
     /*[TODO]: standardize what the parameters will be:
     //         - need it to be resilient to changing function params as much as possible 
     //         - need it to be consistent between pre and post hooks.
@@ -265,7 +264,7 @@ export class Container {
     * @param {DOMObject} root - DOM objet to start the indexing from
     * @param {Boolean} emit - wether or not to emit events when discovering DOM Nodes
     */
-    index (root, emit) {
+    index(root, emit) {
 		let queue = [root || this.parent]
 		var index = 0
 		var labeledCount = 0;
@@ -309,9 +308,9 @@ export class Container {
     * @summary Initializes the Container framework. Requires a not to set as root.
     * @param {DOMObject} element - DOM reference of the root node
     */
-	init (element) {
+	init(element) {
 		//ToDo: check element type and enforce dom object
-		console.log(`Initialising presentation engine with ID: ${this.presentationId}`)
+		console.log(`Initialising NodeShow engine with ID: ${this.presentationId}`)
 		this.index();
         this.emit("Container.init", {
             presentationId: this.presentationId,
@@ -360,7 +359,7 @@ export class Container {
         let methods = set[setter] || []
         for (const method of methods) {
             try {
-                method.apply(ctx, params)
+                let r = method.apply(ctx, params)
             } catch (e) {
                 console.error(`[CORE] Failed to apply ${setter} hook`)
                 console.error(e)
@@ -526,13 +525,14 @@ export class Container {
     * @param {DOMReference} node - container to load for
     */
     loadPermissionsFromDataset(node) {
-        if (!node.dataset || !node.dataset.containerPermissions) {
-            return;
+        if (!node || !node.dataset || !node.dataset.containerPermissions) {
+            return {};
         }
 
         let perms = JSON.parse(node.dataset.containerPermissions)
         //console.log("Loading permissions from DOM")
         this.#permissions[node.id] = perms
+        return perms
     }
     //<extensions subsystem>
 
@@ -1095,45 +1095,8 @@ export class Container {
         return null;
     }
 
-    //Experimental
-    #exceptionToComparable(e, exactMatch) {
-        let matchMethod = (exactMatch)?"exactComparableString":"comparableString"
-        if (typeof e == 'object' && typeof e[matchMethod] == 'function') {
-            return e[matchMethod]()    
-        }
-
-        return e
-    }
-
-    //Experimental
-    callUntilAllowed(id, methodName, parameters, expectedExceptionsSet, callerId, stopNode = this.parent, exactMatch = false) {
-        if (!this.#callUntilAllowedAbleMethods.has(methodName)) {
-            throw new ContainerException(id,"callUntilAllowed",callerId,`${methodName} can't be called until allowed`)
-        }
-
-        let node = this.lookup(id)
-        let startNode = node
-        let method = this[methodName]
-       
-        while (node && node != stopNode) {
-            if (node != startNode) {
-                this.isOperationAllowed(ACTIONS.cascade, node, callerId)    
-            }
-
-            try {
-                parameters[0] = node
-                method.apply(this, parameters)
-                return node
-            } catch (e) {
-                if (!expectedExceptionsSet.has(this.#exceptionToComparable(e, exactMatch))) {
-                    throw e
-                }
-            }
-
-            node = this.getParent(node)
-        }
-
-        throw new ContainerException(node.id,"callUntilAllowed",callerId,"Could not find ancestor to call on");
+    couldBeTriedOnParent(e) {
+        return e instanceof ContainerOperationNotApplicable || e instanceof ContainerOperationDenied
     }
 
     //<events>
@@ -1242,9 +1205,11 @@ export class Container {
 }
 
 //load persisted permissions when node is created
-Container.registerPostSetterHook('create', function(parentId, node){
-    this.loadPermissionsFromDataset(node)
-})
+function loadPermissionsFromDataset(parentId, node) {
+    return this.loadPermissionsFromDataset(node)
+}
+
+Container.registerPostSetterHook('create', loadPermissionsFromDataset)
 Container.registerPostSetterHook('update', function(node, descriptor){
-    this.loadPermissionsFromDataset(node)
+    return this.loadPermissionsFromDataset(node)
 })

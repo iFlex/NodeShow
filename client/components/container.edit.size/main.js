@@ -112,13 +112,10 @@ export class ContainerSizer {
 		}
 	}
 
-	//ToDo: consider scale for changing size
-	modifyContainer(targetId, dx, dy, x, y, targetOx, targetOy) {
-		let target = this.container.lookup(targetId)
-
+	computeContainerChange(target, originalTarget, dx, dy, x, y, targetOx, targetOy) {
 		let w = this.container.getWidth(target, false)
 		let h = this.container.getHeight(target, false)
-		
+
 		if (this.#presenveRatio) {
 			let change = this.keepRatio(target, w, h, dx, dy)	
 			dx = change.dx;
@@ -128,13 +125,33 @@ export class ContainerSizer {
 		w += dx
 		h += dy
 
-		try {
-			this.container.setWidth(target, w, this.appId);	
-		} catch (e) {
-			//pass
+		return {width: w, height: h}
+	}
+
+	//ToDo: consider scale for changing size
+	modifyContainer(targetId, dx, dy, x, y, targetOx, targetOy) {
+		let originalTarget = this.container.lookup(targetId)
+		let target = originalTarget
+		let change = this.computeContainerChange(target, originalTarget, dx, dy, x, y, targetOx, targetOy)
+		let keepTrying = true;
+		//ToDo: find better way to chain the 2 changes (they may fail independently at differentlevels)
+		while (keepTrying && target != this.container.parent) {
+			change = this.computeContainerChange(target, originalTarget, dx, dy, x, y, targetOx, targetOy)
+			try {
+				this.container.setWidth(target, change.width, this.appId)
+				break
+			} catch (e) {
+				keepTrying = this.container.couldBeTriedOnParent(e)
+				target = this.container.getParent(target)
+				
+				if (!keepTrying) {
+					return
+				}
+			}
 		}
+
 		try {
-			this.container.setHeight(target, h, this.appId);
+			this.container.setHeight(target, change.height, this.appId);
 		} catch (e) {
 			//pass
 		}
