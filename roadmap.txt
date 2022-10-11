@@ -40,7 +40,6 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
-[TODO][S]: Support locking ratio of object when resizing. SetWidth & SetHeight should the exact same effect
 [TODO][L]: overhaul the mouse system - currently it is disgustingly coupled with container features.
     - move stuff like findActionableAncestor outside of mouse functionality
 [TODO][S/M]: !! Harden positioning & sizing + add page based tests for it.

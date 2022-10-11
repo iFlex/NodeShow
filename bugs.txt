@@ -15,3 +15,6 @@
 [BUG]: incorrectly deleting a selection can cause the selector app to stop working and sometimes moves some of the prev selected items into document.body from container.root ?!?
 [BUG]: Some component causes containers to disappear... not sure which fakin' one... but it's making it unusable
        - Suspicion: it has to do with the fact that mouse allows clicking on parent
+
+[BUG][s]: Aspect ratio preserving can be fooled when setWidth or setHeigth won't be able to apply the update. For example with min-width and min-heigth set.
+This results in the system believing the intended aspect ratio is incorrect once one dimension is set below its minimum
