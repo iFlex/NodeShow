@@ -33,7 +33,7 @@ class Presentation {
 	
 		if (!this.presentation) {
 			if (failOnNoStorage) {
-				throw `Failed to load ${id} - Owner @${owner}`
+				throw `Failed to load ${id} - Owner @unknown`
 			}
 			this.presentation = {data:{}}
 		}
