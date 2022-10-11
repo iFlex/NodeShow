@@ -1,5 +1,5 @@
 import { ACTIONS } from '../../Container.js'
-import { getSelection, lookupStyleRules, positionVerticalMenu } from '../utils/common.js'
+import { getSelection, positionVerticalMenu } from '../utils/common.js'
 import { Clipboard, EVENTS as ClipboardEvents } from '../utils/clipboard.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'

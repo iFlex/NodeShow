@@ -330,8 +330,6 @@ Container.prototype.fitVisibleContent = function(id, contract = false, callerId,
     let h = node.scrollHeight + btop + bbottom - paddingTop - paddingBottom - mBottom
     let oldW = this.getWidth(node)
     let oldH = this.getHeight(node)
-    let fullW = this.getWidth(node, true)
-    let fullH = this.getHeight(node, true)
     let contentBbox = null
 
     if (w > oldW) {

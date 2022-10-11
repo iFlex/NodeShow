@@ -2,7 +2,7 @@ import { ACTIONS } from '../../Container.js'
 import { EVENTS as MouseEvents, MiceManager, getCursorPosition } from '../utils/mouse.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { InputAccessManagerInstance, ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
-import { clearSelection, getSelection, makeSelection } from '../utils/common.js'
+import { getSelection, makeSelection } from '../utils/common.js'
 
 let lastY = 0
 let lastX = 0

@@ -14,7 +14,6 @@ export class ContainerRepeller {
     #mouse = null;
     #enabled = false
     #handlers = {}
-    #visited = new Set([])
 
     constructor (container) {
         this.#container = container
@@ -111,7 +110,6 @@ export class ContainerRepeller {
         let node = this.#container.lookup(ev.id)
         this.pushSiblingsAway(node, ev.dx, ev.dy, new Set([]))
         //[TODO]: find a better way to clear visited
-        //this.#visited = new Set([])
     }
 
     //universe expansion type

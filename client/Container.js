@@ -21,7 +21,6 @@ export const ACTIONS = {
     sendToBack: 'container.sendToBottom',
     setContentAbstractionLevel: 'container.set.contentAbstractionLevel',
     setAbstractionLevel: 'container.set.abstractionLevel',
-    cascade: 'container.cascade',
 
     setPosition: 'container.setPosition',
     setWidth: 'container.set.width',
@@ -359,7 +358,7 @@ export class Container {
         let methods = set[setter] || []
         for (const method of methods) {
             try {
-                let r = method.apply(ctx, params)
+                method.apply(ctx, params)
             } catch (e) {
                 console.error(`[CORE] Failed to apply ${setter} hook`)
                 console.error(e)

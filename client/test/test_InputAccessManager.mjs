@@ -1,4 +1,3 @@
-import assert from 'assert';
 import { expect } from 'chai';
 import { InputAccessManager, ACCESS_REQUIREMENT } from '../components/utils/InputAccessManager.mjs';
 

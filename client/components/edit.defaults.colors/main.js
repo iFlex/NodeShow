@@ -158,7 +158,6 @@ export class DefaultColorPicker {
 
 	findClosestPaletteColor(color) {
 		let minDist = null;
-		let cpick = null;
 		let findex = 0;
 		for (let i = 0 ; i < this.#palette.length; ++i) {
 			let hexPcolor = this.#palette[i]
@@ -166,7 +165,6 @@ export class DefaultColorPicker {
 			let pcolor = this.convertColor(hexPcolor)
 			let distance = this.colorDistance(color, pcolor)
 			if (minDist == null || distance < minDist) {
-				cpick = pcolor
 				findex = i;
 				minDist = distance;
 			}

@@ -1,5 +1,3 @@
-import { Mouse } from '../../components/utils/mouse.js'
-
 export class TestMouseFollower {
 	appId = "test.mouse.follower"
 	#container = null;

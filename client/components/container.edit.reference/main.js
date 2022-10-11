@@ -1,5 +1,3 @@
-import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
-
 export class ContainerReferenceEditor {
     appId = 'container.edit.reference'
 	

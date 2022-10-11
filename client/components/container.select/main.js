@@ -154,28 +154,14 @@ export class ContainerSelect {
 	}
 
 	singleSelect (id, modifyExisting) {
-		let previousSingleSelect = null;
 		if (!modifyExisting) {
 			//[TODO]: check if it makes semantic sense to have this.start() only here
 			this.start();
-			if (this.#selection.length == 1) {
-				try {
-					previousSingleSelect = this.#container.lookup(this.#selection[0])
-				} catch (e) {
-					//oh well i tried...
-				}
-			}
 			this.clearSelection();
 			this.#selection = []
 		}
 		
 		let target = this.#container.lookup(id)
-		//ToDo: figure out if this makes sense::
-		// if (previousSingleSelect === target) {
-		// 	//reselection of the same item bubbles up to the parent
-		// 	target = this.#container.getParent(target)
-		// }
-
 		$(target).addClass(this.selectedClass)
 
 		for (const existing of this.#selection) {

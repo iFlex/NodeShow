@@ -147,9 +147,8 @@ export class ContainerCreator {
 
 	onKeyboardCreate () {
 		let selection = getSelection(this.container)
-		let target = this.container.parent
-		if (selection) {
-			target = selection[0]
+		if (selection.length > 0) {
+			this.target = selection[0]
 		}
 
 		this.create()

@@ -1,6 +1,5 @@
 import { Container, ACTIONS } from "./Container.js"
 import { ContainerOperationNotApplicable } from './ContainerExcepitons.js'
-import { inferUnit } from "./UnitConverter.js"
 
 const POSITIONABLE = new Set(['absolute','relative','fixed', 'sticky'])
 /**

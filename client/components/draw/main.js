@@ -12,7 +12,6 @@ export class Draw {
 	#enabled = false
 	#mouse = null
 	#touch = null
-	#keyboard = null
 
 	#handlers = {}
 	
