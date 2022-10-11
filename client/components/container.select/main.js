@@ -154,14 +154,28 @@ export class ContainerSelect {
 	}
 
 	singleSelect (id, modifyExisting) {
+		let previousSingleSelect = null;
 		if (!modifyExisting) {
 			//[TODO]: check if it makes semantic sense to have this.start() only here
 			this.start();
+			if (this.#selection.length == 1) {
+				try {
+					previousSingleSelect = this.#container.lookup(this.#selection[0])
+				} catch (e) {
+					//oh well i tried...
+				}
+			}
 			this.clearSelection();
 			this.#selection = []
 		}
 		
 		let target = this.#container.lookup(id)
+		//ToDo: figure out if this makes sense::
+		// if (previousSingleSelect === target) {
+		// 	//reselection of the same item bubbles up to the parent
+		// 	target = this.#container.getParent(target)
+		// }
+
 		$(target).addClass(this.selectedClass)
 
 		for (const existing of this.#selection) {
@@ -180,8 +194,12 @@ export class ContainerSelect {
 
 	clearSelection() {
 		for ( const item of this.#selection ) {
-			let node = this.#container.lookup(item)
-			$(node).removeClass(this.selectedClass);
+			try {
+				let node = this.#container.lookup(item)
+				$(node).removeClass(this.selectedClass)
+			} catch (e) {
+				continue;
+			}
 		}
 
 		this.#selection = []
@@ -191,10 +209,14 @@ export class ContainerSelect {
 		this.clearSelection();
 
 		for (let entry of items) {
-			this.#selection.push(entry.id)
-			let node = this.#container.lookup(entry.id)
-			$(node).addClass(this.selectedClass)
-
+			try {
+				let node = this.#container.lookup(entry.id)
+				$(node).addClass(this.selectedClass)
+				this.#selection.push(entry.id)
+			} catch (e) {
+				continue;
+			}
+			
 			if (this.#selection.length >= this.MAX_SELECTION_SIZE) {
 				console.log(`${this.appId} - Selection overflow`)
 				this.#tellUser(`Selected only ${this.MAX_SELECTION_SIZE} items. Selecting more than this at once degrades performance`)

@@ -25,33 +25,34 @@ export function getSelection(container) {
 
 //TODO get rid of this
 export function findActionableAnchestor(container, target, appId) {
-	if (!target) {
-		return null;
-	}
+	// if (!target) {
+	// 	return null;
+	// }
 	
-	try {
-		container.isOperationAllowed('container.edit', target, appId)
-		container.isOperationAllowed('container.edit.pos', target, appId)
-	} catch(e) {
-		console.log(e)
-		return null;
-	}
+	// try {
+	// 	container.isOperationAllowed('container.edit', target, appId)
+	// 	container.isOperationAllowed('container.edit.pos', target, appId)
+	// } catch(e) {
+	// 	console.log(e)
+	// 	return null;
+	// }
 
-	//ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
-	//this should be solved with a local permission. deny cascading to everyone while editing text
-	if (container.getMetadata(target, 'text-editing')) {
-		return null;
-	}
+	// //ToDo: figure out how to get rid of this shitty coupling... (local permissions would be a nice solution)
+	// //this should be solved with a local permission. deny cascading to everyone while editing text
+	// if (container.getMetadata(target, 'text-editing')) {
+	// 	return null;
+	// }
 	
-	try {
-		container.isOperationAllowed(ACTIONS.setPosition, target, appId)
-		return target
-	} catch (e) {
-		if (target === container.parent) {
-			return null;
-		}
-		return findActionableAnchestor(container, target.parentNode, appId)
-	}
+	// try {
+	// 	container.isOperationAllowed(ACTIONS.setPosition, target, appId)
+	// 	return target
+	// } catch (e) {
+	// 	if (target === container.parent) {
+	// 		return null;
+	// 	}
+	// 	return findActionableAnchestor(container, target.parentNode, appId)
+	// }
+	return target
 }
 
 //TODO: use just for drag event

@@ -373,7 +373,7 @@ export class ContainerEditOrchestrator {
 					}
 
 					textEditor.start(target, position)
-					textEditor.addPrintable(key)
+					//textEditor.addPrintable(key)
 				}
 			} catch (e) {
 				console.error(`${this.appId} failed to start text editor on keyboard event`)
@@ -470,6 +470,16 @@ export class ContainerEditOrchestrator {
 		this.#container.tryExecuteWithComponent("editURLreference", targets);
 	}
 
+	widthAuto() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		this.#container.setExplicitWidth(targets[0], 0, "auto", this.appId)
+	}
+
+	heightAuto() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		this.#container.setExplicitHeight(targets[0], 0, "auto", this.appId)
+	}
+
 	keyboardHelp() {
 		let allListeners = this.#keyboard.getManager().getAllRegisteredListeners()
 		let maxShortcutWidth = 48
@@ -556,6 +566,8 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','2']), this, () => this.contentLayout('vertical-list'), true, true, "Layout mode: vertical-list")
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','3']), this, () => this.contentLayout('horizontal-list'), true, true, "Layout mode: horizontal-list")
 		this.#keyboard.setKeyDownAction(new Set(['Control','u']), this, () => this.urlLink(), true, true, "Attach URL to element")
+		this.#keyboard.setKeyDownAction(new Set(['Alt',' ']), this, () => this.widthAuto(), true, true, "Make selected elemnt width auto")
+		this.#keyboard.setKeyDownAction(new Set(['Shift',' ']), this, () => this.heightAuto(), true, true, "Make selected elemnt height auto")
 
 		this.#keyboard.setKeyDownAction(new Set(['F1']), this, (e) => this.keyboardHelp(), true, false, "Keyboard shortcuts help")
 		

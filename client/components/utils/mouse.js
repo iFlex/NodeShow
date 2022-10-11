@@ -9,6 +9,11 @@ import { InputAccessManagerInstance as InputAccessManager } from "./InputAccessM
 import { InputManager } from "../utils/InputManager.js"
 import { findActionableAnchestor, getTranslatedCursorPosition} from "../utils/common.js"
 
+/*
+Heavy coupling:
+ - findActionableAnchestor
+ - getTranslatedCursorPosition
+*/
 //[TODO]: ensure click and double click events take distance from origin point into account
 //[TODO]: double click should reset the timer, currently you can trigger double click incorrectly multiple times
 let appId = null; //Temporary, think this up
@@ -72,7 +77,7 @@ function mouseDown(e) {
 			targetOy: targetMetadata.targetOy,
 			originalEvent: e});
 		container.emit('container.blur', {});
-		e.preventDefault();
+		//e.preventDefault();
 	}	
 }
 
@@ -97,7 +102,7 @@ function mouseMove(e) {
 		});
 
 		container.emit('container.blur', {});
-		e.preventDefault();
+		//e.preventDefault();
 	}
 
 	lastX = e.screenX;
@@ -121,7 +126,7 @@ function mouseUp(e) {
 		});
 
 		target = null;
-		e.preventDefault();
+		//e.preventDefault();
 
 		//[TODO]: make this independent of drag. careful how, because it can break interfaces
 		if (clickTarget){
@@ -148,7 +153,7 @@ function mouseWheel(e) {
 		position: position,
 		originalEvent: e
 	});
-	e.preventDefault()
+	//e.preventDefault()
 }
 
 export function getCursorPosition() {

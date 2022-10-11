@@ -30,7 +30,11 @@ export class InputManager {
 			for (let listenerId of allowedReaders) {
 				let details = this.#registry[evid][listenerId]
 				if (details) {
-					details.callback(e)
+					try {
+						details.callback(e)
+					} catch (err) {
+						console.error(`Failed to process callback for event ${evid}`, err)
+					}
 				}
 			}
 		}

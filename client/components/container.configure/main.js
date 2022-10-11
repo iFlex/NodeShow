@@ -31,35 +31,40 @@ export class ContainerConfig {
 		"horizontal-list":{
 			"childStyle":{
 				position: "static",
-				height: "inherit"
+				height: "inherit",
+				margin: "5px"
 			}, 
 			"parentStyle":{
 				"min-width": "64px",
+				"min-height": "64px",
 				"width": "auto",
-				"display": "flex"
+				"display": "flex",
+				"padding-left":"15px"
 			}
 		},
 		"vertical-list":{
 			"childStyle":{
+				position: "static",
+				width: "inherit",
+				margin: "5px"
+			},
+			"parentStyle":{
 				margin: "0px",
-				padding: "15px",
+				"padding-top": "15px",
 				"min-height": "64px",
 				height: "auto"
-			}, 
-			"parentStyle":{
-				margin: "5px",
-				position: "static",
-				width: "98%"
 			}
 		},
 		"grid": {
 			"childStyle":{
 				position: "static",
-				float: "left"
+				float: "left",
+				margin: "5px"
 			}, 
 			"parentStyle":{
 				height: "auto",
-				"min-height": "100px"
+				"min-height": "100px",
+				padding: "20px"
 			}
 		}
 	}
@@ -212,7 +217,6 @@ export class ContainerConfig {
 		for (let config of Object.entries(this.layouts)) {
 			let style = config.parentStyle
 			this.container.removeStyle(node, style, this.appId)
-			config.parentStyle = style
 		}
 	}
 	

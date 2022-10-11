@@ -965,12 +965,11 @@ export class Container {
         this.isOperationAllowed(ACTIONS.delete, child, callerId);
 
         if (child != this.parent) {
-            this.getParent(child).removeChild(child);
-            
             //remove any local metadata
-            this.removeMetadata(child.id)
+            this.removeMetadata(child)
             //TODO: remove local permissions if any
 
+            this.getParent(child).removeChild(child);
             this.emit(ACTIONS.delete, {
                 id: child.id,
                 callerId: callerId
