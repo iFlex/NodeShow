@@ -20,8 +20,7 @@ export class ContainerConfig {
 	#keyboard = null
 	#handlers = {}	  
 
-	layouts = {
-
+	layouts = Object.freeze({
 		"none":{
 			"childStyle":{
 			}, 
@@ -67,7 +66,7 @@ export class ContainerConfig {
 				padding: "20px"
 			}
 		}
-	}
+	})
 
 	constructor (container) {
 		this.container = container;
@@ -224,7 +223,6 @@ export class ContainerConfig {
 		for (let config of Object.entries(this.layouts)) {
 			let style = config.childStyle
 			this.container.removeStyle(node, style, this.appId)
-			config.childStyle = style
 		}
 	}
 
@@ -250,8 +248,6 @@ export class ContainerConfig {
 
 	changeContentLayoutAs(type, targets) {
 		let layoutConfig = this.layouts[type]
-		layoutConfig.parentStyle = layoutConfig.parentStyle
-		layoutConfig.childStyle = layoutConfig.childStyle
 		
 		for (const target of targets) {	
 			let node = this.container.lookup(target)

@@ -442,7 +442,7 @@ export class ContainerEditOrchestrator {
 
 	selectParent() {
 		let targets = getSelection(this.#container)
-		if (targets) {
+		if (targets.length > 0) {
 			let target = this.#container.lookup(targets[0])
 			if (target === this.#container.parent) { 
 				return;
@@ -455,7 +455,7 @@ export class ContainerEditOrchestrator {
 
 	selectAll() {
 		let targets = getSelection(this.#container)
-		if (!targets || targets.length == 0) {
+		if (targets.length == 0) {
 			targets = [this.#container.parent]
 		}
 		if (targets.length > 1) {
