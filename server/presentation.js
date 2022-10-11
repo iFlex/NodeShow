@@ -30,8 +30,7 @@ class Presentation {
 		this.presentation = storage.get(id)
 		this.roots = {}
 		this.relations = {undefined:{}};
-		let owner = this.presentation.owner
-
+	
 		if (!this.presentation) {
 			if (failOnNoStorage) {
 				throw `Failed to load ${id} - Owner @${owner}`
@@ -39,6 +38,7 @@ class Presentation {
 			this.presentation = {data:{}}
 		}
 		
+		let owner = this.presentation.owner	
 		this.rawData = this.presentation.rawData;
 		if (!this.rawData) {
 			throw `Invalid presentation format found in storage for ${id} - Owner @${owner}. Missing rawData`
