@@ -39,7 +39,7 @@ export class ContainerFeedback {
 		},
 		null,
 		this.appId)
-		this.#container.loadHtml(this.#interface, "loader.html", this.appId)
+		this.#container.loadHtml(this.#interface, this.#container.toComponentLocalURL("loader.html", this.appId), this.appId)
 		this.#container.hide(this.#interface)
 		
 		//TODO: make this only tick if queue has elements

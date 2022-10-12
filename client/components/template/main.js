@@ -19,6 +19,7 @@ export class Template {
 				"height":"128px"
 			}
 		}, null, this.appId)
+		//this.#container.loadHtml(null, this.#container.toComponentLocalURL("interface.html", "template"), this.appId)
 	}
 
 	enable () {

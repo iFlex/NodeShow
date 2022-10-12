@@ -57,7 +57,7 @@ export class ContainerContent {
 
     this.container.hide(this.#interface, this.appId)
     //load interface style and html
-    this.container.loadHtml(this.#interface, "interface.html", this.appId)
+    this.container.loadHtml(this.#interface, this.container.toComponentLocalURL("interface.html", this.appId), this.appId)
   }
 
   enable () {
@@ -155,6 +155,17 @@ export class ContainerContent {
     return 'div'
   }
 
+  updateTraget() {
+    let selection = getSelection(this.container)
+    this.target = this.container.parent
+    if (selection.length > 0) {
+      this.target = selection[0]
+    }
+
+    console.log(`Creating content on target ${this.target}`)
+    this.target = this.container.lookup(this.target)
+  }
+
   createFromData(contentType, data) {
     let selection = getSelection(this.container)
     let target = this.container.parent
@@ -223,7 +234,8 @@ export class ContainerContent {
   loadFileContents (type, reader) {
     //ToDo: figure out what to do about other types
     //ToDo: make more resilient... this is shoddy
-    
+    console.log(`[${this.appId}] looking over file of type ${type}`)
+    this.updateTraget()
     post(this.contentURL, type, reader.result,
       (uri) => {
         console.log(uri)
@@ -231,6 +243,9 @@ export class ContainerContent {
       },
       (e) => {
         console.error(`${this.appId} - content load failed on read from server`)
+      }, {
+        pid: this.container.presentationId,
+        target: this.target.id
       })
   }
 
@@ -240,7 +255,7 @@ export class ContainerContent {
     var reader = new FileReader();
     var mimeType = file.type
     reader.onload = (e) => {
-      console.log(`${this.appId} raw file content loaded`)
+      console.log(`${this.appId} raw file (${mimeType}) content loaded`)
       this.loadFileContents(mimeType, reader)
     }
     reader.readAsArrayBuffer(file)

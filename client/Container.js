@@ -183,7 +183,7 @@ export class Container {
     }
 
     //Note: this should be very fast as it is heavily used in nearly all operations
-	static lookup(id) {
+	lookupReal(id) {
 		if (id instanceof Element) {
             return id;
         }
@@ -228,7 +228,7 @@ export class Container {
     lookup (id) {
         let virtualNode = null
         try {
-            return Container.lookup(id);
+            return this.lookupReal(id);
         } catch (e) {
             virtualNode = this.virtualDOM[id]
         }
@@ -315,6 +315,31 @@ export class Container {
             presentationId: this.presentationId,
             //TODO: add caller_id somehow    
         });
+	}
+
+    getSerialisedDescendents(root, snapshot, nullifyParentId = false) {
+		let queue = [root || this.parent]
+        let rootId = queue[0].id
+		let result = []
+        var index = 0
+		
+		do {
+            let item = queue[index++]
+            let parentId = item.parentNode.id
+			
+            result.push({
+                parentId: (nullifyParentId && parentId == rootId) ? null : parentId,
+                descriptor: this.toSerializable(item, snapshot)
+            })
+
+            if (item.children) {
+				for (const child of item.children) {
+					queue.push(child)
+				}
+			}
+		} while(index < queue.length)
+
+		return result
 	}
     //</utils>
 
@@ -505,17 +530,17 @@ export class Container {
     */
     getPermission(id, permName, opCaller) {
         let elem = this.lookup(id);
-        //prevent returning a pointer to the actual permission
-        let permission = this.#permissions[elem.id]
-        if (permName) {
-            permission = permission[permName]
-            if (opCaller) {
-                return permission[opCaller]
-            }
-        } else {
-            permission = this.#permissions[elem.id]
+        let permission = Container.clone(this.#permissions[elem.id] || {})
+        
+        if (!permName) {
+            return permission
         }
-        return Container.clone(permission || {})
+        
+        if (!opCaller) {
+            return permission[permName]
+        }
+
+        return (permission[permName] || {})[opCaller]
     }
 
     /**
@@ -732,13 +757,13 @@ export class Container {
     }
 
     //<nesting>
-	setParent(childId, parentId, callerId, options) {
+	setParent(childId, parentId, callerId, options, emit = true) {
         let parent = this.lookup(parentId);
         let child = this.lookup(childId);
         if (this.getParent(child).id === parent.id) {
             return; //noop
         }
-        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options])
+        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, emit])
         
         
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
@@ -753,17 +778,20 @@ export class Container {
         }
         this.conformToParentRules(child)
 
-        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, prevParentId])
-        this.emit(ACTIONS.setParent, {
-            id: child.id,
-            prevParent: prevParentId,
-            parentId: parent.id,
-            callerId: callerId
-        })
-        //update server on updated elements
-        this.notifyUpdate(child, callerId)
-        this.notifyUpdate(prevParentId, callerId)
-        this.notifyUpdate(parent, callerId)
+        //ToDo: add emit in the hook call
+        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, emit, prevParentId])
+        if (emit) {
+            this.emit(ACTIONS.setParent, {
+                id: child.id,
+                prevParent: prevParentId,
+                parentId: parent.id,
+                callerId: callerId
+            })
+            //update server on updated elements
+            this.notifyUpdate(child, callerId)
+            this.notifyUpdate(prevParentId, callerId)
+            this.notifyUpdate(parent, callerId)
+        }
     }
     //</nesting>
     
@@ -894,7 +922,7 @@ export class Container {
         return undefined;
     }
 
-    setSiblingPosition(siblingId, index, callerId) {
+    setSiblingPosition(siblingId, index, callerId, emit = true) {
         let sibling = this.lookup(siblingId)
         this.isOperationAllowed(ACTIONS.setSiblingPosition, sibling, callerId);
         let curPos = this.getSiblingPosition(sibling)
@@ -918,19 +946,21 @@ export class Container {
             parent.appendChild(sibling)
         }
 
-        this.emit(ACTIONS.setSiblingPosition, {
-            id: sibling.id,
-            position: index,
-            callerId: callerId
-        })
-        //Child order is stored in the parent
-        this.notifyUpdate(this.getParent(sibling), callerId)
+        if (emit) {
+            this.emit(ACTIONS.setSiblingPosition, {
+                id: sibling.id,
+                position: index,
+                callerId: callerId
+            })
+            //Child order is stored in the parent
+            this.notifyUpdate(this.getParent(sibling), callerId)
+        }
     }
 
-    changeSiblingPosition(siblingId, amount, callerId) {
+    changeSiblingPosition(siblingId, amount, callerId, emit = true) {
         let sibling = this.lookup(siblingId)
         let pos = this.getSiblingPosition(sibling)
-        this.setSiblingPosition(sibling, pos + amount, callerId)
+        this.setSiblingPosition(sibling, pos + amount, callerId, emit)
     }
 
     addDomChild(parentId, domNode, callerId, emit) {
@@ -959,7 +989,7 @@ export class Container {
         }
     }
 
-    delete (id, callerId) {
+    delete (id, callerId, emit = true) {
         let child = this.lookup(id)
         this.isOperationAllowed(ACTIONS.delete, child, callerId);
 
@@ -969,11 +999,12 @@ export class Container {
             //TODO: remove local permissions if any
 
             this.getParent(child).removeChild(child);
-            this.emit(ACTIONS.delete, {
-                id: child.id,
-                callerId: callerId
-            });
-
+            if (emit) {
+                this.emit(ACTIONS.delete, {
+                    id: child.id,
+                    callerId: callerId
+                });
+            }
         } else {
             console.log(`A delete attempt was made on the root of the doc. Pls don't...`);
         }

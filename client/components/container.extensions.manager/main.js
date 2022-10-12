@@ -44,7 +44,8 @@ export class ContainerExtensionsManager {
 		this.appId)
 		//load interface style and html
 		this.#container.loadStyle("style.css", this.appId)
-		this.#container.loadHtml(this.#interface, "interface.html", this.appId).then(
+		this.#container.loadHtml(this.#interface, this.#container.toComponentLocalURL("interface.html", this.appId), this.appId)
+        .then(
             e => {
                 this.#componentModelDom = this.#container.lookup(this.#modelTogglerId)
                 this.#interface.removeChild(this.#componentModelDom)

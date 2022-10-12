@@ -204,7 +204,7 @@ export class ContainerTextInjector {
 		this.container.hide(this.#interface, this.appId)
 		//load interface style and html
 		this.container.loadStyle("style.css", this.appId)
-		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+		this.container.loadHtml(this.#interface, this.container.toComponentLocalURL("interface.html", this.appId), this.appId)
 			.then(e => {
 				this.#loadFontsInInterface()
 			})
@@ -299,6 +299,7 @@ export class ContainerTextInjector {
 		for (const target of targets) {
 			this.start(target)
 			this.addPrintable(data.getData('text/plain'))
+			this.container.notifyUpdate(target, this.appId)
 			this.stop()
 		}
 	}

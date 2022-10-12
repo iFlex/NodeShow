@@ -1,4 +1,8 @@
-import {Container} from "./Container.js"
+import {Container, ACTIONS} from "./Container.js"
+
+Container.prototype.toComponentLocalURL = function(resource, callerId) {
+    return `components/${callerId}/${resource}`
+}
 
 /**
  * @summary Loads HTML content into a given container
@@ -9,10 +13,10 @@ import {Container} from "./Container.js"
  * @param {boolean} emit - wether to emit events or not when indexing the loaded content
  * @return a promise with one parameter with the loaded content
  */
-Container.prototype.loadHtml = function(node, resource, callerId, emit) {
-    let url = `components/${callerId}/${resource}`;
+Container.prototype.loadHtml = function(node, url, callerId, emit = true) {
     node = this.lookup(node)
-    this.isOperationAllowed('container.loadHTML', node, callerId)
+    this.isOperationAllowed(ACTIONS.loadHTML, node, callerId)
+    this.isOperationAllowed(ACTIONS.create, node, callerId)   
 
     console.log(`Fetching: ${url}`) 
     return fetch(url)
@@ -46,11 +50,15 @@ Container.prototype.loadHtml = function(node, resource, callerId, emit) {
     .then(response => response.blob())
     .then(blob => blob.text())
     .then(text => {
-        node.innerHTML = text;
+        //ToDo: consider append or overwrite mode too
+        node.innerHTML += text;
         this.index(node, emit)
+        if (emit !== false) {
+            this.emit(ACTIONS.loadHTML, {id:node.id, callerId:callerId})
+        }
     })
     .catch(err => {
-        console.error(`Failed to fetch html fragment from ${resource}`)
+        console.error(`Failed to fetch html fragment from ${url}`)
         console.error(err)
     })
 }

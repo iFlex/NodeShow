@@ -40,6 +40,13 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
+[TODO][L]: build a better abstraction/summarisation editor.
+    - current one is a hack anyway
+[TODO][S]: Figure out how to tippy toe around saving information about the presentation root.
+    - system shouldn't be saving any info on the root to allow loading a presentation in any other NodeShow configuration
+    - better root referencing rules need to apply
+    - also figure out if we really need a static lookup method in Container.lookup (currently removed, might have broken stuff)
+    
 [TODO][L]: overhaul the mouse system - currently it is disgustingly coupled with container features.
     - move stuff like findActionableAncestor outside of mouse functionality
 [TODO][S/M]: !! Harden positioning & sizing + add page based tests for it.
@@ -52,7 +59,6 @@ Current Prios:
 [TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
 [TODO][?]: Ability to set URL refrence to a local container and when clicked reveal (unearth it from abstraction levels) it & focus on it.(or container from a different NodeShow)
-[TODO][Mobile][S]: make URL/reference viewer work on mobile
 [TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.
 [TODO][M]: Cascade up edit actions perfecting:
     - editPos should correctly position the element even if the drag starts on a inner child that can't be moved

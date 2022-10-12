@@ -2,7 +2,7 @@ import { Container, ACTIONS } from "./Container.js"
 import { ContainerOperationNotApplicable } from "./ContainerExcepitons.js"
 import { inferUnit, convert, convertToStandard, SUPPORTED_MEASURING_UNITS } from "./UnitConverter.js"
 
-const NOT_SIZEABLE = new Set(['auto'])
+const NOT_SIZEABLE = new Set(['auto','inherit'])
 const ASPECT_RATIO_LOCKED_KEY = "AspectRatioLocked"
 /**
  * Warning: the sizing code isn't completely stable. It is currently failing the test of e.setWidth(e.getWidth()) 
@@ -73,6 +73,15 @@ Container.prototype.convertPixelPos = function(node, pos, units) {
 Container.prototype.getAspectRatio = function(id) {
     let node = this.lookup(id)
     return this.getWidth(node) / this.getHeight(node)
+}
+
+Container.prototype.isAspectRationLocked = function(id) {
+    try {
+        let node = this.lookup(id)
+        return node.dataset[ASPECT_RATIO_LOCKED_KEY] != null
+    } catch(e) {
+        return false;
+    }
 }
 
 Container.prototype.lockAspectRatio = function(id, callerId) {
@@ -157,7 +166,7 @@ Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emi
     this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
     let prevWidth = this.getWidth(elem);
     
-    if (unit == 'auto') {
+    if (unit == 'auto' || unit == 'inherit') {
         width = ''
     } else if (elem.dataset[ASPECT_RATIO_LOCKED_KEY] && adjustRatio) {
         let ratio = this.getAspectRatio(elem)
@@ -208,7 +217,7 @@ Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, e
     this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
     
     let prevHeight = this.getHeight(elem);
-    if (unit == 'auto') {
+    if (unit == 'auto' || unit == 'inherit') {
         height = ''
     } else if (elem.dataset[ASPECT_RATIO_LOCKED_KEY] && adjustRatio) {
         let ratio = this.getAspectRatio(elem)

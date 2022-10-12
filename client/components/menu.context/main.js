@@ -69,7 +69,8 @@ export class ContextMenu {
 		this.#container.hide(this.#interface, this.appId)
 		//load interface style and html
 		this.#container.loadStyle("style.css", this.appId)
-		this.#container.loadHtml(this.#interface, "interface.html", this.appId).then(e => {
+		this.#container.loadHtml(this.#interface, this.#container.toComponentLocalURL("interface.html", this.appId), this.appId)
+		.then(e => {
 			this.#buttonTemplate = document.getElementById('ns-context-menu-item')
 			this.#actions = this.#defaultActions
 			this.buildMenu();

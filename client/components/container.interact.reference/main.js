@@ -53,7 +53,7 @@ export class ContainerReferenceActuator {
 		this.#container.hide(this.#interface, this.appId)
 		//load interface style and html
 		this.#container.loadStyle("style.css", this.appId)
-		this.#container.loadHtml(this.#interface, "interface.html", this.appId)
+		this.#container.loadHtml(this.#interface, this.#container.toComponentLocalURL("interface.html", this.appId), this.appId)
 
         //if new components get added check if external operation can be performed by any of the new components
         //this could also be wired in directly in the constructor, but leads to more wiring

@@ -106,6 +106,10 @@ export class LiveBridge {
             return;
         }
 
+        if (targetId == this.container.parent.id) {
+            return;
+        }
+
         let eventType = e.detail.type
         let parentId = e.detail.parentId
         let raw = null
@@ -118,14 +122,15 @@ export class LiveBridge {
                 return;
             }
             
-            let pid = Container.lookup(targetId).parentNode.id
+            let pid = this.container.lookup(targetId).parentNode.id
             if (pid && pid != parentId) {
                 parentId = pid
             }
         } 
 
         let detail = Container.clone(e.detail)
-        detail.parentId = parentId,
+        //ToDo: figure this shit out...
+        detail.parentId = (parentId == this.container.parent.id) ? null : parentId,
         detail.id = targetId
         detail.descriptor = raw
 
@@ -174,6 +179,7 @@ export class LiveBridge {
 		});
 
 		this.socket.on('update', d => this.handleUpdate(d))
+        this.socket.on('bulk.load', d => this.handleBulkLoad(d))
         this.socket.on('user.joined', d => {
             console.log(`User joined ${d.name}-${d.userId}`)
         })
@@ -207,6 +213,9 @@ export class LiveBridge {
         this.metrics.rtt = null;
     }
 
+    isReady() {
+        return this.#ready
+    }
     /**
      * @summary Handler method for events coming from the server.
      * @description [TODO]
@@ -234,16 +243,20 @@ export class LiveBridge {
             || data.event == ACTIONS.setHeight
             ) {
                 let child = this.container.lookup(detail.id)
-                this.container.updateChild(child, detail.descriptor, callerId)
+                //this.container.updateChild(child, detail.descriptor, callerId)
+                this.container.updateChild(child, detail.descriptor, callerId, false) //compliant
             }
             if(data.event == ACTIONS.delete) {
-                this.container.delete(detail.id, callerId)
+                //this.container.delete(detail.id, callerId)
+                this.container.delete(detail.id, callerId, false) //compliant
             }
             if(data.event == ACTIONS.create) {
-                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId);
+                //this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId);
+                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId, false); //noncomplianet
             }
             if(data.event == ACTIONS.setParent) {
-                this.container.setParent(detail.id, detail.parentId, callerId)
+                //this.container.setParent(detail.id, detail.parentId, callerId)
+                this.container.setParent(detail.id, detail.parentId || this.container.parent, callerId, false) //compliant
             }
         } catch (e) {
             console.error(`Failed to handle update ${data.event}`, e);
@@ -252,6 +265,25 @@ export class LiveBridge {
             }
         }
 	}
+
+    handleBulkLoad(data) {
+        if(this.debug) {
+            console.log("Received server bulk update");
+		    console.log(data);
+        }
+        
+        if (!data.sessionId) {
+            data.sessionId = this.host
+        }
+        let callerId = data.sessionId
+        let parentId = data.detail.parentId
+        let contentSource = data.detail.content
+        try {
+            this.container.loadHtml(parentId, contentSource, callerId, false)
+        } catch (e){
+            console.error(`Failed to load bulk content into Container:${parentId} from User:${callerId}`, e)
+        }
+    }
 
     keyFromUpdate(update) {
         return `${update.event}${update.detail.id}`

@@ -123,7 +123,7 @@ function resolveParentForCreation(context, parentId, rawDescriptor) {
                 orphans[parentId] = []
             }
             orphans[parentId].push(rawDescriptor)
-            throw `${parentId} does not exist yet. Orphan`
+            throw `${parentId} does not exist yet. Orphaned '${rawDescriptor.id}'`
         }
     } 
     return context.parent;
@@ -249,14 +249,14 @@ Container.prototype.toSerializable = function(id, snapshot, subset) {
     return serialize;
 }
 
-Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId) {
+Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId, emit = true) {
     //check children order
     //console.log(`Updating child order ${elem.id} - ${(rawDescriptor.childNodes)?rawDescriptor.childNodes.length:0}`) 
     if (rawDescriptor.childNodes) {
         for (let i = 0; i < rawDescriptor.childNodes.length && i < elem.childNodes.length; ++i ) {
             if (rawDescriptor.childNodes[i].id != elem.childNodes[i].id) {
                 try {
-                    this.setSiblingPosition(rawDescriptor.childNodes[i].id, i, callerId)    
+                    this.setSiblingPosition(rawDescriptor.childNodes[i].id, i, callerId, emit)    
                 } catch (e) {
                     console.error("Failed to reorder siblings. Did you reference an unrelated container?", e)
                 }
@@ -297,7 +297,7 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
         }
     }
     
-    this.reorderChildren(child, rawDescriptor, callerId)
+    this.reorderChildren(child, rawDescriptor, callerId, emit)
     
     //update style
     if (rawDescriptor['cssText']){
@@ -306,7 +306,6 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     
     this.updateZindexLimits(child)
     Container.applyPostHooks(this, 'update', [child, rawDescriptor, callerId, emit])
-    
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit != false) {

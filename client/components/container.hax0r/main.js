@@ -35,7 +35,7 @@ export class ContainerHax0r {
 		null,
 		this.appId)
 		this.container.hide(this.#interface, this.appId)
-		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+		this.container.loadHtml(this.#interface, this.container.toComponentLocalURL("interface.html", this.appId), this.appId)
 	}
 
 	enable() {

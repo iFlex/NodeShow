@@ -58,7 +58,8 @@ export class ContainerEditOrchestrator {
 		this.appId)
 		//load interface style and html
 		this.#container.loadStyle("style.css", this.appId)
-		this.#container.loadHtml(this.#interface, "interface.html", this.appId).then(
+		this.#container.loadHtml(this.#interface, this.#container.toComponentLocalURL("interface.html", this.appId), this.appId)
+		.then(
             e => {
              	this.#menuRoot = document.getElementById('ns-orchestrator-menu-container')
              	this.#menuItemTemplate = document.getElementById('ns-orchestrator-menu-item').cloneNode(true)
@@ -480,6 +481,43 @@ export class ContainerEditOrchestrator {
 		this.#container.setExplicitHeight(targets[0], 0, "auto", this.appId)
 	}
 
+	widthInherit() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		this.#container.setExplicitWidth(targets[0], 0, "inherit", this.appId)
+	}
+
+	heightInherit() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		this.#container.setExplicitHeight(targets[0], 0, "inherit", this.appId)
+	}
+
+	toggleLockPosition() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		let isLocked = this.#container.tryExecuteWithComponent("isPositionLocked", targets, targets, this.appId)
+		if (isLocked) {
+			this.#container.tryExecuteWithComponent("unlockPosition", targets, targets, this.appId)
+		} else {
+			this.#container.tryExecuteWithComponent("lockPosition", targets, targets, this.appId)
+		}
+	}
+
+	toggleLockAspectRatio() {
+		let targets = this.#container.tryExecuteWithComponent("getSelection")
+		let locked = false
+		
+		for(let target of targets) {
+			locked = locked || this.#container.isAspectRationLocked(target)
+		}
+
+		for(let target of targets) {
+			if (locked) {
+				this.#container.unlockAspectRatio(target, this.appId)
+			} else {
+				this.#container.lockAspectRatio(target, this.appId)
+			}
+		}
+	}
+
 	keyboardHelp() {
 		let allListeners = this.#keyboard.getManager().getAllRegisteredListeners()
 		let maxShortcutWidth = 48
@@ -566,9 +604,11 @@ export class ContainerEditOrchestrator {
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','2']), this, () => this.contentLayout('vertical-list'), true, true, "Layout mode: vertical-list")
 		this.#keyboard.setKeyDownAction(new Set(['Alt','l','3']), this, () => this.contentLayout('horizontal-list'), true, true, "Layout mode: horizontal-list")
 		this.#keyboard.setKeyDownAction(new Set(['Control','u']), this, () => this.urlLink(), true, true, "Attach URL to element")
-		this.#keyboard.setKeyDownAction(new Set(['Alt',' ']), this, () => this.widthAuto(), true, true, "Make selected elemnt width auto")
-		this.#keyboard.setKeyDownAction(new Set(['Shift',' ']), this, () => this.heightAuto(), true, true, "Make selected elemnt height auto")
-
+		this.#keyboard.setKeyDownAction(new Set(['Alt','w']), this, () => this.widthInherit(), true, true, "Make selected element width same as parent")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','h']), this, () => this.heightInherit(), true, true, "Make selected element height same as parent")
+		this.#keyboard.setKeyDownAction(new Set(['Shift','X']), this, () => this.toggleLockPosition(), true, true, "Locks/Unlocks positioning for selected elements")
+		this.#keyboard.setKeyDownAction(new Set(['Alt','r']), this, () => this.toggleLockAspectRatio(), true, true, "Locks/Unlocks aspect ratio of selected elements")
+		
 		this.#keyboard.setKeyDownAction(new Set(['F1']), this, (e) => this.keyboardHelp(), true, false, "Keyboard shortcuts help")
 		
 		this.#keyboard.setKeyDownAction(new Set(['Control','1']), this, (e) => this.routeByIndex(1), true)

@@ -70,7 +70,13 @@ export class ContainerConfig {
 
 	constructor (container) {
 		this.container = container;
-		container.registerComponent(this, new Set([{operation:"changeContentLayout", method:this.changeContentLayoutAs}]));
+		//ToDo: properly parameterize these functions
+		container.registerComponent(this, new Set([
+			{operation:"changeContentLayout", method:this.changeContentLayoutAs},
+			{operation:"isPositionLocked", method:this.isPositionLocked},
+			{operation:"lockPosition", method:this.lockPosition},
+			{operation:"unlockPosition", method:this.unlockPosition},
+		]));
 		
 		this.#handlers['container.select.selected'] = (e) => this.onFocus(e.detail.id)
 		this.#handlers['container.blur'] = (e) => this.onUnfocus(e)
@@ -94,7 +100,7 @@ export class ContainerConfig {
 		null,
 		this.appId)
 		this.container.hide(this.#interface, this.appId)
-		this.container.loadHtml(this.#interface, "interface.html", this.appId)
+		this.container.loadHtml(this.#interface, this.container.toComponentLocalURL("interface.html", this.appId), this.appId)
 
 		// //preload
 		// for (let entry of Object.entries(this.layouts)) {
@@ -167,6 +173,19 @@ export class ContainerConfig {
 		for (const target of this.selection) {
 			this.container.removePermission(target, ACTIONS.setPosition, null, this.appId)
 		}
+	}
+
+	isPositionLocked() {
+		this.selection = getSelection(this.container);
+		let locked = false
+		for (const target of this.selection) {
+			let disallowed = this.container.getPermission(target, ACTIONS.setPosition)
+			if (disallowed) {
+				locked = true
+			}
+		}
+
+		return locked
 	}
 
 	lockWidth() {

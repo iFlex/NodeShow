@@ -77,6 +77,7 @@ const PrezCache = new Cache(PrezPersister);
 PrezPersister.setFastStorage(PrezCache)
 const Presentations = new PresentationBase(PrezCache);
 const Events = require('./NodeShowEvents');
+const { fail } = require('assert');
 
 const debug_level = 0;
 
@@ -210,12 +211,19 @@ function handleUpload(request, response) {
 
   request.on("end", function() {
     response.end(fn);
+    //ToDo: fix -- this is just a glue and paper approach
+    const headers = request.headers;
+    if (headers["content-type"] == "text/html") {
+      robotUploader.beam(headers["pid"], fn, headers["target"])
+    }
   });
 }
 
 function handlePost(url, request, response) {
   var form = new formidable.IncomingForm({uploadDir:BLOB_STORE});
   form.parse(request, function(err, fields, files) {
+      console.log(fields)
+      console.log(files)
       if (err) {
         console.log(`Failed to parse post request`)
         console.error(err.message);
@@ -393,13 +401,44 @@ function handleBulkUpdate(data) {
     console.error(e)
     return;
   }
-  console.log(`Bulk updating ${data.length} items`)
-  for (const node of data) {
-    let prezId = node.presentationId;
-    let prezzo = presentations[prezId];
-    prezzo.presentation.update(node);
+
+  let prezId = data.presentationId
+  let insertPoint = data.insertRootId
+  let nodes = data.nodes
+  let prezHandler = presentations[prezId];
+  console.log(`Bulk updating Prezzo:${prezId} - ${nodes.length} items`)
+  //ToDo better integration here (maybe pick prezzo from request, check prems to buld insert in prezzo, etc)
+  //ToDo: broadcast bulk event at the end to all users/listeners rather than for each node
+  let success = 0;
+  let failure = 0;
+  for (const node of nodes) {
+    if (!node.parentId) {
+      node.parentId = insertPoint
+      console.log(`Bootstrapped node with parent: ${insertPoint}`)
+    }
+
+    try {
+      prezHandler.presentation.update({
+        presentationId: prezId,
+        sessionId: "bulker",
+        event: 'container.create',
+        detail: node
+      });
+      success++
+    } catch (e) {
+      console.error(`Failed to bulk insert node ${node}`, e)
+      failure++
+    }
   }
-  console.log('Updated')
+  console.log(`Bulk inserted ${success} nodes. Failed to insert ${failure} nodes. Now broadcasting...`)
+  //storing as html and then sendingggg
+  console.log(`Sending bulk event to load from: ${data.url}`)
+  broadcast("bulker", ['bulk.load', {
+    detail: {
+      parentId: insertPoint,
+      content: data.url
+    }
+  }], prezHandler.sockets);
 }
 
 function handleBridgeUpdate(parsed, originSocket) {

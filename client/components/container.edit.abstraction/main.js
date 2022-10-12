@@ -46,7 +46,7 @@ export class ContainerEditAbstraction {
         null,
         this.appId)
         //this.#container.hide(this.#finalize, this.appId)
-        this.#container.loadHtml(this.#finalize, "interface.html", this.appId)
+        this.#container.loadHtml(this.#finalize, this.#container.toComponentLocalURL("interface.html", this.appId), this.appId)
     }
 
     enable() {
