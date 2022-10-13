@@ -10,6 +10,7 @@ const PERSIST_LOCATION = process.env.PREZZO_STORAGE_HOME || '../storage/prezzos'
 const BLOB_STORE = process.env.BLOB_STORAGE || '../storage/blobs'
 const DEBUG_MODE = process.env.DEBUG_MODE || false;
 const STATIC_CONTENT = './static'
+const USE_BULK_LOAD = false
 //ToDo: Handle content lookup by link rather than try each folder until something is found...
 
 console.log(`Configured NodeShow server with`)
@@ -436,7 +437,7 @@ function handleBulkUpdate(data) {
   broadcast("bulker", ['bulk.load', {
     detail: {
       parentId: insertPoint,
-      content: data.url
+      url: data.url
     }
   }], prezHandler.sockets);
 }
@@ -491,20 +492,28 @@ function broadcast(senderId, message, sockets) {
 
 function sendPresentationToNewUser(socket, prezzo) {
   console.log("Beaming presentation to new user");
-  let nodes = prezzo.getNodesAnyOrder(); //prezzo.getNodesInOrder();
-  console.log(`Node count ${nodes.length}`)
-  for (const node of nodes) {
-    if (debug_level > 1) {
-      console.log(node)
-    }
-    socket.emit('update', {
-      presentationId: prezzo.id,
-      event: Events.create,
+  if (USE_BULK_LOAD) {
+    socket.emit('bulk.load', {
       detail: {
-          parentId: node.parentId,
-          descriptor: node
+        html: prezzo.getAsHTML()
       }
-    });
+    })
+  } else {
+    let nodes = prezzo.getNodesAnyOrder(); //prezzo.getNodesInOrder();
+    console.log(`Node count ${nodes.length}`)
+    for (const node of nodes) {
+      if (debug_level > 1) {
+        console.log(node)
+      }
+      socket.emit('update', {
+        presentationId: prezzo.id,
+        event: Events.create,
+        detail: {
+            parentId: node.parentId,
+            descriptor: node
+        }
+      });
+    }
   }
 }
 

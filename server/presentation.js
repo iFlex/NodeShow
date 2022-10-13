@@ -294,6 +294,76 @@ class Presentation {
 		}
 		this.storage.put(this.id, this.presentation);
 	}
+
+	#HTMLizeDescriptor(desc) {
+		if (!desc) {
+			return ""
+		}
+
+		let nodeName = desc.nodeName || "span"
+		let result = `<${nodeName}`
+		let specials = new Set(['nodeName', 'data', 'computedStyle', 'cssText', 'innerHTML', 'childNondes', 'createdAt', 'lastUpdated', 'parentId'])
+		for (let [key, value] of Object.entries(desc)) {
+			if (!specials.has(key)) {
+				result +=  ` ${key}="${value}"`
+			}
+		}
+
+		let style = desc.cssText || ""
+		// for (const [key, value] of Object.entries(desc.computedStyle || {})) {
+		// 	style += `${key}:${value};`
+		// }
+		if (style.length > 0) {
+			result += ` style="${style.replaceAll('"','\\"')}"`
+		}
+		result += ">"
+
+		if (desc.innerHTML && desc.innerHTML.length > 0) {
+			result += desc.innerHTML
+		}
+
+		return result
+	}
+
+	#HTMLize(node) {
+		if (!node) {
+			//probably incorrect reference...
+			return ""
+		}
+
+		let nodeName = node.nodeName
+		if (nodeName == '#text') {
+			return node.text
+		}
+
+		let result = this.#HTMLizeDescriptor(node)
+		for (let child of (node.childNodes || [])) {
+			if (child.id) {
+				result += this.#HTMLize(this.rawData[child.id])
+			} else {
+				result += this.#HTMLize(child)
+			}
+		}
+		result += `</${nodeName}>`
+		return result
+	}
+
+	getAsHTML(root) {
+		let queue = []
+		if (root) {
+			queue.push(root)
+		} else {
+			for (let r of Object.keys(this.roots)) {
+				queue.push(r)
+			}
+		}
+
+		let html = ""
+		for (let root of queue) {
+			html += this.#HTMLize(this.rawData[root])
+		}
+		return html
+	}
 }
 
 module.exports = Presentation

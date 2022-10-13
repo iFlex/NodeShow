@@ -86,7 +86,6 @@ export class ContainerSizer {
 			sign = -1
 		}
 
-		console.log(e)
 		let options = {
 			speed: 0,
 			ox: `${e.position.x || 0}px`,

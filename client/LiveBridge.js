@@ -186,7 +186,6 @@ export class LiveBridge {
         this.socket.on('user.left', d => {
             console.log(`User left ${d.name}-${d.userId}`)
         })
-
         this.socket.on('connect', e => this.handleReconnect(e))
         this.socket.on('disconnect', e => this.handleDisconnect(e))
         this.socket.on('error', e => { console.error(`[LiveBridge] - connection error ${e}`)})
@@ -276,12 +275,35 @@ export class LiveBridge {
             data.sessionId = this.host
         }
         let callerId = data.sessionId
-        let parentId = data.detail.parentId
-        let contentSource = data.detail.content
-        try {
-            this.container.loadHtml(parentId, contentSource, callerId, false)
-        } catch (e){
-            console.error(`Failed to load bulk content into Container:${parentId} from User:${callerId}`, e)
+        let parentId = data.detail.parentId || this.container.parent.id
+        if (data.detail.url) {
+            try {
+                let start = Date.now()
+                this.container.loadHtml(parentId, data.detail.url, callerId, false).then(e => {
+                    console.log(`[LiveBridge] Bulk load performed via URL. Timine: ${Date.now() - start}ms`)
+                })
+            } catch (e) {
+                console.error(`Failed to load bulk content into Container:${parentId} from User:${callerId}`, e)
+            }
+        } else if (data.detail.html) {
+            try {
+                let start = Date.now()
+                console.log(`[LiveBridge] Rendering content in bulk...`)
+                let node = this.container.lookup(parentId)
+                let lookup = Date.now()
+                console.log(`[LiveBridge] Timing::Lookup: ${start - lookup}ms`)
+                
+                node.innerHTML += data.detail.html
+                let render = Date.now()
+                console.log(`[LiveBridge] Timing::Render: ${render - lookup}ms`)
+
+                this.container.index(node, false)
+                let index = Date.now()
+                console.log(`[LiveBridge] Timing::Indexing: ${index - render}ms`)
+                console.log(`[LiveBridge] Timing::Total: ${index - start}ms`)
+            } catch (e) {
+                console.error(`Failed to load bulk HTML content into Container:${parentId} from User:${callerId}`, e)
+            }
         }
     }
 
