@@ -19,22 +19,29 @@ Container.prototype.getReference = function(node) {
     }
 }
 
-Container.prototype.setReference = function(node, reff, callerId) {
+Container.prototype.setReference = function(node, reff, callerId, emit = true) {
     try {
         node = this.lookup(node)  
         node.dataset.reference = reff
-        this.notifyUpdate(node, callerId)
+        if (emit === true) {
+            this.notifyUpdate(node, callerId)
+        }
+        return reff
     } catch (e) {
-
+        return null;
     }
 }
 
-Container.prototype.unsetReference = function(node, callerId) {
+Container.prototype.unsetReference = function(node, callerId, emit = true) {
     try {
         node = this.lookup(node)  
+        let oldReff = node.dataset.reference 
         delete node.dataset.reference
-        this.notifyUpdate(node, callerId)
+        if (emit === true) {
+            this.notifyUpdate(node, callerId)
+        }
+        return oldReff
     } catch (e) {
-
+        return null
     }
 }

@@ -186,7 +186,7 @@ Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emi
     }
 }
 
-Container.prototype.setUnit = function(id, property, unit) {
+Container.prototype.setUnit = function(id, property, unit, callerId, emit = true) {
     if (!unit) {
         return;
     }
@@ -196,6 +196,9 @@ Container.prototype.setUnit = function(id, property, unit) {
         throw `Unsupported measuring unit ${unit}`
     }
     elem.dataset[property] = unit
+    if (emit === true) {
+        this.notifyUpdate(elem, callerId)
+    }
 }
 
 Container.prototype.setHeight = function(id, height, callerId, emit) {

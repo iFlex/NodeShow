@@ -7,6 +7,8 @@ import { ContainerException, ContainerOperationDenied, ContainerOperationNotAppl
 
 //[TODO]: push out subsystems that can be moved out (e.g. metadata)
 //[NOTE] Node data attributes are strings
+//[TODO]: postSetterHooks and preSetterHooks should not fire any events. Save this decision somewhere
+
 export const ACTIONS = {
     create: 'container.create',
     delete: 'container.delete',
@@ -182,18 +184,38 @@ export class Container {
         return typeof obj === 'function'
     }
 
-    //Note: this should be very fast as it is heavily used in nearly all operations
-	lookupReal(id) {
+    /**
+    * @summary Lookup DOM for given reference container in document.body
+    * @param {(string|DOMReference)} id - container reference
+    * @param {(Boolean)} throwIfNotFound - throw exception if the container isn't found
+    * @returns {DOMObject} the DOM object with the given id
+    */
+	lookupReal(id, throwIfNotFound = true) {
 		if (id instanceof Element) {
             return id;
         }
 
         let el = document.getElementById(id);
-        if (!el) {
+        if (!el && throwIfNotFound === true) {
             throw new ContainerException(id,"lookup", null,"not found");
         }
 
         return el
+    }
+
+    /**
+    * @summary Lookup DOM or VirtualDOM for given reference container in document.body
+    * @param {(string|DOMReference)} id - container reference
+    * @param {(Boolean)} throwIfNotFound - throw exception if the container isn't found
+    * @returns {DOMObject} the DOM object with the given id
+    */
+    lookup (id, throwIfNotFound = true) {
+        let virtualNode = (this.lookupReal(id, false) || this.virtualDOM[id])
+        
+        if (!virtualNode && throwIfNotFound === true) {
+            throw new ContainerException(id,"lookup", null,"not found");
+        }
+        return (virtualNode || {}).node
     }
 
     /**
@@ -203,12 +225,7 @@ export class Container {
     * @returns {boolean} wether the node is owned or not
     */
     owns (id) {
-        let node = null
-        try {   
-            node = this.lookup(id)
-        } catch (e) {
-            return false;
-        }
+        let node = this.lookup(id, false)
 
         while (node) {
             if (node === this.parent) {
@@ -221,25 +238,10 @@ export class Container {
     }
 
     /**
-    * @summary Lookup DOM for given reference container in document.body
-    * @param {(string|DOMReference)} id - container reference
-    * @returns {DOMObject} the DOM object with the given id
+    * @summary Returns the parent of the provided DOM Node
+    * @param {(DOMReference)} node - container reference
+    * @returns {DOMObject} the parent of the provided node. If the provided node is the root of the container instance, it will return the root
     */
-    lookup (id) {
-        let virtualNode = null
-        try {
-            return this.lookupReal(id);
-        } catch (e) {
-            virtualNode = this.virtualDOM[id]
-        }
-
-        if (!virtualNode) {
-            throw new ContainerException(id,"lookup", null,"not found");
-        }
-        return virtualNode.node
-    }
-
-    //PASS IN A NODE, NOT A REFF
     getParent(node) {
         if (node === this.parent) {
             return null;
@@ -269,6 +271,7 @@ export class Container {
 		var labeledCount = 0;
 
         //allows indexing without emitting events in the case of interfaces
+        //TODO: evaluate where this is used and consider improving this solution
         if (queue[0].getAttribute('data-ignore')) {
             emit = false
         }
@@ -287,6 +290,7 @@ export class Container {
 				}
 			}
 
+            //ToDo pass in emit value
             Container.applyPostHooks(this, 'create', [this.getParent(item), item, null])
 
 			index ++;
@@ -354,7 +358,7 @@ export class Container {
     * @param {method} method - method reference.
     */
     static registerPreSetterHook(setter, method) {
-        Container.#reisterHook(Container.#preSetterHooks, setter, method)
+        Container.#registerHook(Container.#preSetterHooks, setter, method)
     }
 
     /**
@@ -364,12 +368,12 @@ export class Container {
     * @param {method} method - method reference.
     */
     static registerPostSetterHook(setter, method) {
-        Container.#reisterHook(Container.#postSetterHooks, setter, method)
+        Container.#registerHook(Container.#postSetterHooks, setter, method)
     }
 
-    static #reisterHook(set, setter, method) {
+    static #registerHook(set, setter, method) {
         if (!Container.#hookedSetters.has(setter)) {
-            throw new ContainerException(setter,"reisterHook", null,"invalid setter");
+            throw new ContainerException(setter,"registerHook", null,"invalid setter");
         }
 
         if (!set[setter]) {
@@ -450,8 +454,10 @@ export class Container {
     * @param {boolean} allow - wether to allow the the given operation for the given caller
     * @param {string} callerId  - the name of the caller of the setPermission method
     * @param {boolean=false} isLocal - indicates if the permission should be persisted or only applied locally
+    * 
+    * Events per call: 1
     */
-    setPermission(id, permName, opCaller, allow, callerId, isLocal = false) {
+    setPermission(id, permName, opCaller, allow, callerId, isLocal = false, emit = true) {
         let elem = this.lookup(id);
         let operation = `set.${permName}`
         this.isOperationAllowed(operation, elem, callerId)
@@ -471,13 +477,15 @@ export class Container {
             elem.dataset.containerPermissions = JSON.stringify(this.#permissions[elem.id])
         }
 
-        this.emit(ACTIONS.setPermission, {
-            id:id,
-            permission: permName,
-            subject: opCaller,
-            callerId: callerId,
-            isLocal: isLocal
-        })
+        if (emit === true) {
+            this.emit(ACTIONS.setPermission, {
+                id:id,
+                permission: permName,
+                subject: opCaller,
+                callerId: callerId,
+                isLocal: isLocal
+            })
+        }
     }
 
     /**
@@ -487,9 +495,11 @@ export class Container {
     * @param {string=} permName - the name of the permission being set. If not provided, all permissions are removed. 
     * @param {string=} opCaller - the name of the caller subject to this permission. If not provided, all permissions for the given permName are removed.
     * @param {string} callerId  - the name of the caller of the setPermission method
+    * 
+    * Events per call: 1
     */
     //TODO: better integrate isLocal in the entier permissions system
-    removePermission(id, permName, opCaller, callerId) {
+    removePermission(id, permName, opCaller, callerId, emit = true) {
         let elem = this.lookup(id);
         let operation = `remove.${permName || '*'}`
         this.isOperationAllowed(operation, elem, callerId)
@@ -511,13 +521,15 @@ export class Container {
         }
         
         //TODO: differentiate among local and global permissions
-        this.emit(ACTIONS.removePermission, {
-            id:id,
-            permission: permName,
-            subject: opCaller,
-            callerId: callerId,
-            //isLocal: ?
-        })
+        if (emit === true) {
+            this.emit(ACTIONS.removePermission, {
+                id:id,
+                permission: permName,
+                subject: opCaller,
+                callerId: callerId,
+                //isLocal: ?
+            })
+        }
     }
 
     //ToDo: permission matching e.g. container.set.*
@@ -593,6 +605,8 @@ export class Container {
     * @param {reference} pointer - Component instance reference 
     * @param {Set} exportedFunctionality - A set of operations the component implements that can be used by any other component / code. e.g. decoding and importing a certain image format into a container.
         exportedFunctionality = [{operation:"decode:text/html", method:methodToCall}] - call format method(input, List[targets (ids or DOMNodes)] - returns result if any
+    *
+    * Events per call: 1
     */
    //ToDo: make exportedFunctionality a map maybe?
     registerComponent(pointer, exportedFunctionality = new Set([])) {
@@ -619,6 +633,10 @@ export class Container {
         }) 
     }
 
+    /**
+     * 
+     * Events per call: 1
+     */
     #unregisterComponent(component) {
         component.disable()
         delete this.components[component.appId]
@@ -631,7 +649,9 @@ export class Container {
 
     /**
     * @summary Removes a registered component from the Container Framework instance.
-    * @param {reference} pointer - Component instance reference 
+    * @param {reference} pointer - Component instance reference
+    * 
+    * Events per call: 1 
     */
     unregisterComponent(component) {
         if (component.appId in this.components) {
@@ -654,7 +674,8 @@ export class Container {
 
         return null;
     }
-
+    
+    //ToDo: integrate emit into this
     tryExecuteWithComponent(operation, input, targets, callerId) {
         let handler = this.#exportedOperations.get(operation)
         if (!handler) {
@@ -675,6 +696,7 @@ export class Container {
         return Object.keys(this.components)
     }
 
+    //ToDo: evaluate the usefulness of this subsystem
     componentStartedWork(appId, settings) {
         if (!(appId in this.components)) {
             return;
@@ -720,6 +742,10 @@ export class Container {
     }
 
     //ToDo: add a system to impose style on children being added to parents with restrictions (including when changing parent) 
+    /**
+     * 
+     * Events per call: 0 - expects caller to fire events
+     */
     conformToParentRules(elementId) {
         let child = this.lookup(elementId);
         let parent = this.getParent(child)
@@ -746,10 +772,14 @@ export class Container {
         return {}
     }
 
-    setChildStyleRules(parentId, rules) {
+    setChildStyleRules(parentId, rules, callerId, emit = true) {
         console.log(`Set child rules to ${JSON.stringify(rules)}`)
         let node = this.lookup(parentId)
         node.dataset[CHILD_RULES_PREFIX] = JSON.stringify(rules);
+        
+        if (emit === true) {
+            this.notifyUpdate(node, callerId)
+        }
     }
 
     unsetChildStyleRules(node, rules) {
@@ -757,17 +787,27 @@ export class Container {
     }
 
     //<nesting>
+    /**
+     * ToDo: document
+     * @param {*} childId 
+     * @param {*} parentId 
+     * @param {*} callerId 
+     * @param {*} options 
+     * @param {*} emit 
+     * @returns 
+     * 
+     * Events per call: 4 + pre & post hooks
+     */
 	setParent(childId, parentId, callerId, options, emit = true) {
         let parent = this.lookup(parentId);
         let child = this.lookup(childId);
         if (this.getParent(child).id === parent.id) {
             return; //noop
         }
-        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, emit])
-        
-        
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
+        
+        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, emit])
         
         //console.log(`Change parent for ${child.id} to ${parent.id}`)
         let prevParentId = this.getParent(child).id;
@@ -780,7 +820,7 @@ export class Container {
 
         //ToDo: add emit in the hook call
         Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, emit, prevParentId])
-        if (emit) {
+        if (emit === true) {
             this.emit(ACTIONS.setParent, {
                 id: child.id,
                 prevParent: prevParentId,
@@ -795,25 +835,40 @@ export class Container {
     }
     //</nesting>
     
-    setAngle(id, angle, originX, originY, callerId) {
+    /**
+     * ToDo: document and implement?
+     * @param {*} id 
+     * @param {*} angle 
+     * @param {*} originX 
+     * @param {*} originY 
+     * @param {*} callerId 
+     * @param {*} emit
+     * 
+     * Events per call: 2 
+     */
+    setAngle(id, angle, originX, originY, callerId, emit = true) {
         this.isOperationAllowed(ACTIONS.setAngle, id, callerId);
         let node = this.lookup(id)
         this.styleChild(node, {
             "transform-origin": `${originX} ${originY}`,
             "transform":`rotate(${angle})`
-        })
-        this.emit(ACTIONS.setAngle, {
-            id:node.id, 
-            //prevAngle:prevAngle,
-            // prevOrigin:{
-            // },
-            angle: angle,
-            origin:{
-                originX: originX,
-                originY: originY
-            },
-            callerId:callerId
-        })
+        }, callerId, false)
+
+        if (emit === true) {
+            this.emit(ACTIONS.setAngle, {
+                id:node.id, 
+                //prevAngle:prevAngle,
+                // prevOrigin:{
+                // },
+                angle: angle,
+                origin:{
+                    originX: originX,
+                    originY: originY
+                },
+                callerId:callerId
+            })
+            this.notifyUpdate(node, callerId)
+        }
     }
 
     getAngle(id) {
@@ -821,28 +876,35 @@ export class Container {
     }
     //</rotation>
 
-    hide(id, callerId) {
+    //ToDo: determine if notifyUpdate should be fired or not
+    hide(id, callerId, emit = true) {
         let elem = this.lookup(id);
         this.isOperationAllowed(ACTIONS.hide, elem, callerId);
         
         $(elem).hide();
-        this.emit(ACTIONS.hide, {
-            id:elem.id,
-            callerId:callerId
-        });
-        //this.notifyUpdate(id, call)
+
+        if (emit === true) {
+            this.emit(ACTIONS.hide, {
+                id:elem.id,
+                callerId:callerId
+            });
+            //this.notifyUpdate(id, call)
+        }
     }
 
-    show(id, callerId) {
+    //ToDo: determine if notifyUpdate should be fired or not
+    show(id, callerId, emit = true) {
         let elem = this.lookup(id);
         this.isOperationAllowed(ACTIONS.show, elem, callerId);
         
         $(elem).show();
-        this.emit(ACTIONS.show, {
-            id:elem.id,
-            callerId:callerId
-        });
-        //this.notifyUpdate(id, call)
+        if (emit === true) {
+            this.emit(ACTIONS.show, {
+                id:elem.id,
+                callerId:callerId
+            });
+            //this.notifyUpdate(id, call)
+        }
     }
 
     getComputedStyle(node, properties) {
@@ -857,7 +919,7 @@ export class Container {
     }
 
     //[TODO]: permissions
-    styleChild(child, style, callerId, emit) {
+    styleChild(child, style, callerId, emit = true) {
         Container.applyPreHooks(this, 'style', [child, style, callerId, emit])
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
@@ -870,7 +932,7 @@ export class Container {
         }
 
         Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
-        if(emit != false) {
+        if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
                 changes:{"computedStle":style}, 
@@ -879,7 +941,7 @@ export class Container {
     }
 
     //[TODO]: permissions
-    removeStyle(child, style, callerId, emit) {
+    removeStyle(child, style, callerId, emit = true) {
         if (typeof style !== 'object') {
             return;
         }
@@ -892,7 +954,7 @@ export class Container {
         }
 
         Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
-        if(emit != false) {
+        if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
                 changes:{"computedStle":style}, 
@@ -921,7 +983,16 @@ export class Container {
         }
         return undefined;
     }
-
+    /**
+     * 
+     * @param {*} siblingId 
+     * @param {*} index 
+     * @param {*} callerId 
+     * @param {*} emit 
+     * @returns 
+     * 
+     * Events per call: 2
+     */
     setSiblingPosition(siblingId, index, callerId, emit = true) {
         let sibling = this.lookup(siblingId)
         this.isOperationAllowed(ACTIONS.setSiblingPosition, sibling, callerId);
@@ -946,7 +1017,7 @@ export class Container {
             parent.appendChild(sibling)
         }
 
-        if (emit) {
+        if (emit === true) {
             this.emit(ACTIONS.setSiblingPosition, {
                 id: sibling.id,
                 position: index,
@@ -956,14 +1027,32 @@ export class Container {
             this.notifyUpdate(this.getParent(sibling), callerId)
         }
     }
-
+    
+    /**
+     * 
+     * @param {*} siblingId 
+     * @param {*} amount 
+     * @param {*} callerId 
+     * @param {*} emit
+     * 
+     * Events per call: 1 
+     */
     changeSiblingPosition(siblingId, amount, callerId, emit = true) {
         let sibling = this.lookup(siblingId)
         let pos = this.getSiblingPosition(sibling)
         this.setSiblingPosition(sibling, pos + amount, callerId, emit)
     }
 
-    addDomChild(parentId, domNode, callerId, emit) {
+    /**
+     * 
+     * @param {*} parentId 
+     * @param {*} domNode 
+     * @param {*} callerId 
+     * @param {*} emit 
+     * 
+     * Events per call: 1 + hooks
+     */
+    addDomChild(parentId, domNode, callerId, emit = true) {
         Container.applyPreHooks(this, 'create', [parentId, domNode, callerId])
 
         let parent = this.lookup(parentId);
@@ -978,7 +1067,7 @@ export class Container {
             this.conformToParentRules(domNode)
             this.virtualDOM[domNode.id] = domNode
 
-            if (emit !== false) {
+            if (emit === true) {
                 this.emit(ACTIONS.create, {
                     presentationId: this.presentationId, 
                     parentId: parent.id,
@@ -988,7 +1077,15 @@ export class Container {
             }
         }
     }
-
+    
+    /**
+     * 
+     * @param {*} id 
+     * @param {*} callerId 
+     * @param {*} emit 
+     * 
+     * Events per call: 1 + hooks
+     */
     delete (id, callerId, emit = true) {
         let child = this.lookup(id)
         this.isOperationAllowed(ACTIONS.delete, child, callerId);
@@ -999,7 +1096,7 @@ export class Container {
             //TODO: remove local permissions if any
 
             this.getParent(child).removeChild(child);
-            if (emit) {
+            if (emit === true) {
                 this.emit(ACTIONS.delete, {
                     id: child.id,
                     callerId: callerId
@@ -1010,7 +1107,15 @@ export class Container {
         }
     }
 
-    deleteSparingChildren(id, callerId) {
+    /**
+     * 
+     * @param {*} id 
+     * @param {*} callerId 
+     * @param {*} emit
+     * 
+     * Events per call: 1 + ? * child_count 
+     */
+    deleteSparingChildren(id, callerId, emit = true) {
         let elem = this.lookup(id)
         this.isOperationAllowed(ACTIONS.delete, elem, callerId);
         this.isOperationAllowed(ACTIONS.deleteSparingChildren, elem, callerId);
@@ -1024,15 +1129,15 @@ export class Container {
         for (const child of children) {
             let pos = this.getPosition(child)
             try {
-                this.setParent(child, parent, callerId)
-                this.setPosition(child, pos, callerId)
+                this.setParent(child, parent, callerId, emit)
+                this.setPosition(child, pos, callerId, emit)
             } catch (e) {
                 console.log(`core: failed to save child`)
                 console.error(e)
             }
         }
 
-        this.delete(elem, callerId)
+        this.delete(elem, callerId, emit)
     }
 
     updateZindexLimits(node) {
@@ -1051,35 +1156,41 @@ export class Container {
         }
     }
 
-    bringToFront(id, callerId) {
+    bringToFront(id, callerId, emit = true) {
         let node = this.lookup(id)
         this.#currentMaxZindex++;
         node.style.zIndex = `${this.#currentMaxZindex}`
 
-        this.emit(ACTIONS.bringToFront, {
-            id: id,
-            callerId: callerId
-        }) 
-        this.notifyUpdate(node, callerId)
+        if (emit === true) {
+            this.emit(ACTIONS.bringToFront, {
+                id: id,
+                callerId: callerId
+            }) 
+            this.notifyUpdate(node, callerId)
+        }
     }
 
     //ToDo: FIX - this makes the container invisitble...
-    sendToBottom(id, callerId) {
+    sendToBottom(id, callerId, emit = true) {
         let node = this.lookup(id)
         this.#currentMinZindex--;
         node.style.zIndex = `${this.#currentMinZindex}` 
 
-        this.emit(ACTIONS.sendToBack, {
-            id: id,
-            callerId: callerId
-        }) 
-        this.notifyUpdate(node, callerId)
+        if (emit === true) {
+            this.emit(ACTIONS.sendToBack, {
+                id: id,
+                callerId: callerId
+            }) 
+            this.notifyUpdate(node, callerId)
+        } 
     }
 
-    setZIndex(id, index, callerId) {
+    setZIndex(id, index, callerId, emit = true) {
         let node = this.lookup(id)
         node.style.zIndex = `${index}` 
-        this.notifyUpdate(node, callerId)
+        if (emit === true) {
+            this.notifyUpdate(node, callerId)
+        }
     }
 
     setMetadata (id, key, value) {
