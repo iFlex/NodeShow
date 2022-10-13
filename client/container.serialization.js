@@ -33,24 +33,25 @@ function stripClassName(classList, toStrip) {
     return result
 }
 
-function emitContainerCreated(context, parent, child, callerId) {
+function emitContainerCreated(context, parent, child, callerId, emit = true) {
     context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
     context.conformToParentRules(child)
     //this container has finally been initialized
-    Container.applyPostHooks(context, 'create', [parent.id, child, callerId])
+    Container.applyPostHooks(context, 'create', [parent.id, null, null, callerId, emit, child])
 
-    context.emit(ACTIONS.create, {
-        presentationId: context.presentationId, 
-        parentId: parent.id, 
-        id: child.id, 
-        callerId: callerId
-    });
-    context.notifyUpdate(parent, callerId)
-
+    if (emit === true) {
+        context.emit(ACTIONS.create, {
+            presentationId: context.presentationId, 
+            parentId: parent.id, 
+            id: child.id, 
+            callerId: callerId
+        });
+        context.notifyUpdate(parent, callerId)    
+    }
     //console.log(`Current Orphan Count ${Object.entries(orphans).length}. Init queue length ${Object.entries(initQueue).length}`)
 }
 
-function addChildNodes(context, elem, callerId) {
+function addChildNodes(context, elem, callerId, emit = true) {
     if (!initQueue[elem.id]) {
         //console.log(`Failed to initialize ChildNodes for ${elem.id} - no state stored in init queue`)
         return;
@@ -81,7 +82,7 @@ function addChildNodes(context, elem, callerId) {
         //console.log(`CONTAINER CREATED ${elem.id}`)
         //update order of siblings 
         context.reorderChildren(elem, initQueue[elem.id].descriptor, callerId)
-        emitContainerCreated(context, elem.parent || context.parent, elem, callerId)
+        emitContainerCreated(context, elem.parent || context.parent, elem, callerId, emit)
         delete initQueue[elem.id]
     }
 }
@@ -131,14 +132,14 @@ function resolveParentForCreation(context, parentId, rawDescriptor) {
 
 //Prone to UID collisions. It won't complain if you want to create an element that already exists
 //has the ability to wait for parent to show up
-Container.prototype.createFromSerializable = function(parentId, rawDescriptor, insertBefore, callerId) {
+Container.prototype.createFromSerializable = function(parentId, rawDescriptor, insertBefore, callerId, emit = true) {
     if (rawDescriptor.nodeName.toLowerCase() == 'body'){
         console.log("No need to re-create the body object");
         this.updateChild(rawDescriptor.id, rawDescriptor, callerId, false)
         return;
     }
     
-    Container.applyPreHooks(this, 'create', [parentId, null, rawDescriptor, insertBefore, callerId])
+    Container.applyPreHooks(this, 'create', [parentId, rawDescriptor, insertBefore, callerId, emit])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     
@@ -155,20 +156,20 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
             index: 0,
             queuedAt: Date.now()
         }
-        addChildNodes(this, child, callerId)
+        addChildNodes(this, child, callerId, emit)
     } else {
-        emitContainerCreated(this, parent, child, callerId)
+        emitContainerCreated(this, parent, child, callerId, emit)
     }
     
     //this container is a parent of orphans, they are no longer orphans
     if (orphans[child.id]) {
         while (orphans[child.id].length > 0) {
             let orphan = orphans[child.id].pop()
-            this.createFromSerializable(child.id, orphan, null, callerId)
+            this.createFromSerializable(child.id, orphan, null, callerId, emit)
         }
     }
     //continue paret setup
-    addChildNodes(this, parent, callerId)
+    addChildNodes(this, parent, callerId, emit)
     
     return child;
 }
@@ -270,7 +271,7 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId, em
     style
     actions
 */
-Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit){
+Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit = true){
     let child = this.lookup(childId)
     Container.applyPreHooks(this, 'update', [child, rawDescriptor, callerId, emit])
     
@@ -308,7 +309,7 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     Container.applyPostHooks(this, 'update', [child, rawDescriptor, callerId, emit])
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
-    } else if(emit != false) {
+    } else if(emit === true) {
         this.emit(ACTIONS.update, {id:child.id, changes: descriptor, callerId:callerId})
     }
 }

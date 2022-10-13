@@ -13,7 +13,7 @@ Container.prototype.toComponentLocalURL = function(resource, callerId) {
  * @param {boolean} emit - wether to emit events or not when indexing the loaded content
  * @return a promise with one parameter with the loaded content
  */
-Container.prototype.loadHtml = function(node, url, callerId, emit = true) {
+Container.prototype.loadHtml = function(node, url, callerId, emit = true, append = true) {
     node = this.lookup(node)
     this.isOperationAllowed(ACTIONS.loadHTML, node, callerId)
     this.isOperationAllowed(ACTIONS.create, node, callerId)   
@@ -51,7 +51,12 @@ Container.prototype.loadHtml = function(node, url, callerId, emit = true) {
     .then(blob => blob.text())
     .then(text => {
         //ToDo: consider append or overwrite mode too
-        node.innerHTML += text;
+        if (append === true) {
+            node.innerHTML += text;
+        } else {
+            node.innerHTML = text;
+        }
+        
         this.index(node, emit)
         if (emit !== false) {
             this.emit(ACTIONS.loadHTML, {id:node.id, callerId:callerId})

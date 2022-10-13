@@ -15,23 +15,25 @@ Container.prototype.initActions = function(node) {
 }
 
 //ToDo: switch to using set instead of list for actions.
-Container.prototype.addAction = function(id, action, callerId) {
+Container.prototype.addAction = function(id, action, callerId, emit = true) {
     this.isOperationAllowed('container.actions.add', id, callerId);
     let node = this.lookup(id)
     this.attachAction(node, action)
     
     let actions = this.getActions(node)
     actions.push(action)
-    this.saveActions(node, actions)
-    
-    this.emit('container.actions.add', {
-        id: node.id,
-        action: action,
-        callerId: callerId
-    })
+
+    this.saveActions(node, actions, callerId, emit)
+    if (emit === true) {
+        this.emit('container.actions.add', {
+            id: node.id,
+            action: action,
+            callerId: callerId
+        })
+    }
 }
 
-Container.prototype.removeAction = function(id, action, callerId) {
+Container.prototype.removeAction = function(id, action, callerId, emit = true) {
     this.isOperationAllowed('container.actions.remove', id, callerId);
     let node = this.lookup(id)
     this.detachAction(node, action)
@@ -46,12 +48,14 @@ Container.prototype.removeAction = function(id, action, callerId) {
         }
     }
 
-    this.saveActions(node, actions)
-    this.emit('container.actions.remove', {
-        id: node.id,
-        action: action,
-        callerId: callerId
-    })
+    this.saveActions(node, actions, callerId, emit)
+    if (emit === true) {
+        this.emit('container.actions.remove', {
+            id: node.id,
+            action: action,
+            callerId: callerId
+        })
+    }
 }
 
 Container.prototype.getActions = function(node) {
@@ -71,8 +75,11 @@ Container.prototype.getActions = function(node) {
     return result
 }
 
-Container.prototype.saveActions = function(node, actions) {
+Container.prototype.saveActions = function(node, actions, callerId, emit = true) {
     node.setAttribute("data-container-actions", JSON.stringify(actions))
+    if (emit === true) {
+        this.notifyUpdate(node, callerId)
+    }
 }
 
 Container.prototype.lookupMethod = function(methodName) {

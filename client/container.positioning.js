@@ -130,7 +130,9 @@ Container.prototype.localToGlobalPosition = function(id, x, y) {
  * @param {object} position - object describing the new intended position
  * @param {string} callerId - the name of the caller of this method
  */
-Container.prototype.setPosition = function(id, position, callerId, force = false) {
+
+   //ToDo: check if anyone calls setPosition with force.
+Container.prototype.setPosition = function(id, position, callerId, force = false, emit = true) {
     let elem = this.lookup(id);
     this.isOperationAllowed(ACTIONS.setPosition, elem, callerId);
     let positionType = elem.style.position || 'static';
@@ -154,10 +156,10 @@ Container.prototype.setPosition = function(id, position, callerId, force = false
     position.top -= parentPos.top
     position.left -= parentPos.left
 
-    this.setPositionRelative(elem, position, callerId)
+    this.setPositionRelative(elem, position, callerId, emit)
 }
 
-Container.prototype.setPositionRelative = function(elem, position, callerId) {
+Container.prototype.setPositionRelative = function(elem, position, callerId, emit = true) {
     //In case the position is percentual:
     position.left -= (position.originX || 0) * this.getWidth(elem)
     position.top -= (position.originY || 0) * this.getHeight(elem)
@@ -168,11 +170,14 @@ Container.prototype.setPositionRelative = function(elem, position, callerId) {
     position = this.convertPixelPos(elem, position, {top:topUnit, left:leftUnit})
 
     jQuery(elem).css({top: `${position.top}${topUnit}`, left: `${position.left}${leftUnit}`});
-    this.emit(ACTIONS.setPosition, {
-        id: elem.id, 
-        position: position,
-        callerId: callerId
-    });
+
+    if (emit === true) {
+        this.emit(ACTIONS.setPosition, {
+            id: elem.id, 
+            position: position,
+            callerId: callerId
+        });
+    }
 }
 
 /**
@@ -204,18 +209,18 @@ Container.prototype.getPosition = function(id) {
  * @param {number} dy - The amount of pixels to move on the y axis (verticlaly)
  * @param {string} callerId - The identifier of the caller of this method 
  */
-Container.prototype.move = function(id, dx, dy, callerId) {
+Container.prototype.move = function(id, dx, dy, callerId, emit = true) {
     let pos = this.getPosition(id)
     pos.top += dy;
     pos.left += dx;
-    this.setPosition(id, pos, callerId)
+    this.setPosition(id, pos, callerId, false, emit)
 }
 
-Container.prototype.setPositionUnits = function(id, units, callerId) {
-    this.setUnit(id, "topUnit", units.top)
-    this.setUnit(id, "leftUnit", units.left)
+Container.prototype.setPositionUnits = function(id, units, callerId, emit = true) {
+    this.setUnit(id, "topUnit", units.top, callerId, emit)
+    this.setUnit(id, "leftUnit", units.left, callerId, emit)
     let pos = this.getPosition(id)
-    this.setPosition(id, pos, callerId)
+    this.setPosition(id, pos, callerId, emit)
 }
 
 Container.prototype.canPosition = function(id) {

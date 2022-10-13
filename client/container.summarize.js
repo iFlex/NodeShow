@@ -36,14 +36,16 @@ let VISUALISATION_ELEMENT_SUFFIX = "-abstraction-level-viz"
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  * @param {string} callerId - the name of the caller of this method
  */
-Container.prototype.collapse = function(id, callerId) {
+Container.prototype.collapse = function(id, callerId, emit = true) {
     let node = this.lookup(id)
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
     let maxAbsLevels = this.getAbstractionLevels(node)
 
     if (currentLvl < maxAbsLevels) {
-        this.setCurrentContentAbstractionLevel(node, currentLvl + 1, callerId)
-        this.notifyUpdate(node, callerId)
+        this.setCurrentContentAbstractionLevel(node, currentLvl + 1, callerId, emit)
+        if (emit === true) {
+            this.notifyUpdate(node, callerId)
+        }
         return true;
     } 
     return false;
@@ -55,21 +57,23 @@ Container.prototype.collapse = function(id, callerId) {
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  * @param {string} callerId - the name of the caller of this method
  */
-Container.prototype.expand = function(id, callerId) {
+Container.prototype.expand = function(id, callerId, emit = true) {
     let node = this.lookup(id);
     
     let currentLvl = this.getCurrentContentAbstractionLevel(node);
     
     if (currentLvl > 0) {
-        this.setCurrentContentAbstractionLevel(node, currentLvl - 1, callerId)
-        this.notifyUpdate(node, callerId)
+        this.setCurrentContentAbstractionLevel(node, currentLvl - 1, callerId, emit)
+        if (emit === true) {
+            this.notifyUpdate(node, callerId)
+        }
     }
 }
 
 /**
  * @summary Saves the container's current style as the current layer's style
  * */
-Container.prototype.persistLevelStyle = function(node, callerId, emit)  {
+Container.prototype.persistLevelStyle = function(node, callerId, emit = true)  {
     let style = this.toSerializableStyle(node, true, RELEVANT_STYLE_SUBSET)
     let level = this.getCurrentContentAbstractionLevel(node)
 
@@ -93,7 +97,7 @@ Container.prototype.saveStyleForLevel = function(id, style, level, callerId, emi
     }
 
     node.dataset[`${LAYER_STYLE_PREFIX}${level}`] = JSON.stringify(filteredStyle)
-    if (emit) {
+    if (emit === true) {
         this.notifyUpdate(node, callerId)
     }
 }
@@ -138,7 +142,7 @@ Container.prototype.getAbstractionLevels = function(c) {
  * @description [TODO]
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  */
-Container.prototype.createAbstractionLevel = function(c, callerId) {
+Container.prototype.createAbstractionLevel = function(c, callerId, emit = true) {
     let node = this.lookup(c);
     let maxAbsLevels = this.getAbstractionLevels(node);
     
@@ -149,7 +153,9 @@ Container.prototype.createAbstractionLevel = function(c, callerId) {
 
     node.dataset[C_TOT_ABS_LVLS] = maxAbsLevels + 1
     updateAbstractionVisualisation(this, node, callerId)
-    this.notifyUpdate(node, callerId)
+    if (emit === true) {
+        this.notifyUpdate(node, callerId)
+    }
     return maxAbsLevels
 }
 
@@ -159,7 +165,7 @@ Container.prototype.createAbstractionLevel = function(c, callerId) {
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  * @param {number} level - The index of the abstraction level to remove
  */
-Container.prototype.removeAbstractionLevel = function(c, lvl, callerId) {
+Container.prototype.removeAbstractionLevel = function(c, lvl, callerId, emit = true) {
     let node = this.lookup(c);
     let maxAbsLevels = this.getAbstractionLevels(node);
 
@@ -171,10 +177,13 @@ Container.prototype.removeAbstractionLevel = function(c, lvl, callerId) {
     for (var i = lvl + 1; i <= maxAbsLevels; ++i ){
         let toTranslate = this.getAllInAbstractionLevel(node, i)
         for (const child of toTranslate) {
-            this.setAbstractionLevel(child, i - 1)
+            this.setAbstractionLevel(child, i - 1, emit)
         }
     }
-    this.notifyUpdate(node, callerId)
+
+    if (emit === true) {
+        this.notifyUpdate(node, callerId)
+    }
 }
 
 /**
@@ -182,13 +191,16 @@ Container.prototype.removeAbstractionLevel = function(c, lvl, callerId) {
  * @description Effectively the container will on longer have any abstraction.
  * @param {(string|DOMReference)} id - The id (or DOM Reference) of the DOM Object 
  */
-Container.prototype.removeAllAbstraction = function(c, callerId) {
+Container.prototype.removeAllAbstraction = function(c, callerId, emit = true) {
     let node = this.lookup(c);
 
     node.dataset[C_TOT_ABS_LVLS] = 0;
     node.dataset[C_ABS_LVL] = 0
     removeAll(this, node)
-    this.notifyUpdate(node, callerId)
+
+    if (emit === true) {
+        this.notifyUpdate(node, callerId)
+    }
 }
 
 /**
@@ -313,7 +325,7 @@ Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbs
 Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
-function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, ignore2) {
+function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, emit) {
     //set current abstraction level based on the parent if abstraction level absent
     let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
     if (parentContentAbstractionLevel > 0 && this.isContainerReady(parent)) {
@@ -348,39 +360,39 @@ function setUnignorableDataFields() {
     return 1
 }
 
-function removeAll(ctx, node) {
+function removeAll(ctx, node, callerId, emit = true) {
     for (const child of node.children) {
         let alvl = ctx.getAbstractionLevel(child)
         if (alvl != 0) {
-            ctx.delete(child)
+            ctx.delete(child, callerId, emit)
         }
     }
 }
 
-function removeLevel(ctx, node, lvl) {
+function removeLevel(ctx, node, lvl, callerId, emit = true) {
     for (const child of node.children) {
         let alvl = ctx.getAbstractionLevel(child)
         if (alvl == lvl) {
-            ctx.delete(child)
+            ctx.delete(child, callerId, emit)
         }
     }
     updateAbstractionVisualisation(ctx, node, callerId)
 }
 
-function updateDisplayedAbstractionLevel(ctx, node, lvl, callerId) {
+function updateDisplayedAbstractionLevel(ctx, node, lvl, callerId, emit = true) {
     let ignoreAbstractionVisualiserId = node.id + VISUALISATION_ELEMENT_SUFFIX;
     ctx.loadStyleForCurrentLevel(node, callerId, false)
     for (const child of node.children) {
         if (lvl == ctx.getAbstractionLevel(child) || child.id == ignoreAbstractionVisualiserId) {
-            ctx.show(child, callerId)
+            ctx.show(child, callerId, emit)
         } else {
-            ctx.hide(child, callerId)
+            ctx.hide(child, callerId, emit)
         }
     }
     updateAbstractionVisualisation(ctx, node, callerId)
 }
 
-function createAbstractionVisualisation(container, target, callerId) {
+function createAbstractionVisualisation(container, target, callerId, emit = true) {
     let bayDescriptor = {
         nodeName:"DIV",
 		id: target.id + VISUALISATION_ELEMENT_SUFFIX,
@@ -399,10 +411,10 @@ function createAbstractionVisualisation(container, target, callerId) {
         }
     }
     
-    let child = container.createFromSerializable(target, bayDescriptor, null, callerId)
-    container.createFromSerializable(child, barDescriptor, null, callerId);
-    container.setSiblingPosition(child, 0, callerId)
-    container.show(child, callerId) //override abstraction hiding it away
+    let child = container.createFromSerializable(target, bayDescriptor, null, callerId, emit)
+    container.createFromSerializable(child, barDescriptor, null, callerId, emit);
+    container.setSiblingPosition(child, 0, callerId, emit)
+    container.show(child, callerId, emit) //override abstraction hiding it away
     return child;
 }
 
@@ -415,12 +427,13 @@ function lookupAbstractionvisualisation(container, target, callerId) {
 }
 
 //ToDo: figure out what to do if you paste an abstracted container...
+//No need for event emitting here, it's a local visualisation
 function updateAbstractionVisualisation(container, target, callerId) {
     let totalLevels = container.getAbstractionLevels(target)
     let currentLevel = container.getCurrentContentAbstractionLevel(target)
     let visualisation = lookupAbstractionvisualisation(container, target, callerId)
 
     let percent = 1 - (currentLevel/totalLevels)
-    container.setSiblingPosition(visualisation, 0, callerId)
-    container.setExplicitWidth(visualisation.firstChild, percent * 100, "%", callerId, false)
+    container.setSiblingPosition(visualisation, 0, callerId, false) //don't emit events for this
+    container.setExplicitWidth(visualisation.firstChild, percent * 100, "%", callerId, false) //don't emit any events for this
 }
