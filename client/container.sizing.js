@@ -84,16 +84,21 @@ Container.prototype.isAspectRationLocked = function(id) {
     }
 }
 
-Container.prototype.lockAspectRatio = function(id, callerId) {
+Container.prototype.lockAspectRatio = function(id, callerId, emit = true) {
     let node = this.lookup(id)
     node.dataset[ASPECT_RATIO_LOCKED_KEY] = "true"
-    this.notifyUpdate(id, callerId)
+
+    if (emit === true) {
+        this.notifyUpdate(id, callerId)
+    }
 }
 
-Container.prototype.unlockAspectRatio = function(id, callerId) {
+Container.prototype.unlockAspectRatio = function(id, callerId, emit = true) {
     let node = this.lookup(id)
     delete node.dataset[ASPECT_RATIO_LOCKED_KEY]
-    this.notifyUpdate(id, callerId)
+    if (emit === true) {
+        this.notifyUpdate(id, callerId)
+    }
 }
 
 Container.prototype.getUnit = function(id, property) {
@@ -101,16 +106,16 @@ Container.prototype.getUnit = function(id, property) {
     return elem.dataset[property]
 }
 
-Container.prototype.setWidthUnit = function(id, unit, callerId) {
-    this.setUnit(id, "widthUnit", unit)
+Container.prototype.setWidthUnit = function(id, unit, callerId, emit = true) {
+    this.setUnit(id, "widthUnit", unit, callerId, emit)
     let measurement = this.getWidth(id)
-    this.setWidth(id, measurement, callerId)
+    this.setWidth(id, measurement, callerId, emit)
 }
 
-Container.prototype.setHeightUnit = function(id, unit, callerId) {
-    this.setUnit(id, "heightUnit", unit)
+Container.prototype.setHeightUnit = function(id, unit, callerId, emit = true) {
+    this.setUnit(id, "heightUnit", unit, emit)
     let measurement = this.getHeight(id)
-    this.setHeight(id, measurement, callerId)
+    this.setHeight(id, measurement, callerId, emit)
 }
 
 Container.prototype.adjustWidthToBoxMode = function (node, value){
@@ -147,7 +152,7 @@ Container.prototype.adjustHeightToBoxMode = function(node, value) {
 /*
 ... Frigging hell... can this be any more situational... https://developer.mozilla.org/en-US/docs/Web/CSS/width
 */
-Container.prototype.setWidth = function(id, width, callerId, emit) {
+Container.prototype.setWidth = function(id, width, callerId, emit = true) {
     let elem = this.lookup(id)
     let unit = elem.dataset.widthUnit || 'px'
     if (NOT_SIZEABLE.has(unit)) {
@@ -162,7 +167,7 @@ Container.prototype.setWidth = function(id, width, callerId, emit) {
     this.setExplicitWidth(elem, width, unit, callerId, emit)
 }
 
-Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emit, adjustRatio = true) {
+Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emit = true, adjustRatio = true) {
     this.isOperationAllowed(ACTIONS.setWidth, elem, callerId);
     let prevWidth = this.getWidth(elem);
     
@@ -172,7 +177,7 @@ Container.prototype.setExplicitWidth = function(elem, width, unit, callerId, emi
         let ratio = this.getAspectRatio(elem)
         this.setExplicitHeight(elem, width/ratio, unit, callerId, emit, false);
     }
-    this.setUnit(elem, 'widthUnit', unit)
+    this.setUnit(elem, 'widthUnit', unit, callerId, emit)
     //jQuery(elem).css({width: `${width}${unit}`});
     elem.style.width = `${width}${unit}`
 
@@ -201,7 +206,7 @@ Container.prototype.setUnit = function(id, property, unit, callerId, emit = true
     }
 }
 
-Container.prototype.setHeight = function(id, height, callerId, emit) {
+Container.prototype.setHeight = function(id, height, callerId, emit = true) {
     let elem = this.lookup(id);
     let unit = elem.dataset.heightUnit || 'px'
     if (NOT_SIZEABLE.has(unit)) {
@@ -216,7 +221,7 @@ Container.prototype.setHeight = function(id, height, callerId, emit) {
     this.setExplicitHeight(elem, height, unit, callerId, emit)
 }
 
-Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, emit, adjustRatio = true) {
+Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, emit = true, adjustRatio = true) {
     this.isOperationAllowed(ACTIONS.setHeight, elem, callerId);
     
     let prevHeight = this.getHeight(elem);
@@ -227,7 +232,7 @@ Container.prototype.setExplicitHeight = function(elem, height, unit, callerId, e
         this.setExplicitWidth(elem, height*ratio, unit, callerId, emit, false);
     }
 
-    this.setUnit(elem, 'heightUnit', unit)
+    this.setUnit(elem, 'heightUnit', unit, callerId, emit)
     jQuery(elem).css({height: `${height}${unit}`});
     if (emit != false) {
         this.emit(ACTIONS.setHeight, {
@@ -344,7 +349,7 @@ he width is measured in the same way as clientWidth:
 it includes the element's padding, but not its border, margin or vertical scrollbar (if present)
 w + p
 */
-Container.prototype.fitVisibleContent = function(id, contract = false, callerId, emit) {
+Container.prototype.fitVisibleContent = function(id, contract = false, callerId, emit = true) {
     let node = this.lookup(id)
     let computedStyle = window.getComputedStyle(node, null)
 
