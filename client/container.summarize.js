@@ -272,7 +272,7 @@ Container.prototype.getAllInAbstractionLevel = function(c, lvl) {
  * @param {string} callerId - id of the caller of this method
  * @returns {array} array of container references comprising the abstraction level
  */
-Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
+Container.prototype.setAbstractionLevel = function(c, lvl, callerId, emit = true) {
     let node = this.lookup(c);
     this.isOperationAllowed(ACTIONS.setAbstractionLevel, node, callerId);
 
@@ -300,11 +300,14 @@ Container.prototype.setAbstractionLevel = function(c, lvl, callerId) {
 
     node.dataset[ABS_LVL] = lvl
     if (lvl == this.getCurrentContentAbstractionLevel(node.parentNode)) {
-        this.show(node)
+        this.show(node, callerId, emit)
     } else {
-        this.hide(node)
+        this.hide(node, callerId, emit)
     }
-    this.notifyUpdate(node, callerId)
+
+    if (emit === true) {
+        this.notifyUpdate(node, callerId)
+    }
 }
 
 /**
