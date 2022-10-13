@@ -177,7 +177,7 @@ Container.prototype.removeAbstractionLevel = function(c, lvl, callerId, emit = t
     for (var i = lvl + 1; i <= maxAbsLevels; ++i ){
         let toTranslate = this.getAllInAbstractionLevel(node, i)
         for (const child of toTranslate) {
-            this.setAbstractionLevel(child, i - 1, emit)
+            this.setAbstractionLevel(child, i - 1, callerId, emit)
         }
     }
 
@@ -333,7 +333,7 @@ function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore
     let parentContentAbstractionLevel = this.getCurrentContentAbstractionLevel(parent)
     if (parentContentAbstractionLevel > 0 && this.isContainerReady(parent)) {
         //if parent is complete, then it override's child's abstraction level
-        this.setAbstractionLevel(child, parentContentAbstractionLevel, callerId)
+        this.setAbstractionLevel(child, parentContentAbstractionLevel, callerId, emit)
     }
 
     return 1
