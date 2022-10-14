@@ -1299,3 +1299,4 @@ function loadPermissionsFromDataset(event) {
 Container.composeOn(ACTIONS.create, loadPermissionsFromDataset)
 //ToDo: narrow this down
 Container.composeOn(ACTIONS.update, loadPermissionsFromDataset)
+Container.composeOn(ACTIONS.remoteUpdate, loadPermissionsFromDataset)

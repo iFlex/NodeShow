@@ -321,12 +321,6 @@ Container.prototype.getAbstractionLevel = function(c) {
     return parseInt(node.dataset[ABS_LVL] || 0)
 }
 
-Container.composeOn(ACTIONS.new, setUnignorableDataFields)
-Container.composeOn(ACTIONS.create, applyAbstractionViewOnEvent)
-Container.composeOn(ACTIONS.setParent, setAbstractionLevelWhenChangingParents)
-//[TODO]: figure out what updates make sense to listen for here
-//Container.composeOn(ACTIONS.update, applyAbstractionViewOnEvent)
-
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
 function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, emit) {
     //set current abstraction level based on the parent if abstraction level absent
@@ -450,3 +444,9 @@ function updateAbstractionVisualisation(container, target, callerId) {
     container.setSiblingPosition(visualisation, 0, callerId, false) //don't emit events for this
     container.setExplicitWidth(visualisation.firstChild, percent * 100, "%", callerId, false) //don't emit any events for this
 }
+
+Container.composeOn(ACTIONS.new, setUnignorableDataFields)
+Container.composeOn(ACTIONS.create, applyAbstractionViewOnEvent)
+Container.composeOn(ACTIONS.setParent, setAbstractionLevelWhenChangingParents)
+//[TODO]: figure out what updates make sense to listen for here
+//Container.composeOn(ACTIONS.update, applyAbstractionViewOnEvent)
