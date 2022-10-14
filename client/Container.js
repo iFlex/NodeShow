@@ -1197,6 +1197,13 @@ export class Container {
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId, subset:subset})
     }
 
+    static #chainedWork = {}
+    static composeOn(event, method) {
+        let list = Container.#chainedWork[event] || []
+        list.push(method)
+        Container.#chainedWork[event] = list
+    }
+    
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
 	//Deffered set to true helps with bulk operations.
     //While creating items on screen works super well with defferred = true,
@@ -1299,14 +1306,6 @@ export class Container {
         let node = this.lookup(id)
         this.#transactions[node.id].appendChild(node)
         delete this.virtualDOM[node.id]
-    }
-    
-    //experimental
-    static #chainedWork = {}
-    static composeOn(event, method) {
-        let list = Container.#chainedWork[event] || []
-        list.push(method)
-        Container.#chainedWork[event] = list
     }
 }
 
