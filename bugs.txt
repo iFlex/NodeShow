@@ -18,4 +18,5 @@
 
 [BUG][S]: Aspect ratio preserving can be fooled when setWidth or setHeigth won't be able to apply the update. For example with min-width and min-heigth set.
 This results in the system believing the intended aspect ratio is incorrect once one dimension is set below its minimum
+
 [BUG][M]: Drag throuhg statically positioned elements borks out the drag

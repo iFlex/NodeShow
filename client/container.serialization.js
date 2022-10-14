@@ -139,7 +139,6 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
         return;
     }
     
-    Container.applyPreHooks(this, 'createFromSerializable', [parentId, rawDescriptor, insertBefore, callerId, emit])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     
@@ -273,7 +272,6 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId, em
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit = true){
     let child = this.lookup(childId)
-    Container.applyPreHooks(this, 'updateChild', [child, rawDescriptor, callerId, false])
     
     //bulindly applying all properties received
     for (const [tag, value] of Object.entries(rawDescriptor)) {

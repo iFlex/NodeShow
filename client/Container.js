@@ -352,106 +352,6 @@ export class Container {
 	}
     //</utils>
 
-    //<hooks>   
-    //WARNING: This system is incredibly easy to missuse. 
-    // 1. it is critical that every wook you implement passes down the CallerId it is given
-    // 2. need to be very careful with the parameter as they are not named and are positional (for performance reasons)
-    //    making it very easy to omit or even have a parameter loaded with an unexpected value
-    /**
-    * @summary Registers a method to be called before the normal operation of a setter method from core functionality.
-    * @param {string} setter - setter name
-    * @param {method} method - method reference.
-    */
-    static registerPreSetterHook(setter, method) {
-        Container.#registerHook(Container.#preSetterHooks, setter, method)
-    }
-
-    /**
-    * @summary Registers a method to be called after the normal operation of a setter method from core functionality.
-    * @description This runs before any events are emitted by the original method.
-    * @param {string} setter - setter name
-    * @param {method} method - method reference.
-    */
-    static registerPostSetterHook(setter, method) {
-        Container.#registerHook(Container.#postSetterHooks, setter, method)
-    }
-
-    static #registerHook(set, setter, method) {
-        if (!Container.#hookedSetters[setter]) {
-            throw new ContainerException(setter,"registerHook", null,"invalid setter");
-        }
-
-        if (!set[setter]) {
-            set[setter] = []
-        }
-        
-        set[setter].push(method)
-    }
-
-    static #mapHookParameters(config, params) {
-        let mappedParams = []
-        for (let i in config.parameterRemap) {
-            let mIndex = config.parameterRemap[i]
-            let mappedParam = null
-            if (mIndex != null) {
-                try {
-                    mappedParam = params[mIndex]
-                } catch (e) {
-                    //todo: tidy
-                }
-            }
-            mappedParams.push(mappedParam)
-        }
-        return mappedParams
-    }
-    
-    static #calleHookMethods(ctx, setter, methods, params) {
-        for (const method of methods) {
-            try {
-                method.apply(ctx, params)
-            } catch (e) {
-                console.error(`[CORE] Failed to apply ${setter} hook`)
-                console.error(e)
-            }
-        }
-    }
-
-    static #applyHooks(ctx, set, setter, params) {
-        let methods = set[setter] || []
-        Container.#calleHookMethods(ctx, setter, methods, params)
-
-        let hookConfig = Container.#hookedSetters[setter]
-        if (hookConfig.parentCallback) {
-            let mappedMethods = set[hookConfig.parentCallback] || []
-            let mappedParameters = Container.#mapHookParameters(hookConfig, params)
-            Container.#calleHookMethods(ctx, hookConfig.parentCallback, mappedMethods, mappedParameters)
-        }
-    }
-
-    /**
-    * @summary Runs the preSetter hooks for a given setter and a given Container instance
-    *
-    * @param {reference} context - Container instance reference 
-    * @param {string} setter - setter name
-    * @param {array} params - array of parameters to pass to the hooks.
-    */
-    static applyPreHooks(ctx, setter, params) {
-        Container.#applyHooks(ctx, Container.#preSetterHooks, setter, params)
-    }
-
-    /**
-    * @summary Runs the postSetter hooks for a given setter and a given Container instance
-    * @description This method applies all registered post setter hooks for a named setter right before the hooked method's event firing (if any). 
-    * Any exception thrown by the hook handler will be caught and logged, preventing it from failing to fire the hook method event.
-    * @param {reference} context - Container instance reference 
-    * @param {string} setter - setter name
-    * @param {array} params - array of parameters to pass to the hooks.
-    */
-    static applyPostHooks(ctx, setter, params) {
-        Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
-    }
-
-    //</hooks>
     /**
     * @summary Chechks wether an operation can be carried out on a container by a caller
     * @throws throws a string exception if operation is not allowed
@@ -840,8 +740,6 @@ export class Container {
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
-        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, false])
-        
         //console.log(`Change parent for ${child.id} to ${parent.id}`)
         let prevParentId = this.getParent(child).id;
         if (options && options.insertBefore && parent.firstChild) {
@@ -851,8 +749,6 @@ export class Container {
         }
         this.conformToParentRules(child)
 
-        //ToDo: add emit in the hook call
-        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, false, {prevParentId:prevParentId}])
         if (emit === true) {
             this.emit(ACTIONS.setParent, {
                 id: child.id,
@@ -953,7 +849,6 @@ export class Container {
 
     //[TODO]: permissions
     styleChild(child, style, callerId, emit = true) {
-        Container.applyPreHooks(this, 'styleChild', [child, style, callerId, false])
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -964,7 +859,6 @@ export class Container {
             }
         }
 
-        Container.applyPostHooks(this, 'styleChild', [child, style, callerId, false])
         if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
@@ -979,8 +873,6 @@ export class Container {
             return;
         }
 
-        Container.applyPreHooks(this, 'removeStyle', [child, style, callerId, false])
-
         for (const [tag, value] of Object.entries(style)) {
             let currentValue = child.style.getPosition(tag)
             if (value == null || value == currentValue) {
@@ -988,7 +880,6 @@ export class Container {
             }
         }
 
-        Container.applyPostHooks(this, 'removeStyle', [child, style, callerId, false])
         if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
@@ -1088,8 +979,6 @@ export class Container {
      * Events per call: 1 + hooks
      */
     addDomChild(parentId, domNode, callerId, emit = true) {
-        Container.applyPreHooks(this, 'addDomChild', [parentId, domNode, callerId, false])
-
         let parent = this.lookup(parentId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
 
@@ -1097,7 +986,6 @@ export class Container {
             domNode.id = Container.generateUUID(); //pref considerable
             parent.appendChild(domNode);
 
-            Container.applyPostHooks(this, 'addDomChild', [parent, domNode, callerId, false])
             this.updateZindexLimits(domNode)
             this.conformToParentRules(domNode)
             this.virtualDOM[domNode.id] = domNode
