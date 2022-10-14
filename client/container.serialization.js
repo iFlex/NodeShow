@@ -37,7 +37,6 @@ function emitContainerCreated(context, parent, child, callerId, emit = true) {
     context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
     context.conformToParentRules(child)
     //this container has finally been initialized
-    Container.applyPostHooks(context, 'createFromSerializable', [parent.id, null, null, callerId, emit, child])
 
     if (emit === true) {
         context.emit(ACTIONS.create, {
@@ -304,7 +303,6 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     }
     
     this.updateZindexLimits(child)
-    Container.applyPostHooks(this, 'updateChild', [child, rawDescriptor, callerId, false])
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit === true) {

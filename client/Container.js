@@ -295,9 +295,6 @@ export class Container {
 				}
 			}
 
-            //ToDo pass in emit value
-            Container.applyPostHooks(this, 'index', [item.parentNode, item, null, emit])
-
 			index ++;
             if(emit != false) {
                 this.emit(ACTIONS.create, {
