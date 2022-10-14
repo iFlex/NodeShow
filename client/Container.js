@@ -68,7 +68,10 @@ export class Container {
 	presentationId = null;
 	socket = null;
     debug = false;
-
+    
+    #currentMaxZindex = 0;
+    #currentMinZindex = 0;
+    
     //[VirtualDOM] Incomplete feature meant to optimize speed of rendering and grouping up large amounts of changes (in order to minimise the amount of redraw events caused by using the Container API)
     virtualDOM = {}
     
@@ -249,7 +252,6 @@ export class Container {
             
             if (item.children) {
 				for (const child of item.children) {
-                    //ToDo: consider if wanna condition this
 					if (this.isLocalOnly(item)) {
                         this.markDOMNodeasLocalOnly(child)
                     }
