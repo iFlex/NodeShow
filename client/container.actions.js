@@ -156,4 +156,5 @@ function loadActionsOnContainerCreation(e) {
 }
 
 Container.composeOn(ACTIONS.new, setUnignorableDataFields);
+Container.composeOn(ACTIONS.create, loadActionsOnContainerCreation);
 Container.composeOn(ACTIONS.remoteUpdate, loadActionsOnContainerCreation);

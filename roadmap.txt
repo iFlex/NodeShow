@@ -40,8 +40,10 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
-[TODO][M]: Reduce reliance on update on core composeOn methods. Rather than tied to udpate, tie them to more specific events
-[TODO][S]: Add concept of local container. So all descendents will also be local and LiveBridge will ignore them
+[TODO][L]*: Reduce reliance on update on core composeOn methods. Rather than tied to udpate, tie them to more specific events
+    - find a way to figure out what an update changed => so downstreams can decide if they act on it or not
+    - find a way to push relevant events for depending core listeners: action attacher, permissions, etc
+
 [TODO][M]: Cascade up edit actions perfecting:
     - editPos should correctly position the element even if the drag starts on a inner child that can't be moved
     - editSize should correcly size the parent
