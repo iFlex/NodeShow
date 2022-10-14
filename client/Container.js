@@ -210,8 +210,12 @@ export class Container {
     * @returns {DOMObject} the DOM object with the given id
     */
     lookup (id, throwIfNotFound = true) {
-        let virtualNode = (this.lookupReal(id, false) || this.virtualDOM[id])
+        let realNode = this.lookupReal(id, false)
+        if (realNode) {
+            return realNode
+        }
         
+        let virtualNode = this.virtualDOM[id]
         if (!virtualNode && throwIfNotFound === true) {
             throw new ContainerException(id,"lookup", null,"not found");
         }
