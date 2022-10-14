@@ -1203,7 +1203,7 @@ export class Container {
         list.push(method)
         Container.#chainedWork[event] = list
     }
-    
+
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
 	//Deffered set to true helps with bulk operations.
     //While creating items on screen works super well with defferred = true,
@@ -1315,4 +1315,5 @@ function loadPermissionsFromDataset(event) {
 }
 
 Container.composeOn(ACTIONS.create, loadPermissionsFromDataset)
+//ToDo: narrow this down
 Container.composeOn(ACTIONS.update, loadPermissionsFromDataset)

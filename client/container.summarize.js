@@ -321,11 +321,11 @@ Container.prototype.getAbstractionLevel = function(c) {
     return parseInt(node.dataset[ABS_LVL] || 0)
 }
 
-//[TODO]: check if events are still leaking
-Container.composeOn(ACTIONS.new, setUnignorableDataFields);
+Container.composeOn(ACTIONS.new, setUnignorableDataFields)
 Container.composeOn(ACTIONS.create, applyAbstractionViewOnEvent)
-Container.composeOn(ACTIONS.setParent, setAbstractionLevelWhenChangingParents);
-Container.composeOn(ACTIONS.update, applyAbstractionViewOnEvent)
+Container.composeOn(ACTIONS.setParent, setAbstractionLevelWhenChangingParents)
+//[TODO]: figure out what updates make sense to listen for here
+//Container.composeOn(ACTIONS.update, applyAbstractionViewOnEvent)
 
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
 function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, emit) {
@@ -335,8 +335,6 @@ function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore
         //if parent is complete, then it override's child's abstraction level
         this.setAbstractionLevel(child, parentContentAbstractionLevel, callerId, emit)
     }
-
-    return 1
 }
 
 function applyAbstractionView(pid, node, callerId) {

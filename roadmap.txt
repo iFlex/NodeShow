@@ -40,6 +40,8 @@ Link are currently a performance issue - they seem to slow down the server
 
 Current Prios:
 --------------------------------------------
+[TODO][M]: Reduce reliance on update on core composeOn methods. Rather than tied to udpate, tie them to more specific events
+
 [TODO][L]: build a better abstraction/summarisation editor.
     - current one is a hack anyway
 [TODO][S]: Figure out how to tippy toe around saving information about the presentation root.
@@ -59,7 +61,6 @@ Current Prios:
             - ensure they emit their respective events (to fix problems with persistence)
             - And an option to not emit events
 [TODO][L]: Evaluate how many events are fired via using Container Core features. Try to minimize without impacting persistence
-[TODO][L]: Standardize hook system. Needs to be less abiguous with its rules for what parameters are passed and what aren't and what the setter name represents
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
 [TODO][?]: Ability to set URL refrence to a local container and when clicked reveal (unearth it from abstraction levels) it & focus on it.(or container from a different NodeShow)
 [TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.
