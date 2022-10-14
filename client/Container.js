@@ -10,6 +10,7 @@ import { ContainerException, ContainerOperationDenied, ContainerOperationNotAppl
 //[TODO]: postSetterHooks and preSetterHooks should not fire any events. Save this decision somewhere
 
 export const ACTIONS = {
+    new: 'instance.new',
     create: 'container.create',
     delete: 'container.delete',
     deleteSparingChildren: 'container.delete.sparingChildren',
@@ -84,13 +85,10 @@ export class Container {
          * first 2 parameters are always: parentId and child
          * other parameters depend on the original method (createFromSerializable, createFromDom or index)
          */
-        // 'new',      //params: none
         // 'create',   //params: ParentId, Child Node, CallerId
         // 'update',   //params: DOM node, update descriptor, callerId
         // 'style',    //params: DOM node, style descriptor, callerId
         // 'setParent' //params: DOME node, new parent DOM node, callerId, options, prev parent Id
-        new:{},
-
         create:{},//parent, child, caller, emit
         index:{parentCallback:"create", parameterRemap:[0,1,2,3]},
         addDomChild:{parentCallback:"create", parameterRemap:[0,1,3,4]},
@@ -141,9 +139,9 @@ export class Container {
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
         this.debug = debug
-        Container.applyPostHooks(this, 'new', [parentDom, debug])
-
+        
         INSTANCES.add(this)
+        this.emit(ACTIONS.new, {root:parentDom, debug:debug})
     }
 
     //<utils>
@@ -279,9 +277,9 @@ export class Container {
 
         //allows indexing without emitting events in the case of interfaces
         //TODO: evaluate where this is used and consider improving this solution
-        if (queue[0].getAttribute('data-ignore')) {
-            emit = false
-        }
+        // if (queue[0].getAttribute('data-ignore')) {
+        //     emit = false
+        // }
 
 		do {
 			let item = queue[index]
@@ -1324,6 +1322,16 @@ export class Container {
         //     console.error(details)
         //     throw `Missing mandatory caller_id in event ${type}`
         // }
+        
+        //EXPERIMENTAL
+        let chain = Container.#chainedWork[type] || []
+        for (let method of chain) {
+            try {
+                method.apply(this, [details])
+            } catch (e) {
+                console.error(e)
+            }
+        }
 
         details['type'] = type;
 		const event = new CustomEvent(type, {
@@ -1407,14 +1415,20 @@ export class Container {
         this.#transactions[node.id].appendChild(node)
         delete this.virtualDOM[node.id]
     }
+    
+    //experimental
+    static #chainedWork = {}
+    static composeOn(event, method) {
+        let list = Container.#chainedWork[event] || []
+        list.push(method)
+        Container.#chainedWork[event] = list
+    }
 }
 
 //load persisted permissions when node is created
-function loadPermissionsFromDataset(parentId, node) {
-    return this.loadPermissionsFromDataset(node)
+function loadPermissionsFromDataset(event) {
+    this.loadPermissionsFromDataset(this.lookup(event.id, false))
 }
 
-Container.registerPostSetterHook('create', loadPermissionsFromDataset)
-Container.registerPostSetterHook('update', function(node, descriptor){
-    return this.loadPermissionsFromDataset(node)
-})
+Container.composeOn(ACTIONS.create, loadPermissionsFromDataset)
+Container.composeOn(ACTIONS.update, loadPermissionsFromDataset)

@@ -322,10 +322,10 @@ Container.prototype.getAbstractionLevel = function(c) {
 }
 
 //[TODO]: check if events are still leaking
-Container.registerPostSetterHook('new', setUnignorableDataFields);
-Container.registerPostSetterHook('create', applyAbstractionView);
-Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbsLevel);
-//Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
+Container.composeOn(ACTIONS.new, setUnignorableDataFields);
+Container.composeOn(ACTIONS.create, applyAbstractionViewOnEvent)
+Container.composeOn(ACTIONS.setParent, setAbstractionLevelWhenChangingParents);
+Container.composeOn(ACTIONS.update, applyAbstractionViewOnEvent)
 
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
 function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, emit) {
@@ -344,14 +344,26 @@ function applyAbstractionView(pid, node, callerId) {
     let maxLvl = this.getAbstractionLevels(node)
     if (maxLvl > 0) {
         let lvl = this.getCurrentContentAbstractionLevel(node)
-        updateDisplayedAbstractionLevel(this, node, lvl, callerId)
+        updateDisplayedAbstractionLevel(this, node, lvl, callerId, false)
     }
 
-    return setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, null])
+    return setChildAbsLevelToParentContentAbsLevel.apply(this, [node, pid, callerId, null, false])
 }
 
-function applyAbstractionViewOnUpdate(node, rawDescriptor, callerId, emit) {
-    return applyAbstractionView.apply(this, [node.parentNode.id, node, callerId])
+function setAbstractionLevelWhenChangingParents(event) {
+    let child = this.lookup(event.id)
+    let parent = this.getParent(child)
+    setChildAbsLevelToParentContentAbsLevel.apply(this, [child, parent, event.callerId, false])
+}
+
+function applyAbstractionViewOnEvent(event) {
+    let node = this.lookup(event.id, false)
+    if (!node) {
+        return;
+    }
+    let parent = this.getParent(node)
+
+    return applyAbstractionView.apply(this, [parent, node, event.callerId])
 }
 
 function setUnignorableDataFields() {

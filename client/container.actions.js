@@ -1,4 +1,4 @@
-import {Container} from "./Container.js"
+import { Container, ACTIONS } from "./Container.js"
 
 /*
     The idea here is that you can bind actions to a container
@@ -144,15 +144,15 @@ Container.prototype.attachAction = function(node, actionDescriptor) {
     }
 }
 
-Container.registerPostSetterHook('create', function(parentId, node){
-    return this.initActions(node)
-});
-
-Container.registerPostSetterHook('new', setUnignorableDataFields);
-
 function setUnignorableDataFields() {
     if (typeof this.serializerCannotIgnore === 'function') {
         this.serializerCannotIgnore('data','containerActions')
     }
-    return 1
 }
+
+function loadActionsOnContainerCreation(e) {
+    this.initActions(this.lookup(e.id, false))
+}
+
+Container.composeOn(ACTIONS.create, loadActionsOnContainerCreation);
+Container.composeOn(ACTIONS.new, setUnignorableDataFields);
