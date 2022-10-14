@@ -450,3 +450,4 @@ Container.composeOn(ACTIONS.create, applyAbstractionViewOnEvent)
 Container.composeOn(ACTIONS.setParent, setAbstractionLevelWhenChangingParents)
 //[TODO]: figure out what updates make sense to listen for here
 //Container.composeOn(ACTIONS.update, applyAbstractionViewOnEvent)
+//Container.composeOn(ACTIONS.remoteUpdate, applyAbstractionViewOnEvent);
