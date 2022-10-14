@@ -39,6 +39,7 @@ export const ACTIONS = {
     componentRemoved: 'container.component.removed',
     loadHTML: 'container.loadHTML',
 
+    remoteUpdate: 'container.bridge.update',
     connected: 'container.bridge.connected',
     disconnected: 'container.bridge.disconnected'
 }

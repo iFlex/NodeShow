@@ -13,6 +13,8 @@ export class ContainerHax0r {
 	#keyboard = null;
 
 	constructor (container) {
+		Window.prototype.CONTAINER = container
+		
 		this.container = container;
 		container.registerComponent(this);
 		this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.EXCLUSIVE)

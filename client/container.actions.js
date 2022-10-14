@@ -1,6 +1,7 @@
 import { Container, ACTIONS } from "./Container.js"
 
 /*
+    ToDo: figure out why currently reloading the prezzon fails to reattach the hooks for certain elements like for the text editor
     The idea here is that you can bind actions to a container
     data-action: {"trigger":"event_name","call":"method.name","params":["p1","p2",...]}
 */
@@ -154,5 +155,5 @@ function loadActionsOnContainerCreation(e) {
     this.initActions(this.lookup(e.id, false))
 }
 
-Container.composeOn(ACTIONS.create, loadActionsOnContainerCreation);
 Container.composeOn(ACTIONS.new, setUnignorableDataFields);
+Container.composeOn(ACTIONS.remoteUpdate, loadActionsOnContainerCreation);

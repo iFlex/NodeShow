@@ -10,13 +10,13 @@ import { queueWork } from "./YeldingExecutor.js"
     syncrhonizing, synchronized, lost-connection, got-connection, user-joined, user-left
 */
 let RELEVANT_EVENTS = [
-ACTIONS.create, 
-ACTIONS.delete, 
-ACTIONS.setParent, 
-ACTIONS.update,
-ACTIONS.setPosition,
-ACTIONS.setWidth,
-ACTIONS.setHeight
+    ACTIONS.create, 
+    ACTIONS.delete, 
+    ACTIONS.setParent, 
+    ACTIONS.update,
+    ACTIONS.setPosition,
+    ACTIONS.setWidth,
+    ACTIONS.setHeight
 ]
 
 /** @class */
@@ -246,20 +246,19 @@ export class LiveBridge {
             || data.event == ACTIONS.setHeight
             ) {
                 let child = this.container.lookup(detail.id)
-                //this.container.updateChild(child, detail.descriptor, callerId)
-                this.container.updateChild(child, detail.descriptor, callerId, false) //compliant
+                this.container.updateChild(child, detail.descriptor, callerId, false)
+                this.container.emit(ACTIONS.remoteUpdate, {id:detail.descriptor.id})
             }
             if(data.event == ACTIONS.delete) {
-                //this.container.delete(detail.id, callerId)
-                this.container.delete(detail.id, callerId, false) //compliant
+                this.container.delete(detail.id, callerId, false)
             }
             if(data.event == ACTIONS.create) {
-                //this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId);
-                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId, false); //noncomplianet
+                this.container.createFromSerializable(detail.parentId, detail.descriptor, null, callerId, false);
+                //ToDo: figure out how to attach actions on updates from the server when emit = false
+                this.container.emit(ACTIONS.remoteUpdate, {id:detail.descriptor.id})
             }
             if(data.event == ACTIONS.setParent) {
-                //this.container.setParent(detail.id, detail.parentId, callerId)
-                this.container.setParent(detail.id, detail.parentId || this.container.parent, callerId, false) //compliant
+                this.container.setParent(detail.id, detail.parentId || this.container.parent, callerId, false)
             }
         } catch (e) {
             console.error(`Failed to handle update ${data.event}`, e);
