@@ -68,42 +68,6 @@ export class Container {
 	presentationId = null;
 	socket = null;
     debug = false;
-    
-    #currentMaxZindex = 0;
-    #currentMinZindex = 0;
-    
-    /*
-       Hooks will pass in the same arguments as the original method in the same order and
-    *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
-    *  [NOTE]: Hooks methods should not generate any additional events to be fired.
-        * PreSetterHooks have the ability to stop the hooked method from executing
-        * PostSetterHooks do not have the ability to stop the hooked method from executing. Any exception thrown in a hook handler should be caught and logged (prevented from interfering with execution)
-    */
-    static #hookedSetters = {
-        /**
-         * [TODO-fix][NOTE] called by both createFromSerializable, createFromDom and index
-         * first 2 parameters are always: parentId and child
-         * other parameters depend on the original method (createFromSerializable, createFromDom or index)
-         */
-        // 'create',   //params: ParentId, Child Node, CallerId
-        // 'update',   //params: DOM node, update descriptor, callerId
-        // 'style',    //params: DOM node, style descriptor, callerId
-        // 'setParent' //params: DOME node, new parent DOM node, callerId, options, prev parent Id
-        create:{},//parent, child, caller, emit
-        index:{parentCallback:"create", parameterRemap:[0,1,2,3]},
-        addDomChild:{parentCallback:"create", parameterRemap:[0,1,3,4]},
-        createFromSerializable:{parentCallback:"create", parameterRemap:[0, 5, 3, 4]},
-        
-        update:{},//target, caller, emit
-        styleChild:{parentCallback:"update", parameterRemap:[0,2,3]},
-        removeStyle:{parentCallback:"update", parameterRemap:[0,2,3]},
-        updateChild:{parentCallback:"update", parameterRemap:[0,2,3]},
-        
-        setParent:{},
-    }
-
-    static #preSetterHooks = {}
-    static #postSetterHooks = {}
 
     //[VirtualDOM] Incomplete feature meant to optimize speed of rendering and grouping up large amounts of changes (in order to minimise the amount of redraw events caused by using the Container API)
     virtualDOM = {}
@@ -274,12 +238,6 @@ export class Container {
 		let queue = [root || this.parent]
 		var index = 0
 		var labeledCount = 0;
-
-        //allows indexing without emitting events in the case of interfaces
-        //TODO: evaluate where this is used and consider improving this solution
-        // if (queue[0].getAttribute('data-ignore')) {
-        //     emit = false
-        // }
 
 		do {
 			let item = queue[index]
