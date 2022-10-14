@@ -325,7 +325,7 @@ Container.prototype.getAbstractionLevel = function(c) {
 Container.registerPostSetterHook('new', setUnignorableDataFields);
 Container.registerPostSetterHook('create', applyAbstractionView);
 Container.registerPostSetterHook('setParent', setChildAbsLevelToParentContentAbsLevel);
-Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
+//Container.registerPostSetterHook('update', applyAbstractionViewOnUpdate);
 
 //[TODO]: think of what to do when child already has an abstraction level but is out of bounds of the parent?
 function setChildAbsLevelToParentContentAbsLevel(child, parent, callerId, ignore, emit) {

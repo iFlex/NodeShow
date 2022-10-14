@@ -37,7 +37,7 @@ function emitContainerCreated(context, parent, child, callerId, emit = true) {
     context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
     context.conformToParentRules(child)
     //this container has finally been initialized
-    Container.applyPostHooks(context, 'create', [parent.id, null, null, callerId, emit, child])
+    Container.applyPostHooks(context, 'createFromSerializable', [parent.id, null, null, callerId, emit, child])
 
     if (emit === true) {
         context.emit(ACTIONS.create, {
@@ -139,7 +139,7 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
         return;
     }
     
-    Container.applyPreHooks(this, 'create', [parentId, rawDescriptor, insertBefore, callerId, emit])
+    Container.applyPreHooks(this, 'createFromSerializable', [parentId, rawDescriptor, insertBefore, callerId, emit])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     
@@ -273,7 +273,7 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId, em
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit = true){
     let child = this.lookup(childId)
-    Container.applyPreHooks(this, 'update', [child, rawDescriptor, callerId, emit])
+    Container.applyPreHooks(this, 'updateChild', [child, rawDescriptor, callerId, false])
     
     //bulindly applying all properties received
     for (const [tag, value] of Object.entries(rawDescriptor)) {
@@ -306,7 +306,7 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     }
     
     this.updateZindexLimits(child)
-    Container.applyPostHooks(this, 'update', [child, rawDescriptor, callerId, emit])
+    Container.applyPostHooks(this, 'updateChild', [child, rawDescriptor, callerId, false])
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit === true) {

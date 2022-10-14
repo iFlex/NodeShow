@@ -71,36 +71,39 @@ export class Container {
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
     
-    /*[TODO]: standardize what the parameters will be:
-    //         - need it to be resilient to changing function params as much as possible 
-    //         - need it to be consistent between pre and post hooks.
-    //         - need it to offer as much info as possible to the hook
-    *  Solution 1: preHook: receive exactly the same params as the method
-                  postHook: receive example the same params as the mothos + plus produced values if any
-
-                  + consistent with methods they hook into
-                  + hook has the same info as the original method to act on
-                  - hook method breaks/needs to change if Core API changes
-
-    *  Solution 2: Same as solution 1 but always ensure 1st argument is the subject container
-
+    /*
+       Hooks will pass in the same arguments as the original method in the same order and
     *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
     *  [NOTE]: Hooks methods should not generate any additional events to be fired.
         * PreSetterHooks have the ability to stop the hooked method from executing
         * PostSetterHooks do not have the ability to stop the hooked method from executing. Any exception thrown in a hook handler should be caught and logged (prevented from interfering with execution)
     */
-    static #hookedSetters = new Set([
+    static #hookedSetters = {
         /**
          * [TODO-fix][NOTE] called by both createFromSerializable, createFromDom and index
          * first 2 parameters are always: parentId and child
          * other parameters depend on the original method (createFromSerializable, createFromDom or index)
          */
-        'new',      //params: none
-        'create',   //params: ParentId, Child Node, CallerId
-        'update',   //params: DOM node, update descriptor, callerId
-        'style',    //params: DOM node, style descriptor, callerId
-        'setParent' //params: DOME node, new parent DOM node, callerId, options, prev parent Id
-    ])
+        // 'new',      //params: none
+        // 'create',   //params: ParentId, Child Node, CallerId
+        // 'update',   //params: DOM node, update descriptor, callerId
+        // 'style',    //params: DOM node, style descriptor, callerId
+        // 'setParent' //params: DOME node, new parent DOM node, callerId, options, prev parent Id
+        new:{},
+
+        create:{},//parent, child, caller, emit
+        index:{parentCallback:"create", parameterRemap:[0,1,2,3]},
+        addDomChild:{parentCallback:"create", parameterRemap:[0,1,3,4]},
+        createFromSerializable:{parentCallback:"create", parameterRemap:[0, 5, 3, 4]},
+        
+        update:{},//target, caller, emit
+        styleChild:{parentCallback:"update", parameterRemap:[0,2,3]},
+        removeStyle:{parentCallback:"update", parameterRemap:[0,2,3]},
+        updateChild:{parentCallback:"update", parameterRemap:[0,2,3]},
+        
+        setParent:{},
+    }
+
     static #preSetterHooks = {}
     static #postSetterHooks = {}
 
@@ -138,7 +141,7 @@ export class Container {
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
         this.debug = debug
-        Container.applyPostHooks(this, 'new', [])
+        Container.applyPostHooks(this, 'new', [parentDom, debug])
 
         INSTANCES.add(this)
     }
@@ -295,7 +298,7 @@ export class Container {
 			}
 
             //ToDo pass in emit value
-            Container.applyPostHooks(this, 'create', [this.getParent(item), item, null])
+            Container.applyPostHooks(this, 'index', [item.parentNode, item, null, emit])
 
 			index ++;
             if(emit != false) {
@@ -376,7 +379,7 @@ export class Container {
     }
 
     static #registerHook(set, setter, method) {
-        if (!Container.#hookedSetters.has(setter)) {
+        if (!Container.#hookedSetters[setter]) {
             throw new ContainerException(setter,"registerHook", null,"invalid setter");
         }
 
@@ -387,8 +390,24 @@ export class Container {
         set[setter].push(method)
     }
 
-    static #applyHooks(ctx, set, setter, params) {
-        let methods = set[setter] || []
+    static #mapHookParameters(config, params) {
+        let mappedParams = []
+        for (let i in config.parameterRemap) {
+            let mIndex = config.parameterRemap[i]
+            let mappedParam = null
+            if (mIndex != null) {
+                try {
+                    mappedParam = params[mIndex]
+                } catch (e) {
+                    //todo: tidy
+                }
+            }
+            mappedParams.push(mappedParam)
+        }
+        return mappedParams
+    }
+    
+    static #calleHookMethods(ctx, setter, methods, params) {
         for (const method of methods) {
             try {
                 method.apply(ctx, params)
@@ -396,6 +415,18 @@ export class Container {
                 console.error(`[CORE] Failed to apply ${setter} hook`)
                 console.error(e)
             }
+        }
+    }
+
+    static #applyHooks(ctx, set, setter, params) {
+        let methods = set[setter] || []
+        Container.#calleHookMethods(ctx, setter, methods, params)
+
+        let hookConfig = Container.#hookedSetters[setter]
+        if (hookConfig.parentCallback) {
+            let mappedMethods = set[hookConfig.parentCallback] || []
+            let mappedParameters = Container.#mapHookParameters(hookConfig, params)
+            Container.#calleHookMethods(ctx, hookConfig.parentCallback, mappedMethods, mappedParameters)
         }
     }
 
@@ -811,7 +842,7 @@ export class Container {
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
-        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, emit])
+        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, false])
         
         //console.log(`Change parent for ${child.id} to ${parent.id}`)
         let prevParentId = this.getParent(child).id;
@@ -823,7 +854,7 @@ export class Container {
         this.conformToParentRules(child)
 
         //ToDo: add emit in the hook call
-        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, emit, prevParentId])
+        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, false, {prevParentId:prevParentId}])
         if (emit === true) {
             this.emit(ACTIONS.setParent, {
                 id: child.id,
@@ -924,7 +955,7 @@ export class Container {
 
     //[TODO]: permissions
     styleChild(child, style, callerId, emit = true) {
-        Container.applyPreHooks(this, 'style', [child, style, callerId, emit])
+        Container.applyPreHooks(this, 'styleChild', [child, style, callerId, false])
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -935,7 +966,7 @@ export class Container {
             }
         }
 
-        Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
+        Container.applyPostHooks(this, 'styleChild', [child, style, callerId, false])
         if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
@@ -950,6 +981,8 @@ export class Container {
             return;
         }
 
+        Container.applyPreHooks(this, 'removeStyle', [child, style, callerId, false])
+
         for (const [tag, value] of Object.entries(style)) {
             let currentValue = child.style.getPosition(tag)
             if (value == null || value == currentValue) {
@@ -957,7 +990,7 @@ export class Container {
             }
         }
 
-        Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
+        Container.applyPostHooks(this, 'removeStyle', [child, style, callerId, false])
         if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
@@ -1057,7 +1090,7 @@ export class Container {
      * Events per call: 1 + hooks
      */
     addDomChild(parentId, domNode, callerId, emit = true) {
-        Container.applyPreHooks(this, 'create', [parentId, domNode, callerId])
+        Container.applyPreHooks(this, 'addDomChild', [parentId, domNode, callerId, false])
 
         let parent = this.lookup(parentId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
@@ -1066,7 +1099,7 @@ export class Container {
             domNode.id = Container.generateUUID(); //pref considerable
             parent.appendChild(domNode);
 
-            Container.applyPostHooks(this, 'create', [this.getParent(domNode), domNode, callerId])
+            Container.applyPostHooks(this, 'addDomChild', [parent, domNode, callerId, false])
             this.updateZindexLimits(domNode)
             this.conformToParentRules(domNode)
             this.virtualDOM[domNode.id] = domNode
