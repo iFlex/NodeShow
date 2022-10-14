@@ -41,7 +41,10 @@ Link are currently a performance issue - they seem to slow down the server
 Current Prios:
 --------------------------------------------
 [TODO][M]: Reduce reliance on update on core composeOn methods. Rather than tied to udpate, tie them to more specific events
-
+[TODO][S]: Add concept of local container. So all descendents will also be local and LiveBridge will ignore them
+[TODO][M]: Cascade up edit actions perfecting:
+    - editPos should correctly position the element even if the drag starts on a inner child that can't be moved
+    - editSize should correcly size the parent
 [TODO][L]: build a better abstraction/summarisation editor.
     - current one is a hack anyway
 [TODO][S]: Figure out how to tippy toe around saving information about the presentation root.
@@ -64,9 +67,6 @@ Current Prios:
 [TODO][M]*: Tidy up LiveBridge & make it compact events before sending: this should happen via compacting queue.
 [TODO][?]: Ability to set URL refrence to a local container and when clicked reveal (unearth it from abstraction levels) it & focus on it.(or container from a different NodeShow)
 [TODO][M]: Evolve color picker to allow picking color palettes, creating a palettes, etc.
-[TODO][M]: Cascade up edit actions perfecting:
-    - editPos should correctly position the element even if the drag starts on a inner child that can't be moved
-    - editSize should correcly size the parent
 
 [TODO]: Zoom level affects positioning. Decide if you'll recursively calculate abs pos for every input event, or continue relying on pageX, pageY + find a way to deal with zoom levels. Maybe don't worry about nested cameras just yet?
     - [DECISION]: do not support nested cameras

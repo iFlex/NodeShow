@@ -291,7 +291,11 @@ export class Container {
             
             if (item.children) {
 				for (const child of item.children) {
-					queue.push(child)
+                    //ToDo: consider if wanna condition this
+					if (this.isLocalOnly(item)) {
+                        this.markDOMNodeasLocalOnly(child)
+                    }
+                    queue.push(child)
 				}
 			}
 
@@ -501,6 +505,21 @@ export class Container {
         return perms
     }
     //<extensions subsystem>
+
+    isLocalOnly(node) {
+        node = this.lookup(node, false) || {dataset:{}};
+        return node.dataset.ignore
+    }
+
+    markDOMNodeasLocalOnly(dom) {
+        dom.dataset.ignore = true
+    }
+
+    markChildAsLocalOnlyIfNeeded(parent, child) {
+        if (this.isLocalOnly(parent)) {
+            this.markDOMNodeasLocalOnly(child)
+        }
+    }
 
     isVisible(node) {
         node = this.lookup(node);
@@ -814,7 +833,7 @@ export class Container {
                 id:elem.id,
                 callerId:callerId
             });
-            //this.notifyUpdate(id, call)
+            this.notifyUpdate(id, callerId)
         }
     }
 
@@ -829,7 +848,7 @@ export class Container {
                 id:elem.id,
                 callerId:callerId
             });
-            //this.notifyUpdate(id, call)
+            this.notifyUpdate(id, callerId)
         }
     }
 
@@ -982,6 +1001,7 @@ export class Container {
         if (domNode) {
             domNode.id = Container.generateUUID(); //pref considerable
             parent.appendChild(domNode);
+            this.markChildAsLocalOnlyIfNeeded(parent, domNode)
 
             this.updateZindexLimits(domNode)
             this.conformToParentRules(domNode)
@@ -1189,9 +1209,9 @@ export class Container {
 
     //<events>
     notifyUpdate(id, callerId, subset) {
-        if (!callerId) {
-            throw `Failed to notifyUpdate, no caller id provided...`
-        }
+        // if (!callerId) {
+        //     throw `Failed to notifyUpdate, no caller id provided...`
+        // }
 
         let node = (id) ? this.lookup(id) : this.parent
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId, subset:subset})
@@ -1313,6 +1333,7 @@ export class Container {
 function loadPermissionsFromDataset(event) {
     this.loadPermissionsFromDataset(this.lookup(event.id, false))
 }
+
 
 Container.composeOn(ACTIONS.create, loadPermissionsFromDataset)
 //ToDo: narrow this down

@@ -70,6 +70,7 @@ function addChildNodes(context, elem, callerId, emit = true) {
         } else {
             let nodeDOM = document.createTextNode(node.value)
             elem.appendChild(nodeDOM)
+            context.markChildAsLocalOnlyIfNeeded(elem, nodeDOM)
         }
     }
 
@@ -108,6 +109,7 @@ function makeAndInsertChild(context, rawDescriptor, parent, insertBefore) {
         //ToDo: insert before could mess up with correct initialisation of parents...hmm
     } else {
         parent.appendChild(child);
+        context.markChildAsLocalOnlyIfNeeded(parent, child)
     }
     context.virtualDOM[child.id] = child
     return child

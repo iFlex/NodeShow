@@ -115,6 +115,10 @@ export class LiveBridge {
         let raw = null
         if (eventType != 'container.delete') {
             raw = this.container.toSerializable(targetId);
+            if (this.container.isLocalOnly(targetId)) {
+                return;
+            }
+
             try {
                 //ToDo: is this the right place for permissions check?
                 this.container.isOperationAllowed(ACTIONS.bridge, this.container.lookup(targetId), e.detail.callerId)    

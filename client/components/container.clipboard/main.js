@@ -32,6 +32,7 @@ export class ContainerClipboard {
 			nodeName:"TEXTAREA",
 			"data":{
 		    	"ignore":true,
+				"data":{"ignore":true},
 		    	"containerPermissions":{
 					"container.broadcast":{"*":false},
 					"container.bridge":{"*":false}
