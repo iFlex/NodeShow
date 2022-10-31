@@ -92,10 +92,13 @@ for (const prezzoId of Presentations.list()) {
 }
 
 
-function newPrezzo(creator) {
-  let prezzo = Presentations.createNew(null, creator)
-  presentations[prezzo.id] = {"id":prezzo.id, sockets:{}, presentation: prezzo}
+function newPrezzo(creator, owner) {
+  if (!owner) {
+    owner = creator
+  }
 
+  let prezzo = Presentations.createNew(null, creator, owner)
+  presentations[prezzo.id] = {"id":prezzo.id, sockets:{}, presentation: prezzo}
   return prezzo.id;
 }
 
@@ -137,11 +140,14 @@ function manuallyHandle(url, req, res) {
 dispatcher.onGet("/new", function(req, res) {
   console.log(`Call to /new`)
   let cookie = verifyRequest(req, res);
+  let owner = req.headers.owner;
   let id = null;
+  
   try {
-    id = newPrezzo(Users.lookup(cookie.id));  
+    id = newPrezzo(Users.lookup(cookie.id), owner);  
+    console.log(`Created new presentation(${id}) for ${owner}. Created by ${cookie.id}`)
   } catch (e) {
-    console.error(`Failed to create new presentation for user ${cookie.id}: ${e}`)
+    console.error(`Failed to create new presentation for user ${owner} by ${cookie.id}: ${e}`)
     endWithError(res)
     return;
   }

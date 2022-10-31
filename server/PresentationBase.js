@@ -16,11 +16,11 @@ class PresentationBase {
 		}
 	}
 	
-	createMetadata(tag, creator) {
+	createMetadata(tag, creator, owner) {
 		return {
 			id: tag,
 			created: Date.now(),
-			owner: creator, 
+			owner: (owner || creator), 
 			creator: creator,
 			last_updated: Date.now(),
 			settings: {
@@ -31,14 +31,14 @@ class PresentationBase {
 		}
 	}
 
-	createNew(tag, creator, failOnNoStorage) {
+	createNew(tag, creator, owner, failOnNoStorage) {
 		if (!tag) {
 			tag = PresentationBase.makeId(5);
 			if (this.storage.get(tag)) {
 				throw 'Presentation ID already exists';
 			}
 
-			this.storage.persist(tag, this.createMetadata(tag, creator.id))
+			this.storage.persist(tag, this.createMetadata(tag, creator.id, owner))
 		}
 
 		let prezzo = new Presentation(tag, this.storage, failOnNoStorage);
