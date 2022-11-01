@@ -183,7 +183,11 @@ export class Container {
         if (realNode) {
             return realNode
         }
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> bc9724e41c5bcabc1f8831f09cad54f59b87f3e7
         let virtualNode = this.virtualDOM[id]
         if (!virtualNode && throwIfNotFound === true) {
             throw new ContainerException(id,"lookup", null,"not found");
