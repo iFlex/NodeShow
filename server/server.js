@@ -356,7 +356,6 @@ io.on('connection', function (socket) {
   });
 
   socket.on('update', (data, ack) => {
-    // let s = Date.now()
     try {
       handleBridgeUpdate(data, socket)    
       if (ack) {
@@ -366,15 +365,19 @@ io.on('connection', function (socket) {
       console.error(`Failed to process bridge update`)
       console.error(e)
     }
-    // let e = Date.now()
-    // totalServiceTime += (e-s)
-    // services++;
-    // console.log(`Service time: ${e - s} avg:${totalServiceTime/servicesa}`)
   });
 
   socket.on('activity', (data, ack) => {
-    console.log('activity update:')
-    console.log(data);
+    let cookie = authorize(socket.handshake.headers, socket)
+    let prezId = data.presentationId;
+    let sessionId = data.sessionId;
+    let prezzo = presentations[prezId];
+
+    if (prezzo) {
+      console.log(`User activity received ${JSON.stringify(data)}`)
+      //ToDo: make this subscription based and protect with permissions (who can receive activity updates. Definitely shouldn't broadcast this to all sockets in prezzo)
+      broadcast(sessionId, ['activity', data], prezzo.sockets);
+    }
   })
  
   socket.on("disconnect", (e) => {
@@ -496,6 +499,7 @@ function broadcast(senderId, message, sockets) {
 
   for (const [socSessionId, record] of Object.entries(sockets)) {
     if (socSessionId != senderId) {
+      //console.log(`broadcasting to ${socSessionId} of total(${Object.entries(sockets).length})`)
       record.socket.emit(message[0], message[1]);
     }
   }

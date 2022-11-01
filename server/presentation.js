@@ -99,7 +99,7 @@ class Presentation {
 			if (key in schema.exact) {
 				rule = schema.exact[key]
 			} else {
-				console.log(`Unmatched key ${key}`)
+				//console.log(`Unmatched key ${key}`)
 				for (const wildc of Object.keys(schema.partial)) {
 					if (key.includes(wildc)) {
 						rule = schema.partial[wildc]
