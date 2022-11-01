@@ -79,7 +79,7 @@ export class NewsStand {
 	  }
 
     findContainingDiv(node) {
-      while (node != this.#container.parent) {
+      while (node && node != this.#container.parent) {
         if (node.nodeName === 'DIV') {
           if (node.id === "newsstand-interface") {
             return null;
@@ -116,7 +116,7 @@ export class NewsStand {
     }
 
     onClick(e) {
-      let node = this.findContainingDiv(this.#container.lookup(e.explicitOriginalTarget))
+      let node = this.findContainingDiv(this.#container.lookupReal(e.detail.originalEvent.target, false))
       this.showInterface(node);
     }
 }
