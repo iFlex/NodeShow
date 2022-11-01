@@ -15,9 +15,9 @@
   <script type="module" src="nodeshow.js"></script>
   <!-- Extensions -->
   <script type="module">
-    import { container } from "./nodeshow.js"
+    import { container, bridge } from "./nodeshow.js"
     import { NewsStand } from "./components/container.newsstand/main.js"
-    let newsStand = new NewsStand(container);
+    let newsStand = new NewsStand(container, bridge);
     newsStand.enable();
 
     //experimental

@@ -371,6 +371,11 @@ io.on('connection', function (socket) {
     // services++;
     // console.log(`Service time: ${e - s} avg:${totalServiceTime/servicesa}`)
   });
+
+  socket.on('activity', (data, ack) => {
+    console.log('activity update:')
+    console.log(data);
+  })
  
   socket.on("disconnect", (e) => {
     console.log(`Connection closed:${e}`);
