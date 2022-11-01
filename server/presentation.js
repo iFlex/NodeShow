@@ -172,10 +172,13 @@ class Presentation {
 	    	} else if(data.event == Events.delete) {
 	    		let id = data.detail.id
 				if (id in this.rawData) {
-					if (this.rawData[id].parentId) {
+					let toBeDeleted = this.rawData[id];
+					delete this.rawData[id];
+
+					if (toBeDeleted.parentId) {
 						//remove child ref
-						let parent = this.rawData[this.rawData[id].parentId]
-						if (parent) {
+						let parent = this.rawData[toBeDeleted.parentId]
+						if (parent && parent.childNodes) {
 							//remove from child links
 							for (let i = 0 ; i < parent.childNodes.length; ++i) {
 								if (parent.childNodes[i].id == id) {
@@ -185,8 +188,6 @@ class Presentation {
 							}
 						}
 					}
-					
-					delete this.rawData[id]
 				}
 				if (id in this.roots) {
 					delete this.roots[id]

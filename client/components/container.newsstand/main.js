@@ -93,7 +93,7 @@ export class NewsStand {
 
     delete() {
       let target = this.hideInterface();
-      this.#container.delete(target, this.appId);
+      this.#container.delete(target, this.appId, true);
     }
 
     showInterface(node) {
