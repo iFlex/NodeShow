@@ -336,7 +336,7 @@ io.on('connection', function (socket) {
     let prezzo = presentations[prezId];
 
     if (prezzo) {
-      let cookie = authorize(socket.handshake.headers)
+      let cookie = authorize(socket.handshake.headers, socket)
       let user = Users.lookup(cookie.id);
       user.sessionId = utils.makeAuthToken(64); 
       if (!user.id) {
@@ -449,7 +449,7 @@ function handleBulkUpdate(data) {
 }
 
 function handleBridgeUpdate(parsed, originSocket) {
-  let cookie = authorize(originSocket.handshake.headers)
+  let cookie = authorize(originSocket.handshake.headers, originSocket)
   let user = Users.lookup(cookie.id);
   
   if (debug_level > 2) {
@@ -555,11 +555,12 @@ function deletePresentation(user, details) {
   Presentations.remove(details.id)
 }
 
-function authorize(headers) {
+function authorize(headers, soc) {
   let bearer = headers['authorization']
   let cookie = {}
   
-  //[TODO]:Secure this. Temporary and super insecure - meant to me more than just nothing
+  //[TODO]:Secure this. Temporary and super insecure - meant to be more than just nothing.
+  //Make sure you change the token in production so that the dummy one can't get stolen from code
   if (bearer) {
     cookie.id = 'robot'
     cookie.token = bearer
@@ -575,7 +576,7 @@ function authorize(headers) {
 
 function verifyRequest(request, response) {
   try {
-    return authorize(request.headers)
+    return authorize(request.headers, request.socket)
   } catch (e) {
     if (response) {
       redirect('/login.html', response)

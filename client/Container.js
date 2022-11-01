@@ -160,7 +160,7 @@ export class Container {
     * @returns {DOMObject} the DOM object with the given id
     */
 	lookupReal(id, throwIfNotFound = true) {
-		if (id instanceof Element) {
+		if (id instanceof Element || id instanceof Node) {
             return id;
         }
 
