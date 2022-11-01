@@ -3,7 +3,8 @@ import { EVENTS as MouseEvents, Mouse } from '../utils/mouse.js'
 import { Keyboard } from '../utils/Keyboards.js'
 import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 
-//ToDo: Mobile integration
+//ToDo: Found bug: if you propagate events about the interface. The server will mess up the container where the interface is shown...
+//seems to be connected to the fact that the interface is not sent over the network, but container.update on news card will contain information about it
 export class NewsStand {
     appId = 'container.newsstand'
  
@@ -61,6 +62,10 @@ export class NewsStand {
       //ToDo
     }
 
+    save() {
+      //ToDo
+    }
+
     disable() {
       if (this.#enabled) {
         this.#enabled = false
@@ -97,13 +102,13 @@ export class NewsStand {
       }
 
       this.#target = node
-      this.#container.setParent(this.#interface, this.#target, this.appId)
-      this.#container.show(this.#interface, this.appId)
+      this.#container.setParent(this.#interface, this.#target, this.appId, null, false)
+      this.#container.show(this.#interface, this.appId, false)
     }
 
     hideInterface() {
-      this.#container.hide(this.#interface, this.appId)
-      this.#container.setParent(this.#interface, this.#container.parent, this.appId)
+      this.#container.hide(this.#interface, this.appId, false)
+      this.#container.setParent(this.#interface, this.#container.parent, this.appId, null, false)
       
       let target = this.#target
       this.#target = null;
