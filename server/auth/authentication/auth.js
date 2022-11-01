@@ -12,6 +12,9 @@ class Authenticator {
 			let token = tokenStorage.get(id)
 			this.#reg[id] = token
 		}
+
+		console.log("Loaded users")
+		console.log(Object.keys(this.#reg))
 	}
 
 	verifyToken(userId, token) {

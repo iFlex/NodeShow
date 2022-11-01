@@ -1,6 +1,7 @@
-import {Container} from "./Container.js"
+import { Container, ACTIONS } from "./Container.js"
 
 /*
+    ToDo: figure out why currently reloading the prezzon fails to reattach the hooks for certain elements like for the text editor
     The idea here is that you can bind actions to a container
     data-action: {"trigger":"event_name","call":"method.name","params":["p1","p2",...]}
 */
@@ -144,15 +145,16 @@ Container.prototype.attachAction = function(node, actionDescriptor) {
     }
 }
 
-Container.registerPostSetterHook('create', function(parentId, node){
-    return this.initActions(node)
-});
-
-Container.registerPostSetterHook('new', setUnignorableDataFields);
-
 function setUnignorableDataFields() {
     if (typeof this.serializerCannotIgnore === 'function') {
         this.serializerCannotIgnore('data','containerActions')
     }
-    return 1
 }
+
+function loadActionsOnContainerCreation(e) {
+    this.initActions(this.lookup(e.id, false))
+}
+
+Container.composeOn(ACTIONS.new, setUnignorableDataFields);
+Container.composeOn(ACTIONS.create, loadActionsOnContainerCreation);
+Container.composeOn(ACTIONS.remoteUpdate, loadActionsOnContainerCreation);

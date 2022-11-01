@@ -10,6 +10,7 @@ import { ContainerException, ContainerOperationDenied, ContainerOperationNotAppl
 //[TODO]: postSetterHooks and preSetterHooks should not fire any events. Save this decision somewhere
 
 export const ACTIONS = {
+    new: 'instance.new',
     create: 'container.create',
     delete: 'container.delete',
     deleteSparingChildren: 'container.delete.sparingChildren',
@@ -38,6 +39,7 @@ export const ACTIONS = {
     componentRemoved: 'container.component.removed',
     loadHTML: 'container.loadHTML',
 
+    remoteUpdate: 'container.bridge.update',
     connected: 'container.bridge.connected',
     disconnected: 'container.bridge.disconnected'
 }
@@ -71,39 +73,6 @@ export class Container {
     #currentMaxZindex = 0;
     #currentMinZindex = 0;
     
-    /*[TODO]: standardize what the parameters will be:
-    //         - need it to be resilient to changing function params as much as possible 
-    //         - need it to be consistent between pre and post hooks.
-    //         - need it to offer as much info as possible to the hook
-    *  Solution 1: preHook: receive exactly the same params as the method
-                  postHook: receive example the same params as the mothos + plus produced values if any
-
-                  + consistent with methods they hook into
-                  + hook has the same info as the original method to act on
-                  - hook method breaks/needs to change if Core API changes
-
-    *  Solution 2: Same as solution 1 but always ensure 1st argument is the subject container
-
-    *  [NOTE][TODO - fix]: create is problematic as the same operation can be achieved via 2 functions
-    *  [NOTE]: Hooks methods should not generate any additional events to be fired.
-        * PreSetterHooks have the ability to stop the hooked method from executing
-        * PostSetterHooks do not have the ability to stop the hooked method from executing. Any exception thrown in a hook handler should be caught and logged (prevented from interfering with execution)
-    */
-    static #hookedSetters = new Set([
-        /**
-         * [TODO-fix][NOTE] called by both createFromSerializable, createFromDom and index
-         * first 2 parameters are always: parentId and child
-         * other parameters depend on the original method (createFromSerializable, createFromDom or index)
-         */
-        'new',      //params: none
-        'create',   //params: ParentId, Child Node, CallerId
-        'update',   //params: DOM node, update descriptor, callerId
-        'style',    //params: DOM node, style descriptor, callerId
-        'setParent' //params: DOME node, new parent DOM node, callerId, options, prev parent Id
-    ])
-    static #preSetterHooks = {}
-    static #postSetterHooks = {}
-
     //[VirtualDOM] Incomplete feature meant to optimize speed of rendering and grouping up large amounts of changes (in order to minimise the amount of redraw events caused by using the Container API)
     virtualDOM = {}
     
@@ -138,9 +107,9 @@ export class Container {
 		this.parent = parentDom;
 		this.presentationId = Container.getQueryVariable("pid")
         this.debug = debug
-        Container.applyPostHooks(this, 'new', [])
-
+        
         INSTANCES.add(this)
+        this.emit(ACTIONS.new, {root:parentDom, debug:debug})
     }
 
     //<utils>
@@ -191,7 +160,7 @@ export class Container {
     * @returns {DOMObject} the DOM object with the given id
     */
 	lookupReal(id, throwIfNotFound = true) {
-		if (id instanceof Element) {
+		if (id instanceof Element || id instanceof Node) {
             return id;
         }
 
@@ -214,7 +183,11 @@ export class Container {
         if (realNode) {
             return realNode
         }
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> bc9724e41c5bcabc1f8831f09cad54f59b87f3e7
         let virtualNode = this.virtualDOM[id]
         if (!virtualNode && throwIfNotFound === true) {
             throw new ContainerException(id,"lookup", null,"not found");
@@ -274,12 +247,6 @@ export class Container {
 		var index = 0
 		var labeledCount = 0;
 
-        //allows indexing without emitting events in the case of interfaces
-        //TODO: evaluate where this is used and consider improving this solution
-        if (queue[0].getAttribute('data-ignore')) {
-            emit = false
-        }
-
 		do {
 			let item = queue[index]
             
@@ -290,12 +257,12 @@ export class Container {
             
             if (item.children) {
 				for (const child of item.children) {
-					queue.push(child)
+					if (this.isLocalOnly(item)) {
+                        this.markDOMNodeasLocalOnly(child)
+                    }
+                    queue.push(child)
 				}
 			}
-
-            //ToDo pass in emit value
-            Container.applyPostHooks(this, 'create', [this.getParent(item), item, null])
 
 			index ++;
             if(emit != false) {
@@ -351,78 +318,6 @@ export class Container {
 	}
     //</utils>
 
-    //<hooks>   
-    //WARNING: This system is incredibly easy to missuse. 
-    // 1. it is critical that every wook you implement passes down the CallerId it is given
-    // 2. need to be very careful with the parameter as they are not named and are positional (for performance reasons)
-    //    making it very easy to omit or even have a parameter loaded with an unexpected value
-    /**
-    * @summary Registers a method to be called before the normal operation of a setter method from core functionality.
-    * @param {string} setter - setter name
-    * @param {method} method - method reference.
-    */
-    static registerPreSetterHook(setter, method) {
-        Container.#registerHook(Container.#preSetterHooks, setter, method)
-    }
-
-    /**
-    * @summary Registers a method to be called after the normal operation of a setter method from core functionality.
-    * @description This runs before any events are emitted by the original method.
-    * @param {string} setter - setter name
-    * @param {method} method - method reference.
-    */
-    static registerPostSetterHook(setter, method) {
-        Container.#registerHook(Container.#postSetterHooks, setter, method)
-    }
-
-    static #registerHook(set, setter, method) {
-        if (!Container.#hookedSetters.has(setter)) {
-            throw new ContainerException(setter,"registerHook", null,"invalid setter");
-        }
-
-        if (!set[setter]) {
-            set[setter] = []
-        }
-        
-        set[setter].push(method)
-    }
-
-    static #applyHooks(ctx, set, setter, params) {
-        let methods = set[setter] || []
-        for (const method of methods) {
-            try {
-                method.apply(ctx, params)
-            } catch (e) {
-                console.error(`[CORE] Failed to apply ${setter} hook`)
-                console.error(e)
-            }
-        }
-    }
-
-    /**
-    * @summary Runs the preSetter hooks for a given setter and a given Container instance
-    *
-    * @param {reference} context - Container instance reference 
-    * @param {string} setter - setter name
-    * @param {array} params - array of parameters to pass to the hooks.
-    */
-    static applyPreHooks(ctx, setter, params) {
-        Container.#applyHooks(ctx, Container.#preSetterHooks, setter, params)
-    }
-
-    /**
-    * @summary Runs the postSetter hooks for a given setter and a given Container instance
-    * @description This method applies all registered post setter hooks for a named setter right before the hooked method's event firing (if any). 
-    * Any exception thrown by the hook handler will be caught and logged, preventing it from failing to fire the hook method event.
-    * @param {reference} context - Container instance reference 
-    * @param {string} setter - setter name
-    * @param {array} params - array of parameters to pass to the hooks.
-    */
-    static applyPostHooks(ctx, setter, params) {
-        Container.#applyHooks(ctx, Container.#postSetterHooks, setter, params)
-    }
-
-    //</hooks>
     /**
     * @summary Chechks wether an operation can be carried out on a container by a caller
     * @throws throws a string exception if operation is not allowed
@@ -575,6 +470,21 @@ export class Container {
         return perms
     }
     //<extensions subsystem>
+
+    isLocalOnly(node) {
+        node = this.lookup(node, false) || {dataset:{}};
+        return node.dataset.ignore
+    }
+
+    markDOMNodeasLocalOnly(dom) {
+        dom.dataset.ignore = true
+    }
+
+    markChildAsLocalOnlyIfNeeded(parent, child) {
+        if (this.isLocalOnly(parent)) {
+            this.markDOMNodeasLocalOnly(child)
+        }
+    }
 
     isVisible(node) {
         node = this.lookup(node);
@@ -811,8 +721,6 @@ export class Container {
         this.isOperationAllowed(ACTIONS.setParent, child, callerId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
         
-        Container.applyPreHooks(this, 'setParent', [child, parent, callerId, options, emit])
-        
         //console.log(`Change parent for ${child.id} to ${parent.id}`)
         let prevParentId = this.getParent(child).id;
         if (options && options.insertBefore && parent.firstChild) {
@@ -822,8 +730,6 @@ export class Container {
         }
         this.conformToParentRules(child)
 
-        //ToDo: add emit in the hook call
-        Container.applyPostHooks(this, 'setParent', [child, parent, callerId, options, emit, prevParentId])
         if (emit === true) {
             this.emit(ACTIONS.setParent, {
                 id: child.id,
@@ -892,7 +798,7 @@ export class Container {
                 id:elem.id,
                 callerId:callerId
             });
-            //this.notifyUpdate(id, call)
+            this.notifyUpdate(id, callerId)
         }
     }
 
@@ -907,7 +813,7 @@ export class Container {
                 id:elem.id,
                 callerId:callerId
             });
-            //this.notifyUpdate(id, call)
+            this.notifyUpdate(id, callerId)
         }
     }
 
@@ -924,7 +830,6 @@ export class Container {
 
     //[TODO]: permissions
     styleChild(child, style, callerId, emit = true) {
-        Container.applyPreHooks(this, 'style', [child, style, callerId, emit])
         let computedStyle = window.getComputedStyle(child)
         for (const [tag, value] of Object.entries(style)) {
             if (Container.isFunction(value)) {
@@ -935,7 +840,6 @@ export class Container {
             }
         }
 
-        Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
         if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
@@ -957,7 +861,6 @@ export class Container {
             }
         }
 
-        Container.applyPostHooks(this, 'style', [child, style, callerId, emit])
         if(emit === true) {
             this.emit(ACTIONS.update, {
                 id:child.id, 
@@ -1057,16 +960,14 @@ export class Container {
      * Events per call: 1 + hooks
      */
     addDomChild(parentId, domNode, callerId, emit = true) {
-        Container.applyPreHooks(this, 'create', [parentId, domNode, callerId])
-
         let parent = this.lookup(parentId);
         this.isOperationAllowed(ACTIONS.create, parent, callerId);
 
         if (domNode) {
             domNode.id = Container.generateUUID(); //pref considerable
             parent.appendChild(domNode);
+            this.markChildAsLocalOnlyIfNeeded(parent, domNode)
 
-            Container.applyPostHooks(this, 'create', [this.getParent(domNode), domNode, callerId])
             this.updateZindexLimits(domNode)
             this.conformToParentRules(domNode)
             this.virtualDOM[domNode.id] = domNode
@@ -1273,12 +1174,19 @@ export class Container {
 
     //<events>
     notifyUpdate(id, callerId, subset) {
-        if (!callerId) {
-            throw `Failed to notifyUpdate, no caller id provided...`
-        }
+        // if (!callerId) {
+        //     throw `Failed to notifyUpdate, no caller id provided...`
+        // }
 
         let node = (id) ? this.lookup(id) : this.parent
         this.emit(ACTIONS.update, {id:node.id, callerId:callerId, subset:subset})
+    }
+
+    static #chainedWork = {}
+    static composeOn(event, method) {
+        let list = Container.#chainedWork[event] || []
+        list.push(method)
+        Container.#chainedWork[event] = list
     }
 
 	//ToDo: consider creating an abstraction over the event system. The current solution is a synchronous event system which could start buckling with many listeners and events.
@@ -1291,6 +1199,16 @@ export class Container {
         //     console.error(details)
         //     throw `Missing mandatory caller_id in event ${type}`
         // }
+        
+        //EXPERIMENTAL
+        let chain = Container.#chainedWork[type] || []
+        for (let method of chain) {
+            try {
+                method.apply(this, [details])
+            } catch (e) {
+                console.error(e)
+            }
+        }
 
         details['type'] = type;
 		const event = new CustomEvent(type, {
@@ -1377,11 +1295,12 @@ export class Container {
 }
 
 //load persisted permissions when node is created
-function loadPermissionsFromDataset(parentId, node) {
-    return this.loadPermissionsFromDataset(node)
+function loadPermissionsFromDataset(event) {
+    this.loadPermissionsFromDataset(this.lookup(event.id, false))
 }
 
-Container.registerPostSetterHook('create', loadPermissionsFromDataset)
-Container.registerPostSetterHook('update', function(node, descriptor){
-    return this.loadPermissionsFromDataset(node)
-})
+
+Container.composeOn(ACTIONS.create, loadPermissionsFromDataset)
+//ToDo: narrow this down
+Container.composeOn(ACTIONS.update, loadPermissionsFromDataset)
+Container.composeOn(ACTIONS.remoteUpdate, loadPermissionsFromDataset)

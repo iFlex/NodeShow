@@ -37,7 +37,6 @@ function emitContainerCreated(context, parent, child, callerId, emit = true) {
     context.setMetadata(child.id, CONTAINER_COMPLETE_INDICATOR, true)
     context.conformToParentRules(child)
     //this container has finally been initialized
-    Container.applyPostHooks(context, 'create', [parent.id, null, null, callerId, emit, child])
 
     if (emit === true) {
         context.emit(ACTIONS.create, {
@@ -71,6 +70,7 @@ function addChildNodes(context, elem, callerId, emit = true) {
         } else {
             let nodeDOM = document.createTextNode(node.value)
             elem.appendChild(nodeDOM)
+            context.markChildAsLocalOnlyIfNeeded(elem, nodeDOM)
         }
     }
 
@@ -109,6 +109,7 @@ function makeAndInsertChild(context, rawDescriptor, parent, insertBefore) {
         //ToDo: insert before could mess up with correct initialisation of parents...hmm
     } else {
         parent.appendChild(child);
+        context.markChildAsLocalOnlyIfNeeded(parent, child)
     }
     context.virtualDOM[child.id] = child
     return child
@@ -139,7 +140,6 @@ Container.prototype.createFromSerializable = function(parentId, rawDescriptor, i
         return;
     }
     
-    Container.applyPreHooks(this, 'create', [parentId, rawDescriptor, insertBefore, callerId, emit])
     let parent = resolveParentForCreation(this, parentId, rawDescriptor)
     this.isOperationAllowed(ACTIONS.create, parent, callerId);
     
@@ -273,7 +273,6 @@ Container.prototype.reorderChildren = function(elem, rawDescriptor, callerId, em
 */
 Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emit = true){
     let child = this.lookup(childId)
-    Container.applyPreHooks(this, 'update', [child, rawDescriptor, callerId, emit])
     
     //bulindly applying all properties received
     for (const [tag, value] of Object.entries(rawDescriptor)) {
@@ -306,7 +305,6 @@ Container.prototype.updateChild = function(childId, rawDescriptor, callerId, emi
     }
     
     this.updateZindexLimits(child)
-    Container.applyPostHooks(this, 'update', [child, rawDescriptor, callerId, emit])
     if (rawDescriptor['computedStyle']) {
         this.styleChild(child, rawDescriptor['computedStyle'], callerId, emit)    
     } else if(emit === true) {

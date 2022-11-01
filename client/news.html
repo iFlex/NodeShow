@@ -8,14 +8,18 @@
     <title>News Stand</title>
   </head>
   <body>
-    <div id="news-viewport" class="news-feed-viewport">
+    <div id="nodeshow-content" class="news-feed-viewport">
     </div>
   </body>
   <!-- CORE -->
   <script type="module" src="nodeshow.js"></script>
   <!-- Extensions -->
-  <script type="module" src="components/container.interact.collapse/main.js"></script>
-  <script type="text/javascript">
+  <script type="module">
+    import { container } from "./nodeshow.js"
+    import { NewsStand } from "./components/container.newsstand/main.js"
+    let newsStand = new NewsStand(container);
+    newsStand.enable();
+
     //experimental
     function resizeBody() {
       let w = window.innerWidth;

@@ -84,7 +84,8 @@ export class ContainerMover {
 		}
 	}
 	
-	modifyContainer(target, x, y, targetOx, targetOy) {
+	//ToDo: Fix incredibly annoying positioning problem when dragging over non positionable elements
+	modifyContainer(target, x, y, targetOx, targetOy, dx, dy) {
 		let newPos = {
 			top: y,
 			left: x,
@@ -93,14 +94,19 @@ export class ContainerMover {
 		}
 		
 		let keepTrying = true;
+		let depth = 0;
 		while (keepTrying && target != this.container.parent) {
 			try {
-				this.container.setPosition(target, newPos, this.appId)
+				if (!depth) {
+					this.container.setPosition(target, newPos, this.appId)
+				} else {
+					this.container.move(target, dx, dy, this.appId)
+				}
 				break;
 			} catch (e) {
+				depth++;
 				keepTrying = this.container.couldBeTriedOnParent(e)
 				target = this.container.getParent(target)
-				//ToDo: recompute params
 			}
 		}
 	}
@@ -129,7 +135,9 @@ export class ContainerMover {
 			d.originalEvent.clientX, //d.position.x, //TODO: make position indicate it is the global position
 			d.originalEvent.clientY, //d.position.y,
 			d.targetOx, 
-			d.targetOy)
+			d.targetOy,
+			d.dx,
+			d.dy)
 		let postTargetPos = this.container.getPosition(tnode)
 		
 		let dy = postTargetPos.top - preTargetPos.top
