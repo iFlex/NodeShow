@@ -336,7 +336,13 @@ io.on('connection', function (socket) {
     let prezzo = presentations[prezId];
 
     if (prezzo) {
-      let cookie = authorize(socket.handshake.headers, socket)
+      let cookie = null;
+      try {
+        cookie = authorize(socket.handshake.headers, socket)
+      } catch (e) {
+        return;
+      }
+      
       let user = Users.lookup(cookie.id);
       user.sessionId = utils.makeAuthToken(64); 
       if (!user.id) {
@@ -368,7 +374,13 @@ io.on('connection', function (socket) {
   });
 
   socket.on('activity', (data, ack) => {
-    let cookie = authorize(socket.handshake.headers, socket)
+    let cookie = null;
+    try {
+      cookie = authorize(socket.handshake.headers, socket)
+    } catch (e) {
+      return;
+    }
+
     let prezId = data.presentationId;
     let sessionId = data.sessionId;
     let prezzo = presentations[prezId];
@@ -457,7 +469,13 @@ function handleBulkUpdate(data) {
 }
 
 function handleBridgeUpdate(parsed, originSocket) {
-  let cookie = authorize(originSocket.handshake.headers, originSocket)
+  let cookie = null;
+  try {
+    cookied = authorize(originSocket.handshake.headers, originSocket)
+  } catch (e) {
+    return;
+  }
+  
   let user = Users.lookup(cookie.id);
   
   if (debug_level > 2) {
