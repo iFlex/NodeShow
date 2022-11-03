@@ -471,7 +471,7 @@ function handleBulkUpdate(data) {
 function handleBridgeUpdate(parsed, originSocket) {
   let cookie = null;
   try {
-    cookied = authorize(originSocket.handshake.headers, originSocket)
+    cookie = authorize(originSocket.handshake.headers, originSocket)
   } catch (e) {
     return;
   }
