@@ -149,6 +149,8 @@ class Presentation {
 				
 				let child = data.detail.descriptor;
 		        let parentId = data.detail.parentId;
+				let parentNode = this.rawData[parentId];
+				let insertAtIndex = data.detail.insertAtIndex;
 		        let now = Date.now()
 
 				if (data.event == Events.create) {
@@ -163,6 +165,12 @@ class Presentation {
 					if (!this.rawData[parentId]) {
 						this.roots[parentId] = true
 					}
+				}
+
+				if (insertAtIndex !== null && parentNode) {
+					console.log("Inserted child at index: " + insertAtIndex)
+					parentNode.children.splice( insertAtIndex, 0, {id:child.id})
+					//ToDo: Will need to issue an event here (currently a reload will reflect this change)
 				}
 		        
 				//track roots
