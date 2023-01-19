@@ -131,20 +131,34 @@ Current Prios:
 - [nice to have] should be allowed to add container actions that trigger only in presentation mode or on preview.
 - [check - i think we have this now][should consider] Consider having local and global permissions. Local don't get propagated to others or persisted, global are persisted and propagated.
 
+[PURPOSE]***************
 Current purpose:
 [OK] Serve as a view controller for my newsstand application. It receives updates in the form of HTML news bits which will get displayed on screen & presisted for later view.
 [MEH] Create interactive cards (christmas, new year, birthday, etc)
 Import HTML pages and edit them - used to take notes and abstract away detail in books / articles / etc
-
-Next Purpose:
-Create Spatial documents / diagrams. E.g. Take DnD notes. Diagram a System
+[OK-ish] Create Spatial documents / diagrams. E.g. Take DnD notes. Diagram a System
  -> make easy 2D rectangular diagrams with auto width/height and positioning
  -> make it mix easily with absolute positioning
+ 
+[PURPOSE] Next Purpose:
+Creating searchable / summarisable / large documents. Basically hold information at multiple levels of abstraction and allow you to search it.
+ * Searchable
+ * Abstract away details (but can give you the details on demand:: zoom in and out of a concept)
+ * Can pull in new information from various sources directly into the document and then allow you to summarize / abstract away
+ * Lazy loads information so that it can store a large amount of data per document without ever having to show it all
+
+Document Partitioning:
+ * Link to other documents without loading them in the current doc (sites, other NodeShows, etc)
+ * Move a container outside of current NodeShow and link to it. Doc1[a,b] = Doc1[a] -> Doc2[b]
+ * Pull in a NodeShow or external resource into current document (merge NodeShow). Doc1[a] -> Doc2[b] = Doc1[a,b]
+
+In essence you're making an information holder that allows you to choose what abstraction level you look at, take in new information and summarize it, take notes on top of existing information, etc.
 
 Stretch purpose:
-Create 'living' diagrams (that can update themselves with status information)
+* Export an API for container activity so that for example user interaction data can be collected. i.e. user has clicked container x, has expanded container x, etc
+* Create 'living' diagrams (that can update themselves with status information)
 or even intaractive dashboards?
-Don't know for sure yet if this is feasable... (there are existing tools for such things already)
+  -> Don't know for sure yet if this is feasable... (there are existing tools for such things already)
 
 For links:
 https://www.smashingmagazine.com/2018/05/svg-interaction-pointer-events-property/
