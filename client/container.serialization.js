@@ -39,6 +39,7 @@ function emitContainerCreated(context, parent, child, callerId, emit = true) {
     //this container has finally been initialized
 
     if (emit === true) {
+        console.log("[EVENT_EMIT]:: Created new container");
         context.emit(ACTIONS.create, {
             presentationId: context.presentationId, 
             parentId: parent.id, 

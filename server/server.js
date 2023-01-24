@@ -328,7 +328,7 @@ let services = 0
 //revisit this. It has grown to be overcomplicated.
 io.on('connection', function (socket) {
   console.log("New socket.io connection")
-  socket.on('register', function (parsed) {
+  socket.on('register', function (parsed, callback) {
     console.log("Register request:")
     console.log(parsed)
 
@@ -357,7 +357,14 @@ io.on('connection', function (socket) {
       socket.emit('register', registerMsg)
       //beam over presentation
       broadcast(null, ['user.joined', registerMsg], prezzo.sockets);
-      sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
+
+      if (parsed.bulkLoad !== false) {
+        sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
+      }
+
+      if (callback) {
+        callback({status: "ok"});
+      }
     }
   });
 

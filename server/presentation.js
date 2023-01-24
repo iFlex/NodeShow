@@ -1,3 +1,4 @@
+const { ConsoleMessage } = require('puppeteer');
 const Events = require('./NodeShowEvents')
 const SecurityFilter = require('./SecurityFilter')
 
@@ -125,7 +126,20 @@ class Presentation {
 		}
 		return data
 	}
-	
+
+	updateRow (newData) {
+		let rowId = newData.id;
+		let row = (this.rawData[rowId] || {})
+		
+		if (!this.rawData[rowId]) {
+			this.rawData[rowId] = row
+		}
+		
+		for (const [key, value] of Object.entries(newData)) {
+			row[key] = value
+		}
+	}
+
 	update(data) {
 		data = this.validate(data)
 		if (data.detail && data.detail.descriptor && data.detail.descriptor.data && data.detail.descriptor.data.containerPermissions) {
@@ -145,12 +159,17 @@ class Presentation {
         //ToDo: plug in logic to check if op is allowed
         try{
 			if (data.event == Events.create || data.event == Events.update) {
-				//console.log(`${data.event}(${data.detail.descriptor.id}) -> ${data.detail.descriptor.nodeName}`)
-				
+				console.log(`${data.event}(${data.detail.descriptor.id}) -> ${data.detail.insertAtIndex}`)
 				let child = data.detail.descriptor;
-		        let parentId = data.detail.parentId;
+
+				if (data.event == Events.create && this.rawData[child.id]) {
+					console.error(`Child ${child.id} already exists. Ignoring re-creation of child.`)
+					return data;
+				}
+				
+				let parentId = data.detail.parentId;
 				let parentNode = this.rawData[parentId];
-				let insertAtIndex = data.detail.insertAtIndex;
+				let insertAtIndex = (Number.isInteger(data.detail.insertAtIndex)) ? data.detail.insertAtIndex : -1;
 		        let now = Date.now()
 
 				if (data.event == Events.create) {
@@ -158,19 +177,30 @@ class Presentation {
 				}
 				child.lastUpdated = now
 
-		        this.rawData[child.id] = child;
+		        this.updateRow(child)
 				
 				if (parentId) {
+					//If a parent is specified, update parentLink in child record
 					this.rawData[child.id]['parentId'] = parentId
 					if (!this.rawData[parentId]) {
 						this.roots[parentId] = true
 					}
 				}
+				//on create, build list of childNodes (update doesn't need to do this)
+				if (data.event == Events.create && parentNode) {
+					if (!parentNode.childNodes) {
+						parentNode.childNodes = []
+					}
+					
+					//Compute correct index position
+					insertAtIndex = (parentNode.childNodes.length == 0) ? 0 : (insertAtIndex % parentNode.childNodes.length);
+					if (insertAtIndex < 0) {
+						insertAtIndex = parentNode.childNodes.length + insertAtIndex
+					}
 
-				if (insertAtIndex !== null && parentNode) {
-					console.log("Inserted child at index: " + insertAtIndex)
-					parentNode.children.splice( insertAtIndex, 0, {id:child.id})
-					//ToDo: Will need to issue an event here (currently a reload will reflect this change)
+					//TODO: fix this as it doesn't work
+					console.log(`Inserting child at index: ${insertAtIndex} - with - ${JSON.stringify(data)}`);	
+					parentNode.childNodes.splice( insertAtIndex, 0, {id:child.id})
 				}
 		        
 				//track roots
