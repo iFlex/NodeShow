@@ -7,16 +7,18 @@ import { ACCESS_REQUIREMENT } from '../utils/InputAccessManager.mjs'
 //seems to be connected to the fact that the interface is not sent over the network, but container.update on news card will contain information about it
 export class NewsStand {
     appId = 'container.newsstand'
- 
+
+    #container = null;
+    #bridge = null;
     #target = null;
     #interface = null;
-    #container = null;
     #enabled = false
     #keyboard = null;
     #mouse = null;
 
-    constructor(container) {
+    constructor(container, bridge) {
       this.#container = container
+      this.#bridge = bridge
       this.#container.registerComponent(this);
 
       this.#keyboard = new Keyboard(this.appId, container, ACCESS_REQUIREMENT.DEFAULT)
@@ -97,10 +99,6 @@ export class NewsStand {
     }
 
     showInterface(node) {
-      if (!node) {
-        return;
-      }
-
       this.#target = node
       this.#container.setParent(this.#interface, this.#target, this.appId, null, false)
       this.#container.show(this.#interface, this.appId, false)
@@ -116,7 +114,15 @@ export class NewsStand {
     }
 
     onClick(e) {
+      let originalTarget = e.detail.originalEvent.target;
       let node = this.findContainingDiv(this.#container.lookupReal(e.detail.originalEvent.target, false))
-      this.showInterface(node);
+      
+      if (node) {
+        this.showInterface(node);
+        if (this.#container.getParent(originalTarget).nodeName === 'A') {
+          //User nagivated to article, need to fire an event
+          this.#bridge.sendActivityUpdate({event:"user.click", id:node.id})
+        }
+      }
     }
 }

@@ -328,7 +328,7 @@ let services = 0
 //revisit this. It has grown to be overcomplicated.
 io.on('connection', function (socket) {
   console.log("New socket.io connection")
-  socket.on('register', function (parsed) {
+  socket.on('register', function (parsed, callback) {
     console.log("Register request:")
     console.log(parsed)
 
@@ -336,7 +336,13 @@ io.on('connection', function (socket) {
     let prezzo = presentations[prezId];
 
     if (prezzo) {
-      let cookie = authorize(socket.handshake.headers, socket)
+      let cookie = null;
+      try {
+        cookie = authorize(socket.handshake.headers, socket)
+      } catch (e) {
+        return;
+      }
+      
       let user = Users.lookup(cookie.id);
       user.sessionId = utils.makeAuthToken(64); 
       if (!user.id) {
@@ -351,12 +357,18 @@ io.on('connection', function (socket) {
       socket.emit('register', registerMsg)
       //beam over presentation
       broadcast(null, ['user.joined', registerMsg], prezzo.sockets);
-      sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
+
+      if (parsed.bulkLoad !== false) {
+        sendPresentationToNewUser(socket, prezzo.presentation)//Presentations.get(prezId))
+      }
+
+      if (callback) {
+        callback({status: "ok"});
+      }
     }
   });
 
   socket.on('update', (data, ack) => {
-    // let s = Date.now()
     try {
       handleBridgeUpdate(data, socket)    
       if (ack) {
@@ -366,11 +378,26 @@ io.on('connection', function (socket) {
       console.error(`Failed to process bridge update`)
       console.error(e)
     }
-    // let e = Date.now()
-    // totalServiceTime += (e-s)
-    // services++;
-    // console.log(`Service time: ${e - s} avg:${totalServiceTime/servicesa}`)
   });
+
+  socket.on('activity', (data, ack) => {
+    let cookie = null;
+    try {
+      cookie = authorize(socket.handshake.headers, socket)
+    } catch (e) {
+      return;
+    }
+
+    let prezId = data.presentationId;
+    let sessionId = data.sessionId;
+    let prezzo = presentations[prezId];
+
+    if (prezzo) {
+      console.log(`User activity received ${JSON.stringify(data)}`)
+      //ToDo: make this subscription based and protect with permissions (who can receive activity updates. Definitely shouldn't broadcast this to all sockets in prezzo)
+      broadcast(sessionId, ['activity', data], prezzo.sockets);
+    }
+  })
  
   socket.on("disconnect", (e) => {
     console.log(`Connection closed:${e}`);
@@ -449,7 +476,13 @@ function handleBulkUpdate(data) {
 }
 
 function handleBridgeUpdate(parsed, originSocket) {
-  let cookie = authorize(originSocket.handshake.headers, originSocket)
+  let cookie = null;
+  try {
+    cookie = authorize(originSocket.handshake.headers, originSocket)
+  } catch (e) {
+    return;
+  }
+  
   let user = Users.lookup(cookie.id);
   
   if (debug_level > 2) {
@@ -491,6 +524,7 @@ function broadcast(senderId, message, sockets) {
 
   for (const [socSessionId, record] of Object.entries(sockets)) {
     if (socSessionId != senderId) {
+      //console.log(`broadcasting to ${socSessionId} of total(${Object.entries(sockets).length})`)
       record.socket.emit(message[0], message[1]);
     }
   }

@@ -163,6 +163,18 @@ export class LiveBridge {
         this.metrics.sent++;
     }
     
+    sendActivityUpdate(detail) {
+        if (!detail) {
+            return;
+        }
+
+        let update = {
+            presentationId: this.container.presentationId,
+            sessionId: this.sessionId,
+            detail: detail
+        }
+        this.socket.emit("activity", update);
+    }
 
     /**
      * @summary Registers with the server.

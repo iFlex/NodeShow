@@ -34,8 +34,8 @@ class FolderKeyFileStorage {
 		try {	
 			return JSON.parse(fs.readFileSync(filename, 'utf8'))
 		} catch (e) {
-			console.error(`Failed to locate storage file ${filename}`)
-			console.error(e)
+			//console.error(`Failed to locate storage file ${filename}`)
+			//console.error(e)
 		}
 		return null
 	}
